@@ -2,14 +2,12 @@ import pygame
 import sys
 import random
 
-#is git working?
 pygame.init()
 pygame.font.init()
 font = pygame.font.SysFont('freesansbold.ttf', 20)
-#E:\GitHubManualFolder\TestRepo\imgs
-background = pygame.image.load("E:\\GitHubManualFolder\\TestRepo\\imgs\\backdrop.jpg")
-cadet = pygame.image.load("E:\\GitHubManualFolder\\TestRepo\\imgs\\cadet.png")
-alien = pygame.image.load("E:\\GitHubManualFolder\\TestRepo\\imgs\\alien.png")
+background = pygame.image.load("imgs\\backdrop.jpg")
+cadet = pygame.image.load("imgs\\cadet.png")
+alien = pygame.image.load("imgs\\alien.png")
 
 background = pygame.transform.scale(background, (1920, 1080))
 cadet = pygame.transform.scale(cadet, (110, 102))
