@@ -6,10 +6,10 @@ import random
 pygame.init()
 pygame.font.init()
 font = pygame.font.SysFont('freesansbold.ttf', 20)
-
-background = pygame.image.load("C:\\Users\\USER\\Desktop\\backdrop.jpg")
-cadet = pygame.image.load("C:\\Users\\USER\\Desktop\\cadet.png")
-alien = pygame.image.load("C:\\Users\\USER\\Desktop\\alien.png")
+#E:\GitHubManualFolder\TestRepo\imgs
+background = pygame.image.load("E:\\GitHubManualFolder\\TestRepo\\imgs\\backdrop.jpg")
+cadet = pygame.image.load("E:\\GitHubManualFolder\\TestRepo\\imgs\\cadet.png")
+alien = pygame.image.load("E:\\GitHubManualFolder\\TestRepo\\imgs\\alien.png")
 
 background = pygame.transform.scale(background, (1920, 1080))
 cadet = pygame.transform.scale(cadet, (110, 102))
@@ -21,7 +21,7 @@ alienrect = alien.get_rect()
 cadetrect = cadet.get_rect()
 backgroundrect = background.get_rect()
 
-alienrect.center = (900, 400)
+alienrect.center = (120, 220)
 
 lasers = []
 abilities = []
@@ -36,6 +36,9 @@ shake_intensity = 6
 shake_offset_x = 0
 shake_offset_y = 0
 
+alien_hit_timer = 0
+alien_hit_duration = 5 #asjust this var if u want different duration of hit effect
+
 intro_active = True
 intro_step = 0
 intro_timer = 0
@@ -43,14 +46,10 @@ intro_step_duration = 40
 
 intro_waypoints = [
     (1300, 1000),
-    (1300, 900),
-    (1500, 800),
-    (1400, 700),
-    (1300, 600),
-    (1100, 700),
-    (1000, 800),
-    (940,  840),
-    (960,  800),
+    (1300, 900),(1500, 800),
+    (1400, 700),(1300, 600),
+    (1100, 700),(1000, 800),
+    (940,  840),(960,  800),
 ]
 cadetrect.center = intro_waypoints[0]
 original_y = cadetrect.y
@@ -206,14 +205,33 @@ while running:                                          # ← everything below i
 
     screen.fill(background_color)
     screen.blit(background, (0, 0))
-    screen.blit(alien, alienrect)
+
+    if alien_hit_timer > 0:
+        screen.blit(alien, alienrect)
+        red_surface = pygame.Surface(alien.get_size(),pygame.SRCALPHA)
+        red_surface.fill((255,0,0,180))
+        screen.blit(red_surface, alienrect)
+        alien_hit_timer -= 1
+    else:
+        screen.blit(alien, alienrect)
+
     screen.blit(cadet, (cadetrect.x + shake_offset_x, cadetrect.y + shake_offset_y))
 
     moveLaser()
+    for laser in lasers[:]:
+        if laser['rect'].colliderect(alienrect):
+            lasers.remove(laser)
+            alien_hit_timer = alien_hit_duration
+            print("hit")
     for laser in lasers:
         pygame.draw.rect(screen, (255, 0, 0), laser['rect'])
 
     moveAbility()
+    for ability in abilities[:]:
+        if ability ['rect'].colliderect(alienrect):
+            abilities.remove(ability)
+            alien_hit_timer = alien_hit_duration + 1
+            print("HIT")
     for ability in abilities:
         pygame.draw.rect(screen, (0, 255, 255), ability['rect'])
 
