@@ -15,18 +15,12 @@ assetMgr = AssetManager()
 
 
 #states
-MENU, SELECT_DIFFICULTY, DIFFICULTY_1, DIFFICULTY_2, DIFFICULTY_3 = "menu", "select_difficulty", "difficulty_1", "difficulty_2", "difficulty_3"
+MENU, DIFFICULTY_1, DIFFICULTY_2, DIFFICULTY_3 = "menu", "difficulty_1", "difficulty_2", "difficulty_3"
 currState = MENU
 
 def setDifficulty(selected_diff):
     global currState
     currState = DIFFICULTY_1 if selected_diff == "Easy" else DIFFICULTY_2 if selected_diff == "Medium" else DIFFICULTY_3
-
-def openHistory():
-    print("History")
-
-def openCredits():
-    print("Credits")
 
 def quitGame():
     global running
@@ -41,18 +35,42 @@ theme.background_color = pyMenu.BaseImage("imgs\\backdrop.jpg")
 ###MENU###
 mainMenu = pyMenu.Menu("SpaceCode", screen.get_size()[0], screen.get_size()[1], theme=theme)
 selectDifficultyMenu = pyMenu.Menu("Select Difficulty", screen.get_size()[0], screen.get_size()[1], theme=theme)
-
+historyMenu = pyMenu.Menu("History", screen.get_size()[0], screen.get_size()[1], theme=theme)
+creditsMenu = pyMenu.Menu("Credits", screen.get_size()[0], screen.get_size()[1], theme=theme)
 
 ##add components###
 mainMenu.add.button("Play", selectDifficultyMenu)
-mainMenu.add.button("History", openHistory)
-mainMenu.add.button("Credits", openCredits)
+mainMenu.add.button("History", historyMenu)
+mainMenu.add.button("Credits", creditsMenu)
 mainMenu.add.button("Quit", quitGame)
 
 selectDifficultyMenu.add.button("Easy", setDifficulty, "Easy")
 selectDifficultyMenu.add.button("Medium", setDifficulty, "Medium")
 selectDifficultyMenu.add.button("Hard", setDifficulty, "Hard")
 selectDifficultyMenu.add.button("Back", pyMenu.events.BACK)
+
+historyMenu.add.button("Back", pyMenu.events.BACK)
+
+creditsMenu.add.label("Developed by")
+creditsMenu.add.label("Kenzieng")
+creditsMenu.add.label("Jinyoung")
+creditsMenu.add.label("Yumnung")
+
+creditsMenu.add.label("")
+creditsMenu.add.label("Graphics:")
+creditsMenu.add.label("Kenzie")
+creditsMenu.add.label("")
+creditsMenu.add.label("Music:")
+creditsMenu.add.label("Kenzie")
+creditsMenu.add.label("")
+creditsMenu.add.label("SFX:")
+creditsMenu.add.label("Kenzie")
+
+creditsMenu.add.button("Back", pyMenu.events.BACK)
+
+
+
+
 
 # ===================================== Asset Loading =====================================
 imageScale = 2
