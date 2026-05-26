@@ -13,11 +13,26 @@ import math
 import random
 import cv2
 import numpy as np
+import os
 
 
 # I am gonna be an astrophysician after this
 # Am I a computer science student with specialization in Artificial Intelligence
 # Or am I a Physician? Hm, I don't know anymore
+
+def loadAsteroidImages():
+    folder = os.path.join("Assets", "Asteroids")
+    asteroidGroups = {"Fiery": [], "Neutral": [], "Small": []}
+    for filename in (os.listdir(folder)):
+        img = pygame.image.load(os.path.join(folder, filename)).convert_alpha()
+        name = filename.lower()
+        if "fiery" in name:
+            asteroidGroups["Fiery"].append(img)
+        elif "small" in name:
+            asteroidGroups["Small"].append(img)
+        else:
+            asteroidGroups["Neutral"].append(img)
+    return asteroidGroups
 
 class Boss:
     max_hp = 60
@@ -50,13 +65,60 @@ class Boss:
         print("Hi")
 
     def gravityPull(self, player_rect, screen_w, screen_h):
-        print("Hi")
         # Create summonedMass at a location randomly under specified conditions that pulls players in
-        mass = summonedMass()
+        mass = Mass()
         mass.spawnLocation(player_rect, self.rect, screen_w, screen_h)
         self.active_masses.append(mass)
 
-class summonedMass:
+    def asteroidBarrage(self, player_rect):
+        cx, cy = self.rect.center
+        aim = math.atan2(player_rect.centery - cy, player_rect.centerx - cx)
+        count = random.randint(5, 8)
+        spread = math.radians(120)
+        if self.phase == 1:
+            asteroidType = "Neutral"
+        else:
+            asteroidType = "Fiery"
+        for i in range(count):
+            # t is made to even the spread of the asteroids
+            t = i / (count - 1)
+            angle = aim - spread / 2 + spread * t
+            vx = math.cos(angle)
+            vy = math.sin(angle)
+            size = random.randint(26, 46)
+            self.asteroids.append(Asteroid(cx, cy, vx, vy, size, asteroid_type=asteroidType))
+
+class Asteroid:
+    asteroidImages = loadAsteroidImages()
+    def __init__(self, x, y, vx, vy, size, asteroid_type="Neutral"):
+        asteroidImage = random.choice(self.asteroidImages[asteroid_type])
+        self.image = pygame.transform.scale(asteroidImage, (size, size))
+        self.rect = self.image.get_rect(center=(x, y))
+        self.angle = random.uniform(0, 360) # Spawns at a random angle
+        self.speed = 1.0 # Speed Increases Over Time
+        self.size = size
+        self.spin = 0
+        self.fx = float(x)
+        self.fy = float(y)
+        self.vx = vx
+        self.vy = vy
+
+    def move(self):
+        self.speed += 0.2
+        if self.speed > 15:
+            self.speed = 15
+        self.fx += self.vx * self.speed
+        self.fy += self.vy * self.speed
+        self.rect.x = int(self.fx)
+        self.rect.y = int(self.fy)
+        self.angle += (self.speed * 2) % 360
+
+    def draw(self, screen):
+        rotatedImage = pygame.transform.rotate(self.image, self.angle)
+        drawAsteroid = rotatedImage.get_rect(center=self.rect.center)
+        screen.blit(rotatedImage, drawAsteroid)
+
+class Mass:
     G = 6.674
     def __init__(self):
         self.radius = 30
