@@ -86,10 +86,16 @@ assetMgr.loadTexture("MainShip SDam","imgs\\Main Ship - Slight damage.png")
 assetMgr.loadTexture("MainShip Dam","imgs\\Main Ship -Damaged.png")
 assetMgr.loadTexture("MainShip VDam","imgs\\Main Ship - Very damaged.png")
 
-gun1Tex = assetMgr.loadAnim("AutoCannon","imgs\\Main Ship - Weapons - Auto Cannon.png")
-gun2Tex = assetMgr.loadAnim("BigGun","imgs\\Main Ship - Weapons - Big Space Gun.png")
-gun3Tex = assetMgr.loadAnim("Zapper","imgs\\Main Ship - Weapons - Zapper.png")
-gun4Tex = assetMgr.loadAnim("Rockets","imgs\\Main Ship - Weapons - Rockets.png")
+gun1Anim = assetMgr.loadAnim("AutoCannon","imgs\\Main Ship - Weapons - Auto Cannon.png")
+gun2Anim = assetMgr.loadAnim("BigGun","imgs\\Main Ship - Weapons - Big Space Gun.png")
+gun3Anim = assetMgr.loadAnim("Zapper","imgs\\Main Ship - Weapons - Zapper.png")
+gun4Anim = assetMgr.loadAnim("Rockets","imgs\\Main Ship - Weapons - Rockets.png")
+
+proj1Anim =  assetMgr.loadAnim("AutoCannonProj", "imgs\\Main ship weapon - Projectile - Auto cannon bullet.png")
+proj2Anim =  assetMgr.loadAnim("BigProj", "imgs\\Main ship weapon - Projectile - Big Space Gun.png")
+proj5Anim =  assetMgr.loadAnim("BigProjEx", "imgs\\Main ship weapon - Projectile - Big Space Gun Ex.png")
+proj3Anim =  assetMgr.loadAnim("ZapperProj", "imgs\\Main ship weapon - Projectile - Zapper.png")
+proj4Anim =  assetMgr.loadAnim("RocketProj", "imgs\\Main ship weapon - Projectile - Rocket.png")
 
 
 # ===================================== Initial Setting =====================================
