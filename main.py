@@ -11,7 +11,7 @@ pygame.display.set_caption('SpaceCode')
 screen = pygame.display.set_mode((1280, 720))
 screen_w, screen_h = screen.get_size()
 clock = pygame.time.Clock()
-assetMgr = AssetManager()
+assetMgr = AssetManager(2)
 
 
 #states
@@ -80,16 +80,16 @@ assetMgr.loadTexture("cadet","imgs\\cadet.png")
 assetMgr.loadTexture("alien","imgs\\alien.png")
 
 # Ship
-shipTex = assetMgr.loadTexture("MainShip Full","imgs\\Main Ship - Full health.png", 2)
+shipTex = assetMgr.loadTexture("MainShip Full","imgs\\Main Ship - Full health.png")
 shipRect = assetMgr.getRect("MainShip Full")
-assetMgr.loadTexture("MainShip SDam","imgs\\Main Ship - Slight damage.png", 2)
-assetMgr.loadTexture("MainShip Dam","imgs\\Main Ship -Damaged.png", 2)
-assetMgr.loadTexture("MainShip VDam","imgs\\Main Ship - Very damaged.png", 2)
+assetMgr.loadTexture("MainShip SDam","imgs\\Main Ship - Slight damage.png")
+assetMgr.loadTexture("MainShip Dam","imgs\\Main Ship -Damaged.png")
+assetMgr.loadTexture("MainShip VDam","imgs\\Main Ship - Very damaged.png")
 
-gun1Tex = assetMgr.loadTexture("AutoCannon","imgs\\Main Ship - Weapons - Auto Cannon.png", 2)
-gun2Tex = assetMgr.loadTexture("BigGun","imgs\\Main Ship - Weapons - Big Space Gun.png", 2)
-gun3Tex = assetMgr.loadTexture("Zapper","imgs\\Main Ship - Weapons - Zapper.png", 2)
-gun4Tex = assetMgr.loadTexture("Rockets","imgs\\Main Ship - Weapons - Rockets.png", 2)
+gun1Tex = assetMgr.loadAnim("AutoCannon","imgs\\Main Ship - Weapons - Auto Cannon.png")
+gun2Tex = assetMgr.loadAnim("BigGun","imgs\\Main Ship - Weapons - Big Space Gun.png")
+gun3Tex = assetMgr.loadAnim("Zapper","imgs\\Main Ship - Weapons - Zapper.png")
+gun4Tex = assetMgr.loadAnim("Rockets","imgs\\Main Ship - Weapons - Rockets.png")
 
 
 # ===================================== Initial Setting =====================================
@@ -115,20 +115,19 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # 1 is Left Click
-
-                # 1. Tell the weapon to shoot and catch the projectile it creates
-                bullet = player.weapon.shootLaser()
-
-                # 2. Drop it directly into your main projectile group!
-                projectile_group.add(bullet)
-
     # =========================================================================
     # PHASE 2: UPDATE GAME STATE (Physics & Math)
     # =========================================================================
     player.update()
+
+    mouse_buttons = pygame.mouse.get_pressed()
+
+    if mouse_buttons[0]:  # 0 is Left Click held down
+        # Spawn a bullet
+        bullets = player.weapon.shootProjectile()
+        if bullets is not None:
+            projectile_group.add(*bullets)
+
     projectile_group.update()
 
     if currState == MENU:

@@ -34,14 +34,17 @@ class Player:
         surface.blit(self.image, self.rect)
 
     def update(self):
-        self.handle_mouse_input()
-
         self.rect.x = int(self.pos.x)
         self.rect.y = int(self.pos.y)
 
+        self.handle_mouse_input()
         self.weapon.pos.x = self.rect.centerx - (self.weapon.rect.width / 2)
-        self.weapon.pos.y = self.rect.centery - (self.weapon.rect.height / 2)  - 10
-
+        self.weapon.pos.y = self.rect.centery - (self.weapon.rect.height / 2)
         self.weapon.rect.x = int(self.weapon.pos.x)
         self.weapon.rect.y = int(self.weapon.pos.y)
+
+        mouse_buttons = pygame.mouse.get_pressed()
+        is_firing = mouse_buttons[0]
+
+        self.weapon.update(is_firing)
 
