@@ -8,6 +8,7 @@ from MainMenu import MainMenu
 from Player import Player
 from background import Background
 from PlayScreen import PlayScreen
+from CutScene import CutScene
 
 pygame.init()
 pygame.font.init()
@@ -16,14 +17,18 @@ pygame.display.set_caption('SpaceCode')
 screen = pygame.display.set_mode((1280, 720))
 screen_w, screen_h = screen.get_size()
 menu = MainMenu(screen_w, screen_h)
+cutscene = CutScene(screen_w, screen_h)
 bg = Background(1280, 720)
 clock = pygame.time.Clock()
 assetMgr = AssetManager(2)
 
 
 #states
-MENU, PLAY_SCREEN, DIFFICULTY_1, DIFFICULTY_2, DIFFICULTY_3 = "menu", "play_screen", "difficulty_1", "difficulty_2", "difficulty_3"
+MENU, CUTSCENE, PLAY_SCREEN, DIFFICULTY_1, DIFFICULTY_2, DIFFICULTY_3 = \
+    "menu", "cutscene", "play_screen", "difficulty_1", "difficulty_2", "difficulty_3"
+
 currState = MENU
+selected_difficulty = None
 
 def setDifficulty(selected_diff):
     global currState
@@ -160,18 +165,28 @@ while running:
         play_screen.draw(screen)
 
         if play_screen.action == "START":
-            if play_screen.difficulty == "Easy":
+            selected_difficulty = play_screen.difficulty
+            currState = CUTSCENE
+            cutscene = CutScene(screen_w, screen_h)
+
+    elif currState == CUTSCENE:
+        dt = clock.get_time() / 1000.0
+        bg.update(dt)
+        bg.draw(screen)
+        cutscene.update(events)
+        cutscene.draw(screen)
+
+        if cutscene.action == "DONE":
+            if selected_difficulty == "Easy":
                 currState = DIFFICULTY_1
-            elif play_screen.difficulty == "Medium":
+            elif selected_difficulty == "Medium":
                 currState = DIFFICULTY_2
-            elif play_screen.difficulty == "Hard":
+            elif selected_difficulty == "Hard":
                 currState = DIFFICULTY_3
-        elif play_screen.action == "BACK":
-            currState = MENU
 
     elif currState == DIFFICULTY_1:
         dt = clock.get_time() / 1000.0
-        screen.fill((0, 0, 0))
+
         bg.update(dt)
         bg.draw(screen)
         player.draw(screen)
@@ -179,7 +194,7 @@ while running:
 
     elif currState == DIFFICULTY_2:
         dt = clock.get_time() / 1000.0
-        screen.fill((0, 0, 0))
+
         bg.update(dt)
         bg.draw(screen)
         player.draw(screen)
@@ -187,7 +202,7 @@ while running:
 
     elif currState == DIFFICULTY_3:
         dt = clock.get_time() / 1000.0
-        screen.fill((0, 0, 0))
+
         bg.update(dt)
         bg.draw(screen)
         player.draw(screen)
