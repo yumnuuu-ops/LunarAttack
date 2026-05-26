@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import pygame_menu as pyMenu
 from AssetManager import AssetManager
 from Player import Player
 
@@ -11,6 +12,65 @@ screen = pygame.display.set_mode((1280, 720))
 screen_w, screen_h = screen.get_size()
 clock = pygame.time.Clock()
 assetMgr = AssetManager(2)
+
+
+#states
+MENU, DIFFICULTY_1, DIFFICULTY_2, DIFFICULTY_3 = "menu", "difficulty_1", "difficulty_2", "difficulty_3"
+currState = MENU
+
+def setDifficulty(selected_diff):
+    global currState
+    currState = DIFFICULTY_1 if selected_diff == "Easy" else DIFFICULTY_2 if selected_diff == "Medium" else DIFFICULTY_3
+
+def quitGame():
+    global running
+    running = False
+
+##themes###
+theme = pyMenu.themes.THEME_DEFAULT.copy()
+theme.title = False
+theme.background_color = pyMenu.BaseImage("imgs\\backdrop.jpg")
+
+
+###MENU###
+mainMenu = pyMenu.Menu("SpaceCode", screen.get_size()[0], screen.get_size()[1], theme=theme)
+selectDifficultyMenu = pyMenu.Menu("Select Difficulty", screen.get_size()[0], screen.get_size()[1], theme=theme)
+historyMenu = pyMenu.Menu("History", screen.get_size()[0], screen.get_size()[1], theme=theme)
+creditsMenu = pyMenu.Menu("Credits", screen.get_size()[0], screen.get_size()[1], theme=theme)
+
+##add components###
+mainMenu.add.button("Play", selectDifficultyMenu)
+mainMenu.add.button("History", historyMenu)
+mainMenu.add.button("Credits", creditsMenu)
+mainMenu.add.button("Quit", quitGame)
+
+selectDifficultyMenu.add.button("Easy", setDifficulty, "Easy")
+selectDifficultyMenu.add.button("Medium", setDifficulty, "Medium")
+selectDifficultyMenu.add.button("Hard", setDifficulty, "Hard")
+selectDifficultyMenu.add.button("Back", pyMenu.events.BACK)
+
+historyMenu.add.button("Back", pyMenu.events.BACK)
+
+creditsMenu.add.label("Developed by")
+creditsMenu.add.label("Kenzieng")
+creditsMenu.add.label("Jinyoung")
+creditsMenu.add.label("Yumnung")
+
+creditsMenu.add.label("")
+creditsMenu.add.label("Graphics:")
+creditsMenu.add.label("Kenzie")
+creditsMenu.add.label("")
+creditsMenu.add.label("Music:")
+creditsMenu.add.label("Kenzie")
+creditsMenu.add.label("")
+creditsMenu.add.label("SFX:")
+creditsMenu.add.label("Kenzie")
+
+creditsMenu.add.button("Back", pyMenu.events.BACK)
+
+
+
+
 
 # ===================================== Asset Loading =====================================
 imageScale = 2
@@ -50,10 +110,8 @@ projectile_group = pygame.sprite.Group()
 running = True
 
 while running:
-    # =========================================================================
-    # PHASE 1: INPUT / EVENTS
-    # =========================================================================
-    for event in pygame.event.get():
+    events = pygame.event.get()
+    for event in events:
         if event.type == pygame.QUIT:
             running = False
 
@@ -72,13 +130,22 @@ while running:
 
     projectile_group.update()
 
-    # =========================================================================
-    # PHASE 3: DRAW (Back to Front)
-    # =========================================================================
-    screen.blit(background, (0, 0)) # Screen first
+    if currState == MENU:
+        mainMenu.update(events)
+        mainMenu.draw(screen)
+    elif currState == DIFFICULTY_1:
+        screen.blit(background, (0, 0)) # Screen first
+        player.draw(screen)
+        projectile_group.draw(screen)
+    elif currState == DIFFICULTY_2:
+        screen.blit(background, (0, 0)) # Screen first
+        player.draw(screen)
+        projectile_group.draw(screen)
+    elif currState == DIFFICULTY_3:
+        screen.blit(background, (0, 0)) # Screen first
+        player.draw(screen)
+        projectile_group.draw(screen)
 
-    player.draw(screen)
-    projectile_group.draw(screen)
     pygame.display.flip()
 
     clock.tick(60)
