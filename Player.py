@@ -9,11 +9,14 @@ class Player:
         self.projectileType = "cannon"
 
     def shootLaser(self):
+        pass
 
     def shootBomb(self):
+        pass
 
     def takeDamage(self, damage):
         self.health -= damage
 
     def changeFireMode(self):
+        pass
 
