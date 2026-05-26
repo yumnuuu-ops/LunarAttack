@@ -4,12 +4,14 @@ import random
 import pygame_menu as pyMenu
 from AssetManager import AssetManager
 from Player import Player
+from background import Background
 
 pygame.init()
 pygame.font.init()
 pygame.display.set_caption('SpaceCode')
 screen = pygame.display.set_mode((1280, 720))
 screen_w, screen_h = screen.get_size()
+bg = Background(1280, 720)
 clock = pygame.time.Clock()
 assetMgr = AssetManager(2)
 
@@ -75,7 +77,6 @@ creditsMenu.add.button("Back", pyMenu.events.BACK)
 # ===================================== Asset Loading =====================================
 imageScale = 2
 
-assetMgr.loadTexture("background", "imgs\\backdrop.jpg")
 assetMgr.loadTexture("cadet","imgs\\cadet.png")
 assetMgr.loadTexture("alien","imgs\\alien.png")
 
@@ -94,13 +95,9 @@ gun4Tex = assetMgr.loadAnim("Rockets","imgs\\Main Ship - Weapons - Rockets.png")
 
 # ===================================== Initial Setting =====================================
 font = pygame.font.SysFont('freesansbold.ttf', 20)
-raw_background = assetMgr.getTexture("background")
-background = pygame.transform.scale(raw_background, (1280, 720))
-
-
 
 # ========================================== Get Size ======================================
-backgroundRect = assetMgr.getRect("background")
+#removed for background
 
 # ====================================== Object Creation ======================================
 player = Player(assetMgr,200, 300)
@@ -134,16 +131,22 @@ while running:
         mainMenu.update(events)
         mainMenu.draw(screen)
     elif currState == DIFFICULTY_1:
-        screen.blit(background, (0, 0)) # Screen first
-        player.draw(screen)
+        dt = clock.get_time() / 1000.0
+        bg.update(dt)
+        bg.draw(screen)
+        player.draw(screen)  # 2. player ON TOP
         projectile_group.draw(screen)
     elif currState == DIFFICULTY_2:
-        screen.blit(background, (0, 0)) # Screen first
-        player.draw(screen)
+        dt = clock.get_time() / 1000.0
+        bg.update(dt)
+        bg.draw(screen)
+        player.draw(screen)  # 2. player ON TOP
         projectile_group.draw(screen)
     elif currState == DIFFICULTY_3:
-        screen.blit(background, (0, 0)) # Screen first
-        player.draw(screen)
+        dt = clock.get_time() / 1000.0
+        bg.update(dt)
+        bg.draw(screen)
+        player.draw(screen)  # 2. player ON TOP
         projectile_group.draw(screen)
 
     pygame.display.flip()
