@@ -15,21 +15,12 @@ assetMgr = AssetManager()
 
 
 #states
-MENU, DIFFICULTY_1_SCREEN, DIFFICULTY_2_SCREEN, DIFFICULTY_3_SCREEN = "menu", "difficulty_1_screen", "difficulty_2_screen", "difficulty_3_screen"
+MENU, SELECT_DIFFICULTY, DIFFICULTY_1, DIFFICULTY_2, DIFFICULTY_3 = "menu", "select_difficulty", "difficulty_1", "difficulty_2", "difficulty_3"
 currState = MENU
-selected_difficulty = 0
 
-def startGame():
+def setDifficulty(selected_diff):
     global currState
-    currState = DIFFICULTY_1_SCREEN
-
-def startMenu():
-    global currState
-    currState = MENU
-
-def setDifficulty(value):
-    global selected_difficulty
-    selected_difficulty = value
+    currState = DIFFICULTY_1 if selected_diff == "Easy" else DIFFICULTY_2 if selected_diff == "Medium" else DIFFICULTY_3
 
 def openHistory():
     print("History")
@@ -41,16 +32,27 @@ def quitGame():
     global running
     running = False
 
-
-###MAIN MENU###
+##themes###
 theme = pyMenu.themes.THEME_DEFAULT.copy()
 theme.title = False
 theme.background_color = pyMenu.BaseImage("imgs\\backdrop.jpg")
+
+
+###MENU###
 mainMenu = pyMenu.Menu("SpaceCode", screen.get_size()[0], screen.get_size()[1], theme=theme)
-mainMenu.add.button("Play", startGame)
+selectDifficultyMenu = pyMenu.Menu("Select Difficulty", screen.get_size()[0], screen.get_size()[1], theme=theme)
+
+
+##add components###
+mainMenu.add.button("Play", selectDifficultyMenu)
 mainMenu.add.button("History", openHistory)
 mainMenu.add.button("Credits", openCredits)
 mainMenu.add.button("Quit", quitGame)
+
+selectDifficultyMenu.add.button("Easy", setDifficulty, "Easy")
+selectDifficultyMenu.add.button("Medium", setDifficulty, "Medium")
+selectDifficultyMenu.add.button("Hard", setDifficulty, "Hard")
+selectDifficultyMenu.add.button("Back", pyMenu.events.BACK)
 
 # ===================================== Asset Loading =====================================
 imageScale = 2
@@ -111,17 +113,21 @@ while running:
     player.update()
     projectile_group.update()
 
-    # =========================================================================
-    # PHASE 3: DRAW (Back to Front)
-    # =========================================================================
-    screen.blit(background, (0, 0)) # Screen first
-
-    player.draw(screen)
-    projectile_group.draw(screen)
-
     if currState == MENU:
         mainMenu.update(events)
         mainMenu.draw(screen)
+    elif currState == DIFFICULTY_1:
+        screen.blit(background, (0, 0)) # Screen first
+        player.draw(screen)
+        projectile_group.draw(screen)
+    elif currState == DIFFICULTY_2:
+        screen.blit(background, (0, 0)) # Screen first
+        player.draw(screen)
+        projectile_group.draw(screen)
+    elif currState == DIFFICULTY_3:
+        screen.blit(background, (0, 0)) # Screen first
+        player.draw(screen)
+        projectile_group.draw(screen)
 
     pygame.display.flip()
 
