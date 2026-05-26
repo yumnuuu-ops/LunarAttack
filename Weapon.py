@@ -5,7 +5,7 @@ from Projectile import Projectile
 
 class Weapon:
     def __init__(self, assetMgr, x, y):
-        self.selectedWeapon = "Rockets"
+        self.selectedWeapon = "Zapper"
         animation = assetMgr.getAnim(self.selectedWeapon)
         self.animator = AnimationManager(animation, speed=0.24)
         self.image = self.animator.get_current_frame()

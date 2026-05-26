@@ -32,10 +32,16 @@ class Background:
         for layer in self.layers:
             layer["offset"] = (layer["offset"] + layer["speed"] * dt * 60) % self.sh
 
-    def draw(self, screen):
+    def draw(self, screen, darkened = False):
         for layer in self.layers:
             offset = layer["offset"]
             h = self.sh
             # Draw twice for seamless looping
             screen.blit(layer["img"], (0, offset - h))
             screen.blit(layer["img"], (0, offset))
+
+        if darkened:
+            overlay = pygame.Surface((self.sw, self.sh))
+            overlay.set_alpha(150)
+            overlay.fill((0, 0, 0))
+            screen.blit(overlay, (0,0))
