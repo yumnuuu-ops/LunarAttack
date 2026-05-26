@@ -47,11 +47,10 @@ class CutScene:
                 "layout" : "text_left",
                 "lines"  : [
                     "It is the year 3067.",
-                    "The night sky is no longer a comfort.",
-                    "It is a warning.",
-                    "The moon... has changed.",
-                    "Something ancient and corrupt",
-                    "has taken hold of it.",
+                    "There has been signs of something lurking in the night sky.",#there is something lurking in the night sky
+                    "The Moon... ever so slightly has shifted.",
+                    "Gone were the days of the waxing moon",
+                    "Something ancient and corrupt has taken hold of it.",
                 ],
                 "sound"  : "moon_ambient",
                 "size": (371, 209)
@@ -60,45 +59,49 @@ class CutScene:
                 "image"  : "imgs/Narration/nSea.png",
                 "layout" : "image_left",
                 "lines"  : [
-                    "Strange tides.",
-                    "Unexplained tremors.",
-                    "Ships going dark.",
+                    "It all started slowly,"
+                    "Strange tides...",
+                    "Unexplained earthquakes..",
+                    "Sunken Ships..",
                 ],
                 "sound"  : "sea_storm",
                 "size": (209, 371)
             },
-            {
+            {#nuclear explosioin image
                 "image"  : "imgs/Narration/nAttack.png",
                 "layout" : "text_left",
                 "lines"  : [
-                    "Cities burn under its light.",
-                    "And now it turns its rage",
-                    "toward us.",
+                    "Suddenly one day..",
+                    "tremors are felt all over the world..",
+                    "The distorted reflection of the moonlight..",
+                    "accompanied by its rage, now is shining upon us...",
                 ],
                 "sound"  : "explosion",
                 "size": (371, 209)
             },
-            {
+            {#hopeless government
                 "image"  : "imgs/Narration/nGovernment.png",
                 "layout" : "image_left",
                 "lines"  : [
-                    "Governments have fallen",
-                    "to their knees.",
+                    "There are no longer people in charge..",
+                    "Governments are a thing of the past..",
                     "The Terra Defence Program",
-                    "has one answer.",
+                    "the last frontier..",
+                    "Held its last meeting.",
                 ],
                 "sound"  : "government_tension",
                 "size": (371, 209)
 
             },
-            {
+            {#rockets flying up
                 "image"  : "imgs/Narration/nTerraDefense.png",
                 "layout" : "text_left",
                 "lines"  : [
-                    "You.",
-                    "Every soldier we sent before you",
-                    "did not come back.",
-                    "But this ends today.",
+                    "You " + #username,
+                    "our bravest soldier"
+                    "Everyone we sent before you",
+                    "did not return.",
+                    "But this ends today!!",
                 ],
                 "sound"  : "launch",
                 "size": (371, 209)
@@ -107,11 +110,11 @@ class CutScene:
                 "image"  : "imgs/Narration/nEarth.png",
                 "layout" : "image_left",
                 "lines"  : [
-                    "The moon will fall.",
-                    "Or humanity will.",
-                    "Suit up.",
-                    "This is your mission.",
-                    "Do not fail us.",
+                    "The twisted corruption shall fall.", #The corruption sha
+                    "and Moon light will shine upon us once again.",
+                    "Suit up soldier",
+                    "This will be your final mission.",
+                    "Fall. and the end is nigh..",
                 ],
                 "sound"  : "epic_swell"
             },
