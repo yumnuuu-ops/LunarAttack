@@ -55,3 +55,4 @@ Desktop.ini
 # Logs
 *.log
 logs/
+.agents/rules/venvpath.md

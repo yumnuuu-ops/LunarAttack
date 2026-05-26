@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import pygame_menu as pyMenu
 from AssetManager import AssetManager
 from Player import Player
 
@@ -11,6 +12,45 @@ screen = pygame.display.set_mode((1280, 720))
 screen_w, screen_h = screen.get_size()
 clock = pygame.time.Clock()
 assetMgr = AssetManager()
+
+
+#states
+MENU, DIFFICULTY_1_SCREEN, DIFFICULTY_2_SCREEN, DIFFICULTY_3_SCREEN = "menu", "difficulty_1_screen", "difficulty_2_screen", "difficulty_3_screen"
+currState = MENU
+selected_difficulty = 0
+
+def startGame():
+    global currState
+    currState = DIFFICULTY_1_SCREEN
+
+def startMenu():
+    global currState
+    currState = MENU
+
+def setDifficulty(value):
+    global selected_difficulty
+    selected_difficulty = value
+
+def openHistory():
+    print("History")
+
+def openCredits():
+    print("Credits")
+
+def quitGame():
+    global running
+    running = False
+
+
+###MAIN MENU###
+theme = pyMenu.themes.THEME_DEFAULT.copy()
+theme.title = False
+theme.background_color = pyMenu.BaseImage("imgs\\backdrop.jpg")
+mainMenu = pyMenu.Menu("SpaceCode", screen.get_size()[0], screen.get_size()[1], theme=theme)
+mainMenu.add.button("Play", startGame)
+mainMenu.add.button("History", openHistory)
+mainMenu.add.button("Credits", openCredits)
+mainMenu.add.button("Quit", quitGame)
 
 # ===================================== Asset Loading =====================================
 imageScale = 2
@@ -50,12 +90,11 @@ projectile_group = pygame.sprite.Group()
 running = True
 
 while running:
-    # =========================================================================
-    # PHASE 1: INPUT / EVENTS
-    # =========================================================================
-    for event in pygame.event.get():
+    events = pygame.event.get()
+    for event in events:
         if event.type == pygame.QUIT:
             running = False
+
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # 1 is Left Click
@@ -79,6 +118,11 @@ while running:
 
     player.draw(screen)
     projectile_group.draw(screen)
+
+    if currState == MENU:
+        mainMenu.update(events)
+        mainMenu.draw(screen)
+
     pygame.display.flip()
 
     clock.tick(60)
