@@ -47,6 +47,10 @@ class PlayScreen:
         # Removed this because score manager handles this
 
         self.score_manager = score_manager
+#hover sfx
+        self.on_hover = lambda: None
+        self.on_hover = lambda: None
+        self.on_error = lambda: None #error sfx
 
         # ── Layout ──────────────────────────────────────────
         cx = self.sw // 2  # center x
@@ -149,7 +153,10 @@ class PlayScreen:
         # ── Active ──
         mouse_pos = pygame.mouse.get_pos()
         for btn in self.all_buttons:
+            was_hovered = btn.hovered
             btn.check_hover(mouse_pos)
+            if btn.hovered and not was_hovered:
+                self.on_hover()
 
         for event in events:
             # ── Keyboard ──
@@ -194,6 +201,7 @@ class PlayScreen:
             if not name_ok:  self.input_flash   = 30
             if not diff_ok:  self.diff_flash     = 30
             self.confirm_flash = 30
+            self.on_error() #call back for error sfx
 
     def _start_fadeout(self, action):
         self._pending_action = action

@@ -11,13 +11,15 @@ from PlayScreen import PlayScreen
 from CutScene import CutScene
 from ScoreManager import ScoreManager
 from HUD import HUD
-from DummyEnemy import DummyEnemy # testing only
+from SoundManager import SoundManager
 from Alien import Alien
 from Formation import Formation
 from BossFight import BossFight
 import math
 
 pygame.init()
+
+
 pygame.font.init()
 press_start = pygame.font.Font("PressStart2P-Regular.ttf", 20)
 press_start_large = pygame.font.Font("PressStart2P-Regular.ttf", 32)
@@ -30,7 +32,7 @@ bg = Background(1280, 720)
 clock = pygame.time.Clock()
 assetMgr = AssetManager(2)
 score_manager = ScoreManager()
-dummy = DummyEnemy(screen_w, screen_h) # testing only
+sound = SoundManager()
 
 alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
 
@@ -167,8 +169,14 @@ grid_slots_stage3 = [(col, (row * last_y) + ((7 - i if i > 3 else i) * y_spacing
 formation = Formation(screen_w, screen_h, grid_slots_stage2)
 
 menu = MainMenu(screen_w, screen_h)
+menu.on_hover = lambda: sound.play_sfx("select") #hover sfx
+menu.on_press_start = lambda: sound.play_sfx("save_load")
 play_screen = PlayScreen(screen_w, screen_h, score_manager)
+play_screen.on_hover = lambda: sound.play_sfx("select") #playscreen hover
+play_screen.on_hover = lambda: sound.play_sfx("select")
+play_screen.on_error = lambda: sound.play_sfx("error")#error sfx if no name or difficulty selected
 cutscene = CutScene(screen_w, screen_h)
+cutscene.on_advance = lambda: sound.play_sfx("save_load")#cutscene sfx
 bossFight = BossFight(screen_w, screen_h, assetMgr, player)
 
 # main loop
@@ -231,12 +239,18 @@ while running:
                 for alien in dead_aliens:
                     formation.release_alien(alien)
 
+            ALIEN_POINTS = {"alien_drone":50,"tendril_alien":150,}
+
             hits = pygame.sprite.groupcollide(projectile_group, alien_group, True, False)
             for bullet, hit_aliens in hits.items():
                 for alien in hit_aliens:
                     alien.takeDamage(bullet.damage)
-                    if alien.hp <= 0 and currState in [STAGE_2, STAGE_3]:
-                        formation.release_alien(alien)
+                    if alien.hp <= 0:
+
+                        hud.register_kill(ALIEN_POINTS.get(alien.alien_type,50))
+
+                        if currState in [STAGE_2, STAGE_3]:
+                            formation.release_alien(alien)
 
             # Check Stage 1 clear condition (20s)
             if currState == STAGE_1 and hud.wave_time >= 20.0:
@@ -290,6 +304,8 @@ while running:
 
     # draw
     if currState == MENU:
+        if not sound.is_playing():
+            sound.play_music("menu")
         alien_group.empty()
         projectile_group.empty()
         enemy_projectile_group.empty()
@@ -304,11 +320,15 @@ while running:
         menu.draw(screen)
 
         if menu.action == "PLAY":
+            sound.play_sfx("save_load")
             menu.slide_out()
         elif menu.action == "SLIDEOUT_DONE":
             currState = PLAY_SCREEN
             play_screen = PlayScreen(screen_w, screen_h, score_manager)
+            play_screen.on_hover = lambda: sound.play_sfx("select")
+            play_screen.on_error = lambda: sound.play_sfx("error")
         elif menu.action == "QUIT":
+            sound.play_sfx("back")
             running = False
 
     elif currState == PLAY_SCREEN:
@@ -319,10 +339,12 @@ while running:
         play_screen.draw(screen)
 
         if play_screen.action == "START":
+            sound.play_sfx("save_load")
             selected_difficulty = play_screen.difficulty
             currState = CUTSCENE
             cutscene = CutScene(screen_w, screen_h, play_screen.player_name)
         elif play_screen.action == "BACK":
+            sound.play_sfx("back")
             currState = MENU
             menu.reset()
 
@@ -335,6 +357,7 @@ while running:
         if cutscene.action == "DONE":
             currState = STAGE_1
             hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
+            sound.stop_music()
             alien_group.empty()
             projectile_group.empty()
             enemy_projectile_group.empty()
@@ -355,14 +378,6 @@ while running:
             pygame.draw.rect(screen, (255, 0, 0), alien.rect, 1)
         for proj in projectile_group:
             pygame.draw.rect(screen, (0, 255, 0), proj.rect, 1)
-
-        if not transition_active:
-            if dummy.alive:
-                dummy.check_hit(projectile_group)
-                dummy.draw(screen)
-            else:
-                points = hud.register_kill(dummy.points)
-                dummy.spawn()
 
         hud.update(dt)
         hud.draw(screen)

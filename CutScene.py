@@ -47,6 +47,8 @@ class CutScene:
         self.skip_hold_timer = 0
         self.skip_hold_required = 90
 
+        self.on_advance = lambda: None
+
         self.scenes = [
             {
                 "image"  : "imgs/Narration/nMoon.png",
@@ -166,6 +168,7 @@ class CutScene:
         return img_rect, text_x, self.sh // 2 - 80
 
     def _advance(self):
+        self.on_advance()
         if not self.typing_done:
             # skip typewriter, show all lines instantly
             scene = self.scenes[self.scene_index]

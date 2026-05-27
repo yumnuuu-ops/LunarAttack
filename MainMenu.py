@@ -14,6 +14,8 @@ class Button:
         self.hover_color = hover_color
         self.hovered = False
         self.rect = pygame.Rect(x, y, width, height)
+        self.on_hover = lambda: None
+        self.on_press_start = lambda: None
 
     def draw(self, screen, offset_y=0, selected=False, selected_color=None, color_override=None):
         draw_rect = pygame.Rect(self.x, self.y + offset_y, self.width, self.height)
@@ -120,7 +122,9 @@ class MainMenu:
         if self.state == self.STATE_TITLE:
             for event in events:
                 if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                    self.on_press_start()
                     self.state = self.STATE_SLIDING
+
 
         elif self.state == self.STATE_SLIDING:
             self.logo_y   = self.lerp(self.logo_y,   self.logo_y_target_menu,      0.08)
@@ -135,7 +139,10 @@ class MainMenu:
         elif self.state == self.STATE_MENU:
             mouse_pos = pygame.mouse.get_pos()
             for btn in self.buttons:
+                was_hovered = btn.hovered
                 btn.check_hover(mouse_pos)
+                if btn.hovered and not was_hovered:
+                    self.on_hover()
 
             for event in events:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
