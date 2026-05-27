@@ -6,7 +6,7 @@ class Projectile(pygame.sprite.Sprite):
     def __init__(self, assetMgr, selectedWeapon, speed, x, y, vx, vy, damage):
         super().__init__()
         self.assetMgr = assetMgr
-        self.selectedProj = "AutoCannonProj"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
+        self.selectedProj = "Mass"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
         animation = assetMgr.getAnim(self.selectedProj)
         self.animator = AnimationManager(animation, speed=0.24)
 
@@ -28,7 +28,7 @@ class Projectile(pygame.sprite.Sprite):
         self.selectedWeapon = selectedWeapon
         self.damage = damage
 
-        self.ExplosiveProjectile = ["BigProjEx", "Mass"]
+        self.ExplosiveProjectile = ["BigProjEx", "Mass", "MassX"]
         self.AfterEffect = ["MassE", "BigProjExE"]
 
     def moveProjectile(self):
