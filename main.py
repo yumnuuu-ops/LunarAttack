@@ -112,7 +112,7 @@ proj5Anim = assetMgr.loadAnim("BigProjEx",      "imgs\\Main ship weapon - Projec
 proj3Anim = assetMgr.loadAnim("ZapperProj",     "imgs\\Main ship weapon - Projectile - Zapper.png")
 proj4Anim = assetMgr.loadAnim("RocketProj",     "imgs\\Main ship weapon - Projectile - Rocket.png")
 
-enemy1Anim = assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
+enemy1Anim = assetMgr.loadAnim("alien_drone", "imgs\\enemy_drone_idle.png")
 attack = assetMgr.loadAnim("Mass", "imgs\\Mass Attack Anim.png")
 massExplosion = assetMgr.loadAnim("MassE", "imgs\\mass_implosion_strip-sheet.png")
 
