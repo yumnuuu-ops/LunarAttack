@@ -15,7 +15,6 @@ import cv2
 import numpy as np
 import os
 
-
 # I am gonna be an astrophysician after this
 # Am I a computer science student with specialization in Artificial Intelligence
 # Or am I a Physician? Hm, I don't know anymore
@@ -52,11 +51,13 @@ class Boss:
         self.clone_active = False
 
         # Current Move Used and Asteroids Spawn
+        self.attack_highlight = []
         self.asteroids = []
         self.active_masses = []
         self.currentMove = []
 
         # Define which move can be used in each phase
+        # If we want to explain how it can move, let's just say he used domain expansion :D
         self.phase1Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp"]
         self.phase2Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp", "Teleportation"]
 
@@ -88,14 +89,76 @@ class Boss:
             size = random.randint(26, 46)
             self.asteroids.append(Asteroid(cx, cy, vx, vy, size, asteroid_type=asteroidType))
 
+class Beam:
+    def __init__(self, screen_w, screen_h):
+        self.waves = 5
+        self.beamsPerWave = 10
+        self.beamSpeed = 32
+        self.spawnBack = 500
+        self.breakPerWave = 16
+        self.beams = []
+        self.asteroids = []
+        self.screen_w = screen_w
+        self.screen_h = screen_h
+        self.active = False
+    def BeamStorm(self, asteroid_type):
+        if self.active == True:
+            return
+        self.active = True
+        self.asteroid_type = asteroid_type
+        self.beamWavesLeft = self.waves
+        self.beginTelegraph()
+    def beginTelegraph(self):
+        self.beamState = "telegraph"
+        self.beamTimer = 28
+        self.beams = []
+        for i in range (self.beamsPerWave):
+            px = random.randint(150, self.screen_w - 150)
+            py = random.randint(120, self.screen_h - 120)
+            angle = random.uniform(0, math.tau)
+            self.beams.append(((px, py), (math.cos(angle), math.sin(angle))))
+    def asteroidAttack(self, asteroid_type):
+        self.beamState = "strike"
+        self.beamTimer = self.breakPerWave
+        for (px, py), (vx, vy) in self.beams:
+            sx = px - vx * self.spawnBack
+            sy = py - vy * self.spawnBack
+            size = 50
+            self.asteroids.append(Asteroid(sx, sy, vx, vy, size, fixed_speed=self.beamSpeed, asteroid_type=asteroid_type))
+    def update(self):
+        for asteroid in self.asteroids:
+            asteroid.move()
+        self.asteroids = [asteroid for asteroid in self.asteroids if not asteroid.removeAsteroid(self.screen_w, self.screen_h)]
+        if not self.active:
+            return
+        self.beamTimer -= 1
+        if self.beamTimer <= 0:
+            if self.beamState == "telegraph":
+                self.asteroidAttack(self.asteroid_type)
+            else:
+                self.beamWavesLeft -= 1
+                if self.beamWavesLeft > 0:
+                    self.beginTelegraph()
+                else:
+                    self.active = False
+    def drawTelegraph(self, screen):
+        if self.beamState == "telegraph":
+            pulse = abs(math.sin(self.beamTimer * 0.4))
+            col = (255, int(50 + 130 * pulse), int(50 * pulse))
+            for (px, py), (vx, vy) in self.beams:
+                start = (px - vx * 2000, py - vy * 2000)
+                end = (px + vx * 2000, py + vy * 2000)
+                pygame.draw.line(screen, col, start, end, 3)
+
 class Asteroid:
     asteroidImages = loadAsteroidImages()
-    def __init__(self, x, y, vx, vy, size, asteroid_type="Neutral"):
+    def __init__(self, x, y, vx, vy, size, fixed_speed=None, asteroid_type="Neutral"):
         asteroidImage = random.choice(self.asteroidImages[asteroid_type])
         self.image = pygame.transform.scale(asteroidImage, (size, size))
         self.rect = self.image.get_rect(center=(x, y))
         self.angle = random.uniform(0, 360) # Spawns at a random angle
-        self.speed = 1.0 # Speed Increases Over Time
+        self.fixed_speed = fixed_speed
+        self.speed = self.fixed_speed if fixed_speed else 1.0 # Speed Increases Over Time
         self.size = size
         self.spin = 0
         self.fx = float(x)
@@ -104,9 +167,10 @@ class Asteroid:
         self.vy = vy
 
     def move(self):
-        self.speed += 0.2
-        if self.speed > 15:
-            self.speed = 15
+        if self.fixed_speed is None:
+            self.speed += 0.2
+            if self.speed > 15:
+                self.speed = 15
         self.fx += self.vx * self.speed
         self.fy += self.vy * self.speed
         self.rect.x = int(self.fx)
@@ -117,6 +181,10 @@ class Asteroid:
         rotatedImage = pygame.transform.rotate(self.image, self.angle)
         drawAsteroid = rotatedImage.get_rect(center=self.rect.center)
         screen.blit(rotatedImage, drawAsteroid)
+
+    def removeAsteroid(self, w, h):
+        return(self.rect.right < -200 or self.rect.left > w + 200 or
+               self.rect.bottom < -200 or self.rect.top > h + 200)
 
 class Mass:
     G = 6.674
@@ -147,7 +215,7 @@ class Mass:
         # Calculate the distance between player and the moon
         # Will not crash as the distance will not be 0, thus avoiding divide by zero error
         # Done by making collision
-        dist = math.hypot(dx, dy)
+        dist = max(40.0, math.hypot(dx, dy))
         # Formula
         # Force = G * ((m1 * m2) / r^2)
         # Game simulation will use min max to control minimum force and maximum force
