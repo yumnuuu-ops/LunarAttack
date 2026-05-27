@@ -14,10 +14,14 @@ from HUD import HUD
 from DummyEnemy import DummyEnemy # testing only
 from Alien import Alien
 from Formation import Formation
+import math
 
 pygame.init()
 pygame.font.init()
 press_start = pygame.font.Font("PressStart2P-Regular.ttf", 20)
+press_start_large = pygame.font.Font("PressStart2P-Regular.ttf", 32)
+press_start_sub = pygame.font.Font("PressStart2P-Regular.ttf", 16)
+
 pygame.display.set_caption('SpaceCode')
 screen = pygame.display.set_mode((1280, 720))
 screen_w, screen_h = screen.get_size()
@@ -27,15 +31,24 @@ assetMgr = AssetManager(2)
 score_manager = ScoreManager()
 dummy = DummyEnemy(screen_w, screen_h) # testing only
 
-alien_types = ["alien_drone", "alien_drone", "alien_drone"]
+alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
 
 SPAWN_ALIEN_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
-MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2 = \
-    "menu", "play_screen", "cutscene", "stage_1", "stage_2"
+MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3 = \
+    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3"
 currState = MENU
 selected_difficulty = None
+
+transition_active = False
+transition_timer = 0.0
+TRANSITION_DURATION = 3.0
+transition_target_state = None
+transition_title = ""
+
+enemies_spawned_so_far = 0
+total_enemies_to_spawn = 0
 
 EASY, MEDIUM, HARD = "easy", "medium", "hard"
 currDifficulty = EASY
@@ -114,7 +127,8 @@ proj5Anim = assetMgr.loadAnim("BigProjEx",      "imgs\\Main ship weapon - Projec
 proj3Anim = assetMgr.loadAnim("ZapperProj",     "imgs\\Main ship weapon - Projectile - Zapper.png")
 proj4Anim = assetMgr.loadAnim("RocketProj",     "imgs\\Main ship weapon - Projectile - Rocket.png")
 
-enemy1Anim = assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
+assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
+assetMgr.loadAnim("tendril_alien", "Assets\\Aliens\\enemy_tendril_strip.png")
 attack = assetMgr.loadAnim("Mass", "imgs\\Mass Attack Anim.png")
 
 # ===================================== Initial Setting =====================================
@@ -132,12 +146,16 @@ projectile_group = pygame.sprite.Group()
 alien_group = pygame.sprite.Group()
 enemy_projectile_group = pygame.sprite.Group()
 
-num_cols = 6
-spacing = 100
-start_x = (screen_w - (num_cols - 1) * spacing) // 2
-cols = [start_x + i * spacing for i in range(num_cols)]
-grid_slots = [(col, row) for row in [100, 180, 260] for col in cols]
-formation = Formation(screen_w, screen_h, grid_slots)
+
+last_y = 80
+y_spacing = 20
+cols_s2 = [((screen_w - 5 * 150) // 2) + i * 150 for i in range(6)]
+grid_slots_stage2 = [(col, last_y + ((5 - i if i > 2 else i) * y_spacing)) for i, col in enumerate(cols_s2)]
+
+cols_s3 = [((screen_w - 7 * 130) // 2) + i * 130 for i in range(8)]
+grid_slots_stage3 = [(col, (row * last_y) + ((7 - i if i > 3 else i) * y_spacing)) for row in range(1, 3) for i, col in enumerate(cols_s3)]
+
+formation = Formation(screen_w, screen_h, grid_slots_stage2)
 
 menu = MainMenu(screen_w, screen_h)
 play_screen = PlayScreen(screen_w, screen_h, score_manager)
@@ -147,64 +165,116 @@ cutscene = CutScene(screen_w, screen_h)
 running = True
 
 while running:
+    dt = clock.get_time() / 1000.0
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == SPAWN_ALIEN_EVENT and currState in [STAGE_1, STAGE_2]:
-            chosen_type = random.choice(alien_types)
-            if currState == STAGE_1:
-                spawn_x = random.randint(50, 1230)
-                new_alien = Alien(assetMgr, chosen_type, spawn_x, -100, stage=1)
-                alien_group.add(new_alien)
-            elif currState == STAGE_2:
-                slots_to_spawn = formation.get_spawn_slots()
-                for slot in slots_to_spawn:
-                    if slot[0] < 640:
-                        spawn_x = -50
-                        spawn_y = 0
-                    else:
-                        spawn_x = screen_w + 50
-                        spawn_y = 0
-                    new_alien = Alien(assetMgr, chosen_type, spawn_x, spawn_y, stage=2,
-                                      target_x=slot[0], target_y=slot[1])
+        elif event.type == SPAWN_ALIEN_EVENT and currState in [STAGE_1, STAGE_2, STAGE_3]:
+            if not transition_active:
+                if currState == STAGE_1:
+                    spawn_x = random.randint(50, 1230)
+                    new_alien = Alien(assetMgr, alien_types[0], spawn_x, -100, stage=1)
                     alien_group.add(new_alien)
-                    formation.register_alien(new_alien, slot)
+                elif currState in [STAGE_2, STAGE_3]:
+                    slots_to_spawn = formation.get_spawn_slots()
+                    for slot in slots_to_spawn:
+                        if enemies_spawned_so_far < total_enemies_to_spawn:
+                            if slot[0] < 640:
+                                spawn_x = -50
+                                spawn_y = 0
+                            else:
+                                spawn_x = screen_w + 50
+                                spawn_y = 0
+                            alien_type = alien_types[1] if currState == STAGE_2 else alien_types[2]
+                            new_alien = Alien(assetMgr, alien_type, spawn_x, spawn_y, stage=2 if currState == STAGE_2 else 3,
+                                              target_x=slot[0], target_y=slot[1])
+                            alien_group.add(new_alien)
+                            formation.register_alien(new_alien, slot)
+                            enemies_spawned_so_far += 1
 
-    # their update — untouched
-    if currState == STAGE_2:
-        formation.update()
+    # update gameplay only if active and not transitioning
+    if currState in [STAGE_1, STAGE_2, STAGE_3]:
+        if not transition_active:
+            player.update()
 
-    player.update()
+            mouse_buttons = pygame.mouse.get_pressed()
+            if mouse_buttons[0]:
+                bullets = player.weapon.shootProjectile()
+                if bullets is not None:
+                    projectile_group.add(*bullets)
 
-    mouse_buttons = pygame.mouse.get_pressed()
+            projectile_group.update()
 
-    if mouse_buttons[0]:
-        bullets = player.weapon.shootProjectile()
-        if bullets is not None:
-            projectile_group.add(*bullets)
+            enemy_bullets = []
+            for alien in alien_group:
+                result = alien.update()
+                if result is not None:
+                    enemy_bullets.append(result)
+            enemy_projectile_group.add(*enemy_bullets)
+            enemy_projectile_group.update()
 
-    projectile_group.update()
+            if currState in [STAGE_2, STAGE_3]:
+                dead_aliens = [alien for alien in formation.active_aliens if not alien.alive()]
+                for alien in dead_aliens:
+                    formation.release_alien(alien)
 
-    enemy_bullets = []
-    for alien in alien_group:
-        result = alien.update()
-        if result is not None:
-            enemy_bullets.append(result)
-    enemy_projectile_group.add(*enemy_bullets)
-    enemy_projectile_group.update()
+            hits = pygame.sprite.groupcollide(projectile_group, alien_group, True, False)
+            for bullet, hit_aliens in hits.items():
+                for alien in hit_aliens:
+                    alien.takeDamage(bullet.damage)
+                    if alien.hp <= 0 and currState in [STAGE_2, STAGE_3]:
+                        formation.release_alien(alien)
 
-    if currState == STAGE_2:
-        dead_aliens = [alien for alien in formation.active_aliens if not alien.alive()]
-        for alien in dead_aliens:
-            formation.release_alien(alien)
+            # Check Stage 1 clear condition (20s)
+            if currState == STAGE_1 and hud.wave_time >= 20.0:
+                transition_active = True
+                transition_timer = TRANSITION_DURATION
+                transition_target_state = STAGE_2
+                transition_title = "STAGE 1 CLEAR!"
+                alien_group.empty()
+                projectile_group.empty()
+                enemy_projectile_group.empty()
+                formation.reset()
 
-    hits = pygame.sprite.groupcollide(projectile_group, alien_group, True, False)
-    for bullet, hit_aliens in hits.items():
-        for alien in hit_aliens:
-            alien.takeDamage(bullet.damage)
-            if alien.hp <= 0 and currState == STAGE_2:
-                formation.release_alien(alien)
+            # Check Stage 2 clear condition
+            elif currState == STAGE_2 and enemies_spawned_so_far >= total_enemies_to_spawn and len(alien_group) == 0:
+                transition_active = True
+                transition_timer = TRANSITION_DURATION
+                transition_target_state = STAGE_3
+                transition_title = "STAGE 2 CLEAR!"
+                alien_group.empty()
+                projectile_group.empty()
+                enemy_projectile_group.empty()
+                formation.reset()
+
+            # Check Stage 3 clear condition
+            elif currState == STAGE_3 and enemies_spawned_so_far >= total_enemies_to_spawn and len(alien_group) == 0:
+                transition_active = True
+                transition_timer = TRANSITION_DURATION
+                transition_target_state = MENU
+                transition_title = "VICTORY!"
+                alien_group.empty()
+                projectile_group.empty()
+                enemy_projectile_group.empty()
+                formation.reset()
+        else:
+            # Transition active: tick timer
+            transition_timer -= dt
+            if transition_timer <= 0:
+                transition_active = False
+                hud.next_wave()
+                currState = transition_target_state
+                
+                # Set up the new stage config
+                if currState == STAGE_2:
+                    formation = Formation(screen_w, screen_h, grid_slots_stage2)
+                    enemies_spawned_so_far = 0
+                    total_enemies_to_spawn = 18
+                elif currState == STAGE_3:
+                    formation = Formation(screen_w, screen_h, grid_slots_stage3)
+                    enemies_spawned_so_far = 0
+                    total_enemies_to_spawn = 36
 
     # draw
     if currState == MENU:
@@ -212,8 +282,9 @@ while running:
         projectile_group.empty()
         enemy_projectile_group.empty()
         formation.reset()
+        enemies_spawned_so_far = 0
+        total_enemies_to_spawn = 0
 
-        dt = clock.get_time() / 1000.0
         screen.fill((0, 0, 0))
         bg.update(dt)
         bg.draw(screen, darkened=True)
@@ -229,7 +300,6 @@ while running:
             running = False
 
     elif currState == PLAY_SCREEN:
-        dt = clock.get_time() / 1000.0
         screen.fill((0, 0, 0))
         bg.update(dt)
         bg.draw(screen, darkened=True)
@@ -245,7 +315,6 @@ while running:
             menu.reset()
 
     elif currState == CUTSCENE:
-        dt = clock.get_time() / 1000.0
         bg.update(dt)
         bg.draw(screen)
         cutscene.update(events)
@@ -258,9 +327,10 @@ while running:
             projectile_group.empty()
             enemy_projectile_group.empty()
             formation.reset()
+            enemies_spawned_so_far = 0
+            total_enemies_to_spawn = 0
 
-    elif currState in [STAGE_1, STAGE_2]:
-        dt = clock.get_time() / 1000.0
+    elif currState in [STAGE_1, STAGE_2, STAGE_3]:
         bg.update(dt)
         bg.draw(screen)
         player.draw(screen)
@@ -270,15 +340,49 @@ while running:
         enemy_projectile_group.draw(screen)
         alien_group.draw(screen)
 
-        if dummy.alive:
-            dummy.check_hit(projectile_group)
-            dummy.draw(screen)
-        else:
-            points = hud.register_kill(dummy.points)
-            dummy.spawn()
+        if not transition_active:
+            if dummy.alive:
+                dummy.check_hit(projectile_group)
+                dummy.draw(screen)
+            else:
+                points = hud.register_kill(dummy.points)
+                dummy.spawn()
 
         hud.update(dt)
         hud.draw(screen)
+
+        # Draw the gorgeous Transition Overlay
+        if transition_active:
+            # 1. Semi-transparent black banner across the middle
+            overlay = pygame.Surface((screen_w, 180), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 180)) # Black with transparency
+            screen.blit(overlay, (0, screen_h // 2 - 90))
+            
+            # Draw beautiful border lines for the banner
+            pygame.draw.line(screen, (0, 200, 255), (0, screen_h // 2 - 90), (screen_w, screen_h // 2 - 90), 2)
+            pygame.draw.line(screen, (0, 200, 255), (0, screen_h // 2 + 90), (screen_w, screen_h // 2 + 90), 2)
+
+            # 2. Glowing green "STAGE X CLEAR!" text with pulsing animation
+            title_text = transition_title if transition_title else "STAGE CLEAR!"
+            title_surf = press_start_large.render(title_text, True, (0, 255, 120))
+            pulse_scale = 1.0 + math.sin(pygame.time.get_ticks() * 0.008) * 0.08
+            scaled_w = int(title_surf.get_width() * pulse_scale)
+            scaled_h = int(title_surf.get_height() * pulse_scale)
+            title_surf = pygame.transform.smoothscale(title_surf, (scaled_w, scaled_h))
+            title_rect = title_surf.get_rect(center=(screen_w // 2, screen_h // 2 - 25))
+            screen.blit(title_surf, title_rect)
+
+            # 3. Flashing subtitle
+            flash = (pygame.time.get_ticks() // 250) % 2
+            sub_color = (200, 200, 255) if flash == 0 else (100, 100, 150)
+            if transition_target_state == MENU:
+                sub_text = "RETURNING TO MAIN MENU..."
+            else:
+                next_stage_name = str(transition_target_state).upper().replace("_", " ")
+                sub_text = f"PREPARING FOR {next_stage_name}..."
+            sub_surf = press_start_sub.render(sub_text, True, sub_color)
+            sub_rect = sub_surf.get_rect(center=(screen_w // 2, screen_h // 2 + 35))
+            screen.blit(sub_surf, sub_rect)
 
     pygame.display.flip()
     clock.tick(60)

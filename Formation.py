@@ -63,23 +63,3 @@ class Formation:
         if alien in self.active_aliens:
             slot = self.active_aliens.pop(alien)
             self.available_slots.append(slot)
-
-    def update(self):
-        """
-        Updates the formation's offset over time.
-        Updates target coordinates of active aliens so they follow the sway.
-        """
-        # Sway the entire formation back and forth
-        self.x_offset += self.sway_direction * self.sway_speed
-        if abs(self.x_offset) > self.max_sway:
-            self.sway_direction *= -1
-            
-        # Sync the target coordinates of all active aliens in formation
-        for alien, base_slot in self.active_aliens.items():
-            if alien.alive():
-                # Base slot X + the group's swaying offset
-                alien.target_x = base_slot[0] + self.x_offset
-                
-                # If they are already in the formation, let them slide to the new target
-                if alien.phase == "in_formation":
-                    alien.pos.x = alien.target_x

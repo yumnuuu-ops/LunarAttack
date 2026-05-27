@@ -3,6 +3,7 @@ import random
 import math
 import utils
 from AnimationManager import AnimationManager
+from Projectile import Projectile
 
 
 class Alien(pygame.sprite.Sprite):
@@ -10,6 +11,7 @@ class Alien(pygame.sprite.Sprite):
         super().__init__()
         
         self.alien_type = alien_type
+        self.assetMgr = assetMgr
         animation = assetMgr.getAnim(alien_type)
         self.animator = AnimationManager(animation, speed=0.24)
         self.image = self.animator.get_current_frame()
@@ -35,15 +37,19 @@ class Alien(pygame.sprite.Sprite):
         # Configure base stats based on current Stage
         if stage == 1:
             self.hp = 10
-            self.speed = 1.5
+            self.speed = 2
             self.movement_pattern = "pattern1"
         elif stage == 2:
             self.hp = 25
-            self.speed = 2.0
+            self.speed = 3
+            self.movement_pattern = "straight"
+        elif stage == 3:
+            self.hp = 35
+            self.speed = 4
             self.movement_pattern = "straight"
         else:  # Default/Fallback
             self.hp = 20
-            self.speed = 3
+            self.speed = 4
             self.movement_pattern = "straight"
         
         self.max_hp = self.hp
@@ -51,7 +57,7 @@ class Alien(pygame.sprite.Sprite):
         # variables for (zig-zag movement/sine wave pattern)
         # Spawning & swaying offsets
         self.spawn_x = x #original x position
-        self.wave_time = 0
+        self.wave_time = 10
         self.wave_speed = 0.05
         self.wave_amplitude = 100
 
@@ -85,7 +91,7 @@ class Alien(pygame.sprite.Sprite):
         elif self.phase == "in_formation":
             # Hover slightly up/down for a lively visual effect
             self.wave_time += 0.2
-            self.pos.y = self.target_y + math.sin(self.wave_time) * 40
+            self.pos.y = self.target_y + math.sin(self.wave_time) * 1
 
             # Shooting logic
             self.shoot_cooldown -= 1
@@ -121,7 +127,7 @@ class Alien(pygame.sprite.Sprite):
         return None
 
     def shoot(self):
-        bullet = Projectile(speed=5, x=self.rect.centerx, y=self.rect.bottom, vx=0, vy=1, damage=5)
+        bullet = Projectile(self.assetMgr, "AutoCannon", 5, self.rect.centerx, self.rect.bottom, 0, 1, 5)
         # Give enemy bullet a vibrant red color
         bullet.image.fill((255, 50, 50))
         return bullet
