@@ -14,6 +14,7 @@ from HUD import HUD
 from DummyEnemy import DummyEnemy # testing only
 from Alien import Alien
 from Formation import Formation
+from BossFight import BossFight
 
 pygame.init()
 pygame.font.init()
@@ -32,8 +33,8 @@ alien_types = ["alien_drone", "alien_drone", "alien_drone"]
 SPAWN_ALIEN_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
-MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2 = \
-    "menu", "play_screen", "cutscene", "stage_1", "stage_2"
+MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, BOSS = \
+    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "boss"
 currState = MENU
 selected_difficulty = None
 
@@ -140,6 +141,7 @@ formation = Formation(screen_w, screen_h, grid_slots)
 menu = MainMenu(screen_w, screen_h)
 play_screen = PlayScreen(screen_w, screen_h, score_manager)
 cutscene = CutScene(screen_w, screen_h)
+bossFight = BossFight(screen_w, screen_h, assetMgr, player)
 
 # main loop
 running = True
@@ -168,6 +170,8 @@ while running:
                                       target_x=slot[0], target_y=slot[1])
                     alien_group.add(new_alien)
                     formation.register_alien(new_alien, slot)
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
+            currState = BOSS
 
     # their update — untouched
     if currState == STAGE_2:
@@ -281,6 +285,14 @@ while running:
 
         hud.update(dt)
         hud.draw(screen)
+    elif currState == BOSS:
+        dt = clock.get_time() / 1000.0
+        bg.update(dt)
+        bg.draw(screen)
+        player.draw(screen)
+        projectile_group.draw(screen)
+        bossFight.update(events)
+        bossFight.draw(screen)
 
     pygame.display.flip()
     clock.tick(60)
