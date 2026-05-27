@@ -365,38 +365,10 @@ while running:
         bossFight.update(events)
         bossFight.draw(screen)
 
-    # Draw the gorgeous Transition Overlay
+    # Transition to the next stage
     if transition_active:
-        # 1. Semi-transparent black banner across the middle
-        overlay = pygame.Surface((screen_w, 180), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 180)) # Black with transparency
-        screen.blit(overlay, (0, screen_h // 2 - 90))
+        print("preparing for: " + transition_target_state)
         
-        # Draw beautiful border lines for the banner
-        pygame.draw.line(screen, (0, 200, 255), (0, screen_h // 2 - 90), (screen_w, screen_h // 2 - 90), 2)
-        pygame.draw.line(screen, (0, 200, 255), (0, screen_h // 2 + 90), (screen_w, screen_h // 2 + 90), 2)
-
-        # 2. Glowing green "STAGE X CLEAR!" text with pulsing animation
-        title_text = transition_title if transition_title else "STAGE CLEAR!"
-        title_surf = press_start_large.render(title_text, True, (0, 255, 120))
-        pulse_scale = 1.0 + math.sin(pygame.time.get_ticks() * 0.008) * 0.08
-        scaled_w = int(title_surf.get_width() * pulse_scale)
-        scaled_h = int(title_surf.get_height() * pulse_scale)
-        title_surf = pygame.transform.smoothscale(title_surf, (scaled_w, scaled_h))
-        title_rect = title_surf.get_rect(center=(screen_w // 2, screen_h // 2 - 25))
-        screen.blit(title_surf, title_rect)
-
-        # 3. Flashing subtitle
-        flash = (pygame.time.get_ticks() // 250) % 2
-        sub_color = (200, 200, 255) if flash == 0 else (100, 100, 150)
-        if transition_target_state == MENU:
-            sub_text = "RETURNING TO MAIN MENU..."
-        else:
-            next_stage_name = str(transition_target_state).upper().replace("_", " ")
-            sub_text = f"PREPARING FOR {next_stage_name}..."
-        sub_surf = press_start_sub.render(sub_text, True, sub_color)
-        sub_rect = sub_surf.get_rect(center=(screen_w // 2, screen_h // 2 + 35))
-        screen.blit(sub_surf, sub_rect)
 
     pygame.display.flip()
     clock.tick(60)
