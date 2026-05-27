@@ -14,6 +14,7 @@ import random
 import cv2
 import numpy as np
 import os
+from AnimationManager import AnimationManager
 
 # I am gonna be an astrophysician after this
 # Am I a computer science student with specialization in Artificial Intelligence
@@ -37,7 +38,7 @@ class Boss:
     max_hp = 60
     phase2_hp = max_hp // 2 # Floor Division, phase 2 will start when HP is 50% or below
 
-    def __init__(self):
+    def __init__(self, assetManager):
         # Initial State
         self.hp = self.max_hp
         self.phase = 1
@@ -45,10 +46,14 @@ class Boss:
         self.radius = 90
         self.speed  = 10 # Need to experiment
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
+        self.assetManager = assetManager
 
         # Phase 2
         self.clone_rect = self.rect.copy()
         self.clone_active = False
+
+        # Giant State
+        self.giant_state = False
 
         # Current Move Used and Asteroids Spawn
         self.attack_highlight = []
@@ -59,7 +64,7 @@ class Boss:
         # Define which move can be used in each phase
         # If we want to explain how it can move, let's just say he used domain expansion :D
         self.phase1Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp"]
-        self.phase2Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp", "Teleportation"]
+        self.phase2Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp", "Teleportation", "Mass Release"]
 
     def update(self):
         # Placeholder for now
@@ -67,7 +72,7 @@ class Boss:
 
     def gravityPull(self, player_rect, screen_w, screen_h):
         # Create summonedMass at a location randomly under specified conditions that pulls players in
-        mass = Mass()
+        mass = Mass(self.assetManager)
         mass.spawnLocation(player_rect, self.rect, screen_w, screen_h)
         self.active_masses.append(mass)
 
@@ -151,8 +156,10 @@ class Beam:
                 pygame.draw.line(screen, col, start, end, 3)
 
 class Asteroid:
-    asteroidImages = loadAsteroidImages()
+    asteroidImages = None
     def __init__(self, x, y, vx, vy, size, fixed_speed=None, asteroid_type="Neutral"):
+        if self.asteroidImages is None:
+            self.asteroidImages = loadAsteroidImages()
         asteroidImage = random.choice(self.asteroidImages[asteroid_type])
         self.image = pygame.transform.scale(asteroidImage, (size, size))
         self.rect = self.image.get_rect(center=(x, y))
@@ -188,10 +195,20 @@ class Asteroid:
 
 class Mass:
     G = 6.674
-    def __init__(self):
+    def __init__(self, assetManager):
         self.radius = 30
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
         self.generatedMass = random.randint(1000, 1500)
+        self.animation = AnimationManager(assetManager.getAnim("Mass"), speed=0.2)
+
+    def update(self):
+        self.animation.update()
+
+    def draw(self, screen):
+        frame = self.animation.get_current_frame()
+        if frame:
+            draw_rect = frame.get_rect(center=self.rect.center)
+            screen.blit(frame, draw_rect)
 
     def spawnLocation(self, player_rect, moon_rect, screen_w, screen_h, min_dist=200):
         x = random.randint(50, screen_w)
