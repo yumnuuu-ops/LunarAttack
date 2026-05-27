@@ -12,12 +12,13 @@ class Alien(pygame.sprite.Sprite):
         self.alien_type = alien_type
         animation = assetMgr.getAnim(alien_type)
         self.animator = AnimationManager(animation, speed=0.24)
-        self.image = self.animator.get_current_frame()
-        self.rect = self.image.get_rect()
+        raw_image = self.animator.get_current_frame()
+        tight_box = raw_image.get_bounding_rect()
+        self.image = raw_image.subsurface(tight_box)
 
+        self.rect = self.image.get_rect()
         self.pos = pygame.math.Vector2(x, y)
-        self.rect.x = int(self.pos.x)
-        self.rect.y = int(self.pos.y)
+        self.rect.center = (int(self.pos.x), int(self.pos.y))
         
         # Target position coordinates for Stage 2 Formation entry
         self.target_x = target_x
@@ -110,8 +111,12 @@ class Alien(pygame.sprite.Sprite):
                 self.pos.y += self.speed
 
         # Update the rect
-        self.rect.x = int(self.pos.x)
-        self.rect.y = int(self.pos.y)
+        raw_image = self.animator.get_current_frame()
+        tight_box = raw_image.get_bounding_rect()
+        self.image = raw_image.subsurface(tight_box)
+
+        self.rect = self.image.get_rect()
+        self.rect.center = (int(self.pos.x), int(self.pos.y))
         
         # Cleanup if it goes off bottom of screen
         if self.pos.y > utils.SCREEN_H:

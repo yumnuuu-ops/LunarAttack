@@ -94,9 +94,6 @@ creditsMenu.add.button("Back", pyMenu.events.BACK)
 # asset loading
 imageScale = 2
 
-assetMgr.loadTexture("cadet", "imgs\\cadet.png")
-assetMgr.loadTexture("alien", "imgs\\alien.png")
-
 shipTex = assetMgr.loadTexture("MainShip Full", "imgs\\Main Ship - Full health.png")
 shipRect = assetMgr.getRect("MainShip Full")
 assetMgr.loadTexture("MainShip SDam", "imgs\\Main Ship - Slight damage.png")
@@ -270,6 +267,10 @@ while running:
         # 3. Render the alien fleet and their incoming laser fire
         enemy_projectile_group.draw(screen)
         alien_group.draw(screen)
+        for alien in alien_group:
+            pygame.draw.rect(screen, (255, 0, 0), alien.rect, 1)
+        for proj in projectile_group:
+            pygame.draw.rect(screen, (0, 255, 0), proj.rect, 1)
 
         if dummy.alive:
             dummy.check_hit(projectile_group)
