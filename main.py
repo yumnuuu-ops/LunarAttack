@@ -14,6 +14,7 @@ from HUD import HUD
 from DummyEnemy import DummyEnemy # testing only
 from Alien import Alien
 from Formation import Formation
+from BossFight import BossFight
 import math
 
 pygame.init()
@@ -36,8 +37,8 @@ alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
 SPAWN_ALIEN_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
-MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3 = \
-    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3"
+MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, BOSS = \
+    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "boss"
 currState = MENU
 selected_difficulty = None
 
@@ -107,9 +108,6 @@ creditsMenu.add.button("Back", pyMenu.events.BACK)
 # asset loading
 imageScale = 2
 
-assetMgr.loadTexture("cadet", "imgs\\cadet.png")
-assetMgr.loadTexture("alien", "imgs\\alien.png")
-
 shipTex = assetMgr.loadTexture("MainShip Full", "imgs\\Main Ship - Full health.png")
 shipRect = assetMgr.getRect("MainShip Full")
 assetMgr.loadTexture("MainShip SDam", "imgs\\Main Ship - Slight damage.png")
@@ -130,6 +128,7 @@ proj4Anim = assetMgr.loadAnim("RocketProj",     "imgs\\Main ship weapon - Projec
 assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
 assetMgr.loadAnim("tendril_alien", "Assets\\Aliens\\enemy_tendril_strip.png")
 attack = assetMgr.loadAnim("Mass", "imgs\\Mass Attack Anim.png")
+massExplosion = assetMgr.loadAnim("MassE", "imgs\\mass_implosion_strip-sheet.png")
 
 # ===================================== Initial Setting =====================================
 font = pygame.font.SysFont('freesansbold.ttf', 20)
@@ -160,6 +159,7 @@ formation = Formation(screen_w, screen_h, grid_slots_stage2)
 menu = MainMenu(screen_w, screen_h)
 play_screen = PlayScreen(screen_w, screen_h, score_manager)
 cutscene = CutScene(screen_w, screen_h)
+bossFight = BossFight(screen_w, screen_h, assetMgr, player)
 
 # main loop
 running = True
@@ -192,6 +192,8 @@ while running:
                             alien_group.add(new_alien)
                             formation.register_alien(new_alien, slot)
                             enemies_spawned_so_far += 1
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
+                currState = BOSS
 
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3]:
@@ -339,6 +341,10 @@ while running:
         # 3. Render the alien fleet and their incoming laser fire
         enemy_projectile_group.draw(screen)
         alien_group.draw(screen)
+        for alien in alien_group:
+            pygame.draw.rect(screen, (255, 0, 0), alien.rect, 1)
+        for proj in projectile_group:
+            pygame.draw.rect(screen, (0, 255, 0), proj.rect, 1)
 
         if not transition_active:
             if dummy.alive:
@@ -350,39 +356,47 @@ while running:
 
         hud.update(dt)
         hud.draw(screen)
+    elif currState == BOSS:
+        dt = clock.get_time() / 1000.0
+        bg.update(dt)
+        bg.draw(screen)
+        player.draw(screen)
+        projectile_group.draw(screen)
+        bossFight.update(events)
+        bossFight.draw(screen)
 
-        # Draw the gorgeous Transition Overlay
-        if transition_active:
-            # 1. Semi-transparent black banner across the middle
-            overlay = pygame.Surface((screen_w, 180), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 180)) # Black with transparency
-            screen.blit(overlay, (0, screen_h // 2 - 90))
-            
-            # Draw beautiful border lines for the banner
-            pygame.draw.line(screen, (0, 200, 255), (0, screen_h // 2 - 90), (screen_w, screen_h // 2 - 90), 2)
-            pygame.draw.line(screen, (0, 200, 255), (0, screen_h // 2 + 90), (screen_w, screen_h // 2 + 90), 2)
+    # Draw the gorgeous Transition Overlay
+    if transition_active:
+        # 1. Semi-transparent black banner across the middle
+        overlay = pygame.Surface((screen_w, 180), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 180)) # Black with transparency
+        screen.blit(overlay, (0, screen_h // 2 - 90))
+        
+        # Draw beautiful border lines for the banner
+        pygame.draw.line(screen, (0, 200, 255), (0, screen_h // 2 - 90), (screen_w, screen_h // 2 - 90), 2)
+        pygame.draw.line(screen, (0, 200, 255), (0, screen_h // 2 + 90), (screen_w, screen_h // 2 + 90), 2)
 
-            # 2. Glowing green "STAGE X CLEAR!" text with pulsing animation
-            title_text = transition_title if transition_title else "STAGE CLEAR!"
-            title_surf = press_start_large.render(title_text, True, (0, 255, 120))
-            pulse_scale = 1.0 + math.sin(pygame.time.get_ticks() * 0.008) * 0.08
-            scaled_w = int(title_surf.get_width() * pulse_scale)
-            scaled_h = int(title_surf.get_height() * pulse_scale)
-            title_surf = pygame.transform.smoothscale(title_surf, (scaled_w, scaled_h))
-            title_rect = title_surf.get_rect(center=(screen_w // 2, screen_h // 2 - 25))
-            screen.blit(title_surf, title_rect)
+        # 2. Glowing green "STAGE X CLEAR!" text with pulsing animation
+        title_text = transition_title if transition_title else "STAGE CLEAR!"
+        title_surf = press_start_large.render(title_text, True, (0, 255, 120))
+        pulse_scale = 1.0 + math.sin(pygame.time.get_ticks() * 0.008) * 0.08
+        scaled_w = int(title_surf.get_width() * pulse_scale)
+        scaled_h = int(title_surf.get_height() * pulse_scale)
+        title_surf = pygame.transform.smoothscale(title_surf, (scaled_w, scaled_h))
+        title_rect = title_surf.get_rect(center=(screen_w // 2, screen_h // 2 - 25))
+        screen.blit(title_surf, title_rect)
 
-            # 3. Flashing subtitle
-            flash = (pygame.time.get_ticks() // 250) % 2
-            sub_color = (200, 200, 255) if flash == 0 else (100, 100, 150)
-            if transition_target_state == MENU:
-                sub_text = "RETURNING TO MAIN MENU..."
-            else:
-                next_stage_name = str(transition_target_state).upper().replace("_", " ")
-                sub_text = f"PREPARING FOR {next_stage_name}..."
-            sub_surf = press_start_sub.render(sub_text, True, sub_color)
-            sub_rect = sub_surf.get_rect(center=(screen_w // 2, screen_h // 2 + 35))
-            screen.blit(sub_surf, sub_rect)
+        # 3. Flashing subtitle
+        flash = (pygame.time.get_ticks() // 250) % 2
+        sub_color = (200, 200, 255) if flash == 0 else (100, 100, 150)
+        if transition_target_state == MENU:
+            sub_text = "RETURNING TO MAIN MENU..."
+        else:
+            next_stage_name = str(transition_target_state).upper().replace("_", " ")
+            sub_text = f"PREPARING FOR {next_stage_name}..."
+        sub_surf = press_start_sub.render(sub_text, True, sub_color)
+        sub_rect = sub_surf.get_rect(center=(screen_w // 2, screen_h // 2 + 35))
+        screen.blit(sub_surf, sub_rect)
 
     pygame.display.flip()
     clock.tick(60)

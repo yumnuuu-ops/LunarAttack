@@ -7,13 +7,14 @@ class AnimationManager:
     def update(self, loop = True):
         # Tick the clock forward
         self.index += self.animation_speed
-        if loop:
-            if self.index >= len(self.frames):
-                self.index = 0.0           # Loop back
-        else:
-            max_index = len(self.frames) - 1
-            if self.index > max_index:
-                self.index = float(max_index)
+        max_index = len(self.frames)
+
+        if self.index >= max_index:
+            if loop:
+                self.index = 0.0  # loop
+            else:
+                max_index = len(self.frames) - 1
+                self.index = float(max_index)  # Freeze on the last frame
 
     def get_current_frame(self):
         # Cleaned up syntax check to make sure the list isn't empty
@@ -23,3 +24,11 @@ class AnimationManager:
 
     def reset(self):
         self.index = 0.0
+
+    def checkEndOfAnimation(self):
+        current_frame = int(self.index)
+        max_frame_index = len(self.frames) - 1
+        if current_frame >= max_frame_index:
+            return True
+        else:
+            return False

@@ -5,7 +5,7 @@ from Projectile import Projectile
 
 class Weapon:
     def __init__(self, assetMgr, x, y):
-        self.selectedWeapon = "Zapper"
+        self.selectedWeapon = "AutoCannon"
         animation = assetMgr.getAnim(self.selectedWeapon)
         self.animator = AnimationManager(animation, speed=0.24)
         self.image = self.animator.get_current_frame()
@@ -15,7 +15,7 @@ class Weapon:
 
         self.pos = pygame.math.Vector2(x, y)
 
-        self.fireRate = 5
+        self.fireRate = 10
         self.cooldown = 0
         self.projectileCount = 1
         self.projectileSize = 1
