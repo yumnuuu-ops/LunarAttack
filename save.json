@@ -1,0 +1,19 @@
+{
+    "last_name": "ACE",
+    "achievements": [],
+    "history": [
+        {
+            "name": "ACE",
+            "score": 12400,
+            "difficulty": "Hard",
+            "wave_reached": 3,
+            "date": "2026-05-27",
+            "is_highscore": true
+        }
+    ],
+    "stats": {
+        "total_runs": 5,
+        "highest_score": 12400,
+        "highest_wave": 3
+    }
+}
