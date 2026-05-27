@@ -37,6 +37,7 @@ class HUD:
 
         # wave
         self.current_wave = 1
+        self.current_stage = 1
 
         # time survived this wave
         self.wave_time = 0.0
@@ -103,6 +104,7 @@ class HUD:
 
         self.score += int(bonus * self.multiplier)
         self.current_wave          += 1
+        self.current_stage         += 1
         self.wave_time              = 0.0
         self.took_damage_this_wave  = False
         self.reset_combo()
@@ -169,7 +171,11 @@ class HUD:
             screen.blit(combo_surf, (pad, pad + 24))
 
         # time
-        time_surf = self.font_medium.render(f"TIME   {self._format_time(self.wave_time)}", True, (180, 180, 255))
+        if self.current_stage == 1:
+            remaining_time = max(0.0, 20.0 - self.wave_time)
+            time_surf = self.font_medium.render(f"SURVIVE {self._format_time(remaining_time)}", True, (255, 100, 100))
+        else:
+            time_surf = self.font_medium.render(f"TIME   {self._format_time(self.wave_time)}", True, (180, 180, 255))
         screen.blit(time_surf, (pad, pad + 48))
 
         # dark panel top right
@@ -189,9 +195,9 @@ class HUD:
         self._draw_bar(screen, panel_x + pad, pad + 40, panel_w - pad * 2, 12,
                        self.hp, self.max_hp, self._hp_color())
 
-        # wave
-        wave_surf = self.font_medium.render(f"WAVE   {self.current_wave}", True, (180, 180, 255))
-        screen.blit(wave_surf, (panel_x + pad, pad + 62))
+        # stage
+        stage_surf = self.font_medium.render(f"STAGE  {self.current_stage}", True, (180, 180, 255))
+        screen.blit(stage_surf, (panel_x + pad, pad + 62))
 
         # difficulty tag
         diff_colors = {
