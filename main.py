@@ -157,7 +157,7 @@ while running:
             menu.slide_out()
         elif menu.action == "SLIDEOUT_DONE":
             currState = PLAY_SCREEN
-            play_screen = PlayScreen(screen_w, screen_h)
+            play_screen = PlayScreen(screen_w, screen_h, score_manager)
         elif menu.action == "QUIT":
             running = False
 

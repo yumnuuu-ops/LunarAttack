@@ -8,7 +8,7 @@ class PlayScreen:
     STATE_ACTIVE  = "active"
     STATE_FADEOUT = "fadeout"
 
-    def __init__(self, screen_w, screen_h):
+    def __init__(self, screen_w, screen_h, score_manager):
         self.sw = screen_w
         self.sh = screen_h
         self.state = self.STATE_FADEIN
@@ -43,8 +43,9 @@ class PlayScreen:
         self.action = None
 
         # Save file
-        self.save_path = "save.json"
-        self._ensure_save()
+        # Removed this because score manager handles this
+
+        self.score_manager = score_manager
 
         # ── Layout ──────────────────────────────────────────
         cx = self.sw // 2  # center x
@@ -104,25 +105,12 @@ class PlayScreen:
             self.btn_confirm, self.btn_back,
         ]
 
-    # ── Save helpers ────────────────────────────────────────
-    def _ensure_save(self):
-        if not os.path.exists(self.save_path):
-            data = {"last_name": "", "achievements": [], "history": []}
-            with open(self.save_path, "w") as f:
-                json.dump(data, f, indent=2)
-
-    def _load_save(self):
-        with open(self.save_path, "r") as f:
-            return json.load(f)
-
+    # Save helpers
+    #have removed because the logic is duplicat, so score manager should handle saving
     def load_last_name(self):
-        try:
-            data = self._load_save()
-            name = data.get("last_name", "")
-            if name:
-                self.player_name = name[:self.max_chars]
-        except Exception:
-            pass
+        name = self.score_manager.get_last_name()
+        if name:
+            self.player_name = name[:self.max_chars]
 
     # ── Update ──────────────────────────────────────────────
     def update(self, events):
