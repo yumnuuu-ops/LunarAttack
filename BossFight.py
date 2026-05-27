@@ -15,7 +15,7 @@ class BossFight:
         self.screen_h = screen_h
         self.assetManager = assetManager
         for filename in ["moon_phase1", "moon_phase2", "moon_giant"]:
-            assetManager.loadTexture(filename, os.path.join(self.moonFolder, filename + ".png"))
+            assetManager.loadTextureScale(filename, os.path.join(self.moonFolder, filename + ".png"), 6)
         self.boss.rect.center = (screen_w // 2, 160)
         self.beam = None
 
@@ -46,6 +46,11 @@ class BossFight:
                             self.beam.BeamStorm(asteroid_type)
                     elif event.key == pygame.K_p:
                         self.boss.phase = 2 if self.boss.phase == 1 else 1
+                        if self.boss.phase == 1:
+                            self.boss.phase2_transition_animation = False
+
+        if self.boss:
+            self.boss.update()
 
         for asteroid in self.boss.asteroids:
             asteroid.move()
@@ -68,9 +73,8 @@ class BossFight:
             self.finished = True
 
     def draw(self, screen):
-        moon_img = self.loadMoonTexture()
-        if moon_img:
-            screen.blit(moon_img, moon_img.get_rect(center=self.boss.rect.center))
+        if self.boss:
+            self.boss.draw(screen)
 
         for mass in self.boss.active_masses:
             mass.draw(screen)
