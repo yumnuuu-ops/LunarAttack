@@ -43,6 +43,7 @@ class Boss:
         self.hp = self.max_hp
         self.phase = 1
         self.alive = True
+        self.invincibility = False
         self.radius = 90
         self.speed  = 10 # Need to experiment
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
@@ -62,6 +63,15 @@ class Boss:
 
         # Giant State
         self.giant_state = False
+        self.giant_state_transition_animation = False
+        self.animation_giant_transition = AnimationManager(assetManager.getAnim("MoonP2TG"), speed=0.2)
+        self.animation_giant_idle = AnimationManager(assetManager.getAnim("MoonG"), speed=0.2)
+
+        # Phase 2 Scarred
+        self.phase2_scarred = False
+        self.phase2_scarred_transition_animation = False
+        self.animation_phase2_scarred_transition = AnimationManager(assetManager.getAnim("MoonGTP2Scarred"), speed=0.2)
+        self.animation_phase2_scarred_idle = AnimationManager(assetManager.getAnim("MoonP2Scarred"), speed=0.2)
 
         # Current Move Used and Asteroids Spawn
         self.attack_highlight = []
@@ -75,7 +85,25 @@ class Boss:
         self.phase2Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp", "Teleportation", "Mass Release"]
 
     def update(self):
-        if self.phase == 1:
+        if self.phase == 3:
+            if self.phase2_scarred_transition_animation:
+                self.animation_phase2_scarred_idle.update()
+            else:
+                self.giant_state = False
+                self.animation_phase2_scarred_transition.update(loop=False)
+                lastFrameTrans = len(self.animation_phase2_scarred_transition.frames) - 1
+                if self.animation_phase2_scarred_transition.index >= lastFrameTrans:
+                    self.phase2_scarred_transition_animation = True
+        elif self.giant_state:
+            if self.giant_state_transition_animation:
+                self.animation_giant_idle.update()
+            else:
+                self.clone_active = False
+                self.animation_giant_transition.update(loop=False)
+                lastFrameTrans = len(self.animation_giant_transition.frames) - 1
+                if self.animation_giant_transition.index >= lastFrameTrans:
+                    self.giant_state_transition_animation = True
+        elif self.phase == 1:
             self.animation_phase1_idle.update()
         elif self.phase == 2:
             self.clone_active = True
@@ -95,7 +123,17 @@ class Boss:
     def draw(self, screen):
         frame = None
         frame2 = None
-        if self.phase == 1:
+        if self.phase == 3:
+            if self.phase2_scarred_transition_animation:
+                frame = self.animation_phase2_scarred_idle.get_current_frame()
+            else:
+                frame = self.animation_phase2_scarred_transition.get_current_frame()
+        elif self.giant_state:
+            if self.giant_state_transition_animation:
+                frame = self.animation_giant_idle.get_current_frame()
+            else:
+                frame = self.animation_giant_transition.get_current_frame()
+        elif self.phase == 1:
             frame = self.animation_phase1_idle.get_current_frame()
         elif self.phase == 2:
             if self.phase2_transition_animation:
@@ -135,6 +173,10 @@ class Boss:
             size = random.randint(26, 46)
             self.asteroids.append(Asteroid(cx, cy, vx, vy, size, asteroid_type=asteroidType))
 
+    def massRelease(self):
+        self.giant_state = True
+        self.invincibility = True
+
 class Beam:
     def __init__(self, screen_w, screen_h):
         self.waves = 5
@@ -147,6 +189,7 @@ class Beam:
         self.screen_w = screen_w
         self.screen_h = screen_h
         self.active = False
+
     def BeamStorm(self, asteroid_type):
         if self.active == True:
             return
@@ -154,6 +197,7 @@ class Beam:
         self.asteroid_type = asteroid_type
         self.beamWavesLeft = self.waves
         self.beginTelegraph()
+
     def beginTelegraph(self):
         self.beamState = "telegraph"
         self.beamTimer = 28
@@ -163,6 +207,7 @@ class Beam:
             py = random.randint(120, self.screen_h - 120)
             angle = random.uniform(0, math.tau)
             self.beams.append(((px, py), (math.cos(angle), math.sin(angle))))
+
     def asteroidAttack(self, asteroid_type):
         self.beamState = "strike"
         self.beamTimer = self.breakPerWave
@@ -171,6 +216,7 @@ class Beam:
             sy = py - vy * self.spawnBack
             size = 50
             self.asteroids.append(Asteroid(sx, sy, vx, vy, size, fixed_speed=self.beamSpeed, asteroid_type=asteroid_type))
+
     def update(self):
         for asteroid in self.asteroids:
             asteroid.move()
@@ -187,6 +233,7 @@ class Beam:
                     self.beginTelegraph()
                 else:
                     self.active = False
+
     def drawTelegraph(self, screen):
         if self.beamState == "telegraph":
             pulse = abs(math.sin(self.beamTimer * 0.4))

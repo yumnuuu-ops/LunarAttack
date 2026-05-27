@@ -48,6 +48,10 @@ class BossFight:
                         self.boss.phase = 2 if self.boss.phase == 1 else 1
                         if self.boss.phase == 1:
                             self.boss.phase2_transition_animation = False
+                    elif event.key == pygame.K_g:
+                        self.boss.massRelease()
+                    elif event.key == pygame.K_u:
+                        self.boss.phase = 3
 
         if self.boss:
             self.boss.update()

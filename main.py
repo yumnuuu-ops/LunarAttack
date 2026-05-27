@@ -132,6 +132,10 @@ moon_phase_transition = assetMgr.loadAnimScale("MoonP1TP2", "Assets\\Moon\\moon_
 moon_phase2_idle = assetMgr.loadAnimScale("MoonP2", "Assets\\Moon\\moon_phase2_idle_strip.png", 6)
 moon_clone_spawn = assetMgr.loadAnimScale("MoonCSpawn", "Assets\\Moon\\moon_clone_spawn_strip.png", 6)
 moon_clone_idle = assetMgr.loadAnimScale("MoonC", "Assets\\Moon\\moon_clone_idle_strip.png", 6)
+moon_giant_transition = assetMgr.loadAnimScale("MoonP2TG", "Assets\\Moon\\moon_phase2_to_eclipse_strip.png", 10)
+moon_giant_idle = assetMgr.loadAnimScale("MoonG", "Assets\\Moon\\moon_eclipse_idle_strip.png", 10)
+moon_giant_phase2_transition = assetMgr.loadAnimScale("MoonGTP2Scarred", "Assets\\Moon\\moon_eclipse_to_phase2_scarred_strip.png", 6)
+moon_phase2_scarred_idle = assetMgr.loadAnimScale("MoonP2Scarred", "Assets\\Moon\\moon_phase2_scarred_idle_strip.png", 6)
 assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
 assetMgr.loadAnim("tendril_alien", "Assets\\Aliens\\enemy_tendril_strip.png")
 
@@ -197,8 +201,8 @@ while running:
                             alien_group.add(new_alien)
                             formation.register_alien(new_alien, slot)
                             enemies_spawned_so_far += 1
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
-                currState = BOSS
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
+            currState = BOSS
 
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3]:
