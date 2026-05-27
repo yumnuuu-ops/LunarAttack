@@ -79,3 +79,7 @@ class Player:
 
         self.weapon.update(is_firing)
 
+    def apply_push(self, dx, dy):
+        self.pos.x += dx
+        self.pos.y += dy
+
