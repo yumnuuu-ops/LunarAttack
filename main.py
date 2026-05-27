@@ -125,10 +125,15 @@ proj5Anim = assetMgr.loadAnim("BigProjEx",      "imgs\\Main ship weapon - Projec
 proj3Anim = assetMgr.loadAnim("ZapperProj",     "imgs\\Main ship weapon - Projectile - Zapper.png")
 proj4Anim = assetMgr.loadAnim("RocketProj",     "imgs\\Main ship weapon - Projectile - Rocket.png")
 
+attack = assetMgr.loadAnimScale("Mass", "imgs\\Mass Attack Anim.png", 4)
+massExplosion = assetMgr.loadAnimScale("MassE", "imgs\\mass_implosion_strip-sheet.png", 4)
+moon_phase1_idle = assetMgr.loadAnimScale("MoonP1", "Assets\\Moon\\moon_phase1_idle_strip.png", 6)
+moon_phase_transition = assetMgr.loadAnimScale("MoonP1TP2", "Assets\\Moon\\moon_phase1_to_phase2_strip.png", 6)
+moon_phase2_idle = assetMgr.loadAnimScale("MoonP2", "Assets\\Moon\\moon_phase2_idle_strip.png", 6)
+moon_clone_spawn = assetMgr.loadAnimScale("MoonCSpawn", "Assets\\Moon\\moon_clone_spawn_strip.png", 6)
+moon_clone_idle = assetMgr.loadAnimScale("MoonC", "Assets\\Moon\\moon_clone_idle_strip.png", 6)
 assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
 assetMgr.loadAnim("tendril_alien", "Assets\\Aliens\\enemy_tendril_strip.png")
-attack = assetMgr.loadAnim("Mass", "imgs\\Mass Attack Anim.png")
-massExplosion = assetMgr.loadAnim("MassE", "imgs\\mass_implosion_strip-sheet.png")
 
 # ===================================== Initial Setting =====================================
 font = pygame.font.SysFont('freesansbold.ttf', 20)

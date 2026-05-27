@@ -47,10 +47,18 @@ class Boss:
         self.speed  = 10 # Need to experiment
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
         self.assetManager = assetManager
+        self.animation_phase1_idle = AnimationManager(assetManager.getAnim("MoonP1"), speed=0.2)
 
         # Phase 2
+        self.phase2_transition_animation = False
+        self.animation_phase1_phase2_transition = AnimationManager(assetManager.getAnim("MoonP1TP2"), speed=0.2)
+        self.animation_phase2_idle = AnimationManager(assetManager.getAnim("MoonP2"), speed=0.2)
+
+        # Phase 2 Clone
         self.clone_rect = self.rect.copy()
         self.clone_active = False
+        self.animation_clone_spawn = AnimationManager(assetManager.getAnim("MoonCSpawn"), speed=0.2)
+        self.animation_clone_idle = AnimationManager(assetManager.getAnim("MoonC"), speed=0.2)
 
         # Giant State
         self.giant_state = False
@@ -67,8 +75,41 @@ class Boss:
         self.phase2Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp", "Teleportation", "Mass Release"]
 
     def update(self):
-        # Placeholder for now
-        print("Hi")
+        if self.phase == 1:
+            self.animation_phase1_idle.update()
+        elif self.phase == 2:
+            self.clone_active = True
+            if self.phase2_transition_animation:
+                self.animation_phase2_idle.update()
+                self.animation_clone_idle.update()
+            else:
+                self.clone_rect = self.rect.copy()
+                self.clone_rect.x = self.clone_rect.x + 300
+                self.animation_phase1_phase2_transition.update(loop=False)
+                lastFrameTrans = len(self.animation_phase1_phase2_transition.frames) - 1
+                self.animation_clone_spawn.update(loop=False)
+                lastFrameClone = len(self.animation_clone_spawn.frames) - 1
+                if self.animation_phase1_phase2_transition.index >= lastFrameTrans and self.animation_clone_spawn.index >= lastFrameClone:
+                    self.phase2_transition_animation = True
+
+    def draw(self, screen):
+        frame = None
+        frame2 = None
+        if self.phase == 1:
+            frame = self.animation_phase1_idle.get_current_frame()
+        elif self.phase == 2:
+            if self.phase2_transition_animation:
+                frame = self.animation_phase2_idle.get_current_frame()
+                frame2 = self.animation_clone_idle.get_current_frame()
+            else:
+                frame = self.animation_phase1_phase2_transition.get_current_frame()
+                frame2 = self.animation_clone_spawn.get_current_frame()
+        if frame:
+            draw_rect = frame.get_rect(center=self.rect.center)
+            screen.blit(frame, draw_rect)
+        if frame2:
+            draw_rect = frame2.get_rect(center=self.clone_rect.center)
+            screen.blit(frame2, draw_rect)
 
     def gravityPull(self, player_rect, screen_w, screen_h):
         # Create summonedMass at a location randomly under specified conditions that pulls players in
