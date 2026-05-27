@@ -2,6 +2,7 @@ import pygame
 import math
 import json
 import os
+from MainMenu import Button
 
 class PlayScreen:
     STATE_FADEIN  = "fadein"
@@ -68,20 +69,20 @@ class PlayScreen:
         diff_w       = 160
 
         # USE LAST NAME button
-        self.btn_last = _Button("USE LAST NAME", self.font_small,
+        self.btn_last = Button("USE LAST NAME", self.font_small,
                                 cx - 110, 224, 220, 36,
                                 COLOR_BTN, COLOR_BTN_HOVER)
 
         # Difficulty buttons  (y = 360)
         diff_y   = 360
         diff_gap = 180
-        self.btn_easy   = _Button("EASY",   self.font_medium,
+        self.btn_easy   = Button("EASY",   self.font_medium,
                                   cx - diff_gap - diff_w//2, diff_y,
                                   diff_w, btn_h, COLOR_BTN, COLOR_BTN_HOVER)
-        self.btn_medium = _Button("MEDIUM", self.font_medium,
+        self.btn_medium = Button("MEDIUM", self.font_medium,
                                   cx - diff_w//2,            diff_y,
                                   diff_w, btn_h, COLOR_BTN, COLOR_BTN_HOVER)
-        self.btn_hard   = _Button("HARD",   self.font_medium,
+        self.btn_hard   = Button("HARD",   self.font_medium,
                                   cx + diff_gap - diff_w//2, diff_y,
                                   diff_w, btn_h, COLOR_BTN, COLOR_BTN_HOVER)
 
@@ -92,10 +93,10 @@ class PlayScreen:
         ]
 
         # Confirm / Back
-        self.btn_confirm = _Button("CONFIRM", self.font_medium,
+        self.btn_confirm = Button("CONFIRM", self.font_medium,
                                    cx - btn_w//2, 460, btn_w, btn_h,
                                    COLOR_CONFIRM, COLOR_CONFIRM_HOVER)
-        self.btn_back    = _Button("BACK",    self.font_medium,
+        self.btn_back    = Button("BACK",    self.font_medium,
                                    cx - btn_w//2, 524, btn_w, btn_h,
                                    COLOR_QUIT, COLOR_QUIT_HOVER)
 
@@ -248,42 +249,4 @@ class PlayScreen:
 
 
 # ── Private Button class (internal to this module) ──────────
-class _Button:
-    def __init__(self, text, font, x, y, width, height, color, hover_color):
-        self.text        = text
-        self.font        = font
-        self.x           = x
-        self.y           = y
-        self.width       = width
-        self.height      = height
-        self.color       = color
-        self.hover_color = hover_color
-        self.hovered     = False
-
-    def draw(self, screen, selected=False, selected_color=None, color_override=None):
-        rect = pygame.Rect(self.x, self.y, self.width, self.height)
-
-        if color_override:
-            fill = color_override
-        elif selected and selected_color:
-            fill = selected_color
-        elif self.hovered:
-            fill = self.hover_color
-        else:
-            fill = self.color
-
-        pygame.draw.rect(screen, fill,           rect, border_radius=6)
-        pygame.draw.rect(screen, (255, 255, 255), rect, 2, border_radius=6)
-
-        text_surf = self.font.render(self.text, True, (255, 255, 255))
-        screen.blit(text_surf, text_surf.get_rect(center=rect.center))
-
-    def check_hover(self, mouse_pos):
-        self.hovered = pygame.Rect(
-            self.x, self.y, self.width, self.height
-        ).collidepoint(mouse_pos)
-
-    def is_clicked(self, mouse_pos):
-        return pygame.Rect(
-            self.x, self.y, self.width, self.height
-        ).collidepoint(mouse_pos)
+#removed because MainMenu has this already

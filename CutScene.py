@@ -65,7 +65,7 @@ class CutScene:
                 "image"  : "imgs/Narration/nSea.png",
                 "layout" : "image_left",
                 "lines"  : [
-                    "It all started slowly,"
+                    "It all started slowly,",
                     "Strange tides...",
                     "Unexplained earthquakes..",
                     "Sunken Ships..",
@@ -123,7 +123,8 @@ class CutScene:
                     "This will be your final mission.",
                     "Fall. and the end is nigh..",
                 ],
-                "sound"  : "epic_swell"
+                "sound"  : "epic_swell",
+                "size"  :   (371,209)
             },
         ]
 

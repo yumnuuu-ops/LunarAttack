@@ -9,7 +9,7 @@ class Background:
         # (filename, scroll_speed) — back to front
         layer_data = [
             # ("imgs/blue-back.png", 0.3, (screen_width, screen_height)),  # this one SHOULD fill screen
-            ("imgs/Background/BlueNebula/bNebula4.png", 0.9, (screen_width, screen_height)),  # and this
+            ("imgs/Background/BlueNebula/bNebula4.png", 0.9),  # and this
             # ("imgs/Background/BlueNebula/bNebula4.png", 0.8, (screen_width, screen_height)),  # this too
             # ("imgs/prop-planet-big.png", 1.2, (300, 300)),  # planet, medium
             # ("imgs/prop-planet-small.png", 1.5, (150, 150)),  # planet, small
@@ -18,7 +18,7 @@ class Background:
         ]
 
         self.layers = []
-        for path, speed, size in layer_data:
+        for path, speed, in layer_data:
             img = pygame.image.load(path).convert_alpha()
 
             # scale to square fitting the height
@@ -29,12 +29,12 @@ class Background:
             tiled.blit(tile, (0, 0))  # left tile
             tiled.blit(tile, (720, 0))  # right tile, slight overlap crop handled naturally
 
-            img = tiled
+
             self.layers.append({
-                "img": img,
+                "img": tiled,
                 "speed": speed,
                 "offset": 0.0,
-                "x": random.randint(0, screen_width - size[0])  # random x position
+                  # random x position
             })
 
     def update(self, dt):

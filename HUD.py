@@ -142,12 +142,18 @@ class HUD:
         s = int(seconds) % 60
         return f"{m:02}:{s:02}"
 
+    def _draw_panel(self, screen, x, y, w, h):
+        panel = pygame.Surface((w, h))
+        panel.set_alpha(160)
+        panel.fill((0, 0, 0))
+        screen.blit(panel, (x, y))
+        pygame.draw.rect(screen, (80, 80, 120), (x, y, w, h), 1)
+
     def draw(self, screen):
         pad = 16
 
         # dark panel top left
-        pygame.draw.rect(screen, (0, 0, 0, 160), (0, 0, 220, 100))
-        pygame.draw.rect(screen, (80, 80, 120), (0, 0, 220, 100), 1)
+        self._draw_panel(screen, 0, 0, 220, 100)
 
         # score
         score_surf = self.font_medium.render(f"SCORE  {self.display_score:07}", True, (255, 255, 255))
@@ -169,8 +175,7 @@ class HUD:
         # dark panel top right
         panel_w = 240
         panel_x = self.sw - panel_w
-        pygame.draw.rect(screen, (0, 0, 0, 160), (panel_x, 0, panel_w, 110))
-        pygame.draw.rect(screen, (80, 80, 120), (panel_x, 0, panel_w, 110), 1)
+        self._draw_panel(screen, panel_x, 0, panel_w, 110)
 
         # player name
         name_surf = self.font_medium.render(f"CADET  {self.player_name[:8]}", True, (50, 220, 100))

@@ -15,9 +15,17 @@ class Button:
         self.hovered = False
         self.rect = pygame.Rect(x, y, width, height)
 
-    def draw(self, screen, offset_y=0):
+    def draw(self, screen, offset_y=0, selected=False, selected_color=None, color_override=None):
         draw_rect = pygame.Rect(self.x, self.y + offset_y, self.width, self.height)
-        color = self.hover_color if self.hovered else self.color
+
+        if color_override:
+            color = color_override
+        elif selected and selected_color:
+            color = selected_color
+        elif self.hovered:
+            color = self.hover_color
+        else:
+            color = self.color
 
         pygame.draw.rect(screen, color, draw_rect, border_radius=6)
         pygame.draw.rect(screen, (255, 255, 255), draw_rect, 2, border_radius=6)
@@ -146,7 +154,6 @@ class MainMenu:
                 self.action    = "SLIDEOUT_DONE"
 
     def draw(self, screen):
-        # classic sin maths to make the planets move around
         planet_y = self.sh - 220 + math.sin(self.timer * 0.02) * 8
         screen.blit(self.planet, (30, planet_y))
 
@@ -154,7 +161,7 @@ class MainMenu:
         screen.blit(self.asteroid, (asteroid_x, 20))
 
         title_bob = math.sin(self.timer * 0.03) * 4
-        screen.blit(self.lunar,  (0, self.logo_y + title_bob))
+        screen.blit(self.lunar, (0, self.logo_y + title_bob))
         screen.blit(self.attack, (0, self.logo_y + title_bob))
 
         if self.state == self.STATE_TITLE and self.flash_visible:
