@@ -5,6 +5,8 @@ import pygame_menu as pyMenu
 from AssetManager import AssetManager
 from Player import Player
 from background import Background
+from Alien import Alien
+from Formation import Formation
 
 pygame.init()
 pygame.font.init()
@@ -15,14 +17,30 @@ bg = Background(1280, 720)
 clock = pygame.time.Clock()
 assetMgr = AssetManager(2)
 
+# 1. Define your alien types matching your AssetManager textures
+alien_types = ["alien_drone", "alien_drone", "alien_drone"]
 
-#states
-MENU, DIFFICULTY_1, DIFFICULTY_2, DIFFICULTY_3 = "menu", "difficulty_1", "difficulty_2", "difficulty_3"
+# Custom events for spawning aliens (Chicken Invaders style!)
+SPAWN_ALIEN_EVENT = pygame.USEREVENT + 2
+pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500) # Spawns a mini-alien every 1.5 seconds
+
+
+
+
+# Game States (Stages represent levels/stages that we progress through)
+MENU, STAGE_1, STAGE_2 = "menu", "stage_1", "stage_2"
 currState = MENU
 
+# Difficulty variables (Currently empty - reserved for future implementation)
+EASY, MEDIUM, HARD = "easy", "medium", "hard"
+currDifficulty = EASY
+
 def setDifficulty(selected_diff):
-    global currState
-    currState = DIFFICULTY_1 if selected_diff == "Easy" else DIFFICULTY_2 if selected_diff == "Medium" else DIFFICULTY_3
+    global currState, currDifficulty
+    currDifficulty = EASY if selected_diff == "Easy" else MEDIUM if selected_diff == "Medium" else HARD
+    
+    # Decoupled stage start: every difficulty starts at STAGE_1!
+    currState = STAGE_1
 
 def quitGame():
     global running
@@ -79,6 +97,8 @@ imageScale = 2
 
 assetMgr.loadTexture("cadet","imgs\\cadet.png")
 assetMgr.loadTexture("alien","imgs\\alien.png")
+assetMgr.loadTexture("alien_drone", "Assets\\Aliens\\enemy_drone_f0.png")
+
 
 # Ship
 shipTex = assetMgr.loadTexture("MainShip Full","imgs\\Main Ship - Full health.png")
@@ -108,6 +128,17 @@ font = pygame.font.SysFont('freesansbold.ttf', 20)
 # ====================================== Object Creation ======================================
 player = Player(assetMgr,200, 300)
 projectile_group = pygame.sprite.Group()
+alien_group = pygame.sprite.Group()
+enemy_projectile_group = pygame.sprite.Group()
+
+# GRID OF RECTANGLES FOR ENEMY FORMATION
+num_cols = 6
+spacing = 100
+start_x = (screen_w - (num_cols - 1) * spacing) // 2
+cols = [start_x + i * spacing for i in range(num_cols)]
+
+grid_slots = [(col, row) for row in [100, 180, 260] for col in cols]
+formation = Formation(screen_w, screen_h, grid_slots)
 
 # ======================================== Main loop =======================================
 running = True
@@ -117,10 +148,36 @@ while running:
     for event in events:
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == SPAWN_ALIEN_EVENT and currState in [STAGE_1, STAGE_2]:
+            chosen_type = random.choice(alien_types)
+            if currState == STAGE_1:
+                spawn_x = random.randint(50, 1230)
+                new_alien = Alien(assetMgr, chosen_type, spawn_x, -100, stage=1)
+                alien_group.add(new_alien)
+            elif currState == STAGE_2:
+                # 1. Collect up to two slots (one from the left, one from the right)
+                slots_to_spawn = formation.get_spawn_slots()
+                
+                # 2. Spawn all selected slots in the same frame (parallel execution)
+                for slot in slots_to_spawn:
+                    if slot[0] < 640:
+                        spawn_x = -50
+                        spawn_y = 0
+                    else:
+                        spawn_x = screen_w + 50
+                        spawn_y = 0
+                        
+                    new_alien = Alien(assetMgr, chosen_type, spawn_x, spawn_y, stage=2, target_x=slot[0], target_y=slot[1])
+                    alien_group.add(new_alien)
+                    formation.register_alien(new_alien, slot)
+
 
     # =========================================================================
     # PHASE 2: UPDATE GAME STATE (Physics & Math)
     # =========================================================================
+    if currState == STAGE_2:
+        formation.update()
+
     player.update()
 
     mouse_buttons = pygame.mouse.get_pressed()
@@ -132,28 +189,53 @@ while running:
             projectile_group.add(*bullets)
 
     projectile_group.update()
+    
+    # Update alien_group and collect any fired enemy bullets
+    enemy_bullets = []
+    for alien in alien_group:
+        result = alien.update()
+        if result is not None:
+            enemy_bullets.append(result)
+    enemy_projectile_group.add(*enemy_bullets)
+    enemy_projectile_group.update()
+
+    # Clean up recycled slot tracker if any alien dies/gets killed off screen (Stage 2 only)
+    if currState == STAGE_2:
+        dead_aliens = [alien for alien in formation.active_aliens if not alien.alive()]
+        for alien in dead_aliens:
+            formation.release_alien(alien)
+
+    # Bullet-alien collisions
+    hits = pygame.sprite.groupcollide(projectile_group, alien_group, True, False)
+    for bullet, hit_aliens in hits.items():
+        for alien in hit_aliens:
+            alien.takeDamage(bullet.damage)
+            if alien.hp <= 0 and currState == STAGE_2: # If killed, return slot (Stage 2 only)
+                formation.release_alien(alien)
+
 
     if currState == MENU:
+        # Clear groups when on menu to reset the level state clean
+        alien_group.empty()
+        projectile_group.empty()
+        enemy_projectile_group.empty()
+        formation.reset()
+        
         mainMenu.update(events)
         mainMenu.draw(screen)
-    elif currState == DIFFICULTY_1:
+    elif currState in [STAGE_1, STAGE_2]:
+        # 1. Update and render the scrolling space background
         dt = clock.get_time() / 1000.0
         bg.update(dt)
         bg.draw(screen)
+        
+        # 2. Render friendly lasers and the player ship on top
         player.draw(screen)  # 2. player ON TOP
         projectile_group.draw(screen)
-    elif currState == DIFFICULTY_2:
-        dt = clock.get_time() / 1000.0
-        bg.update(dt)
-        bg.draw(screen)
-        player.draw(screen)  # 2. player ON TOP
-        projectile_group.draw(screen)
-    elif currState == DIFFICULTY_3:
-        dt = clock.get_time() / 1000.0
-        bg.update(dt)
-        bg.draw(screen)
-        player.draw(screen)  # 2. player ON TOP
-        projectile_group.draw(screen)
+        
+        # 3. Render the alien fleet and their incoming laser fire
+        enemy_projectile_group.draw(screen)
+        alien_group.draw(screen)
 
     pygame.display.flip()
 
