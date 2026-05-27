@@ -119,6 +119,8 @@ proj3Anim =  assetMgr.loadAnim("ZapperProj", "imgs\\Main ship weapon - Projectil
 proj4Anim =  assetMgr.loadAnim("RocketProj", "imgs\\Main ship weapon - Projectile - Rocket.png")
 
 enemy1Anim = assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
+attack = assetMgr.loadAnim("Mass", "imgs\\Mass Attack Anim.png")
+
 # ===================================== Initial Setting =====================================
 font = pygame.font.SysFont('freesansbold.ttf', 20)
 
@@ -126,7 +128,7 @@ font = pygame.font.SysFont('freesansbold.ttf', 20)
 #removed for background
 
 # ====================================== Object Creation ======================================
-player = Player(assetMgr,200, 300)
+player = Player(assetMgr,608, 848)
 projectile_group = pygame.sprite.Group()
 alien_group = pygame.sprite.Group()
 enemy_projectile_group = pygame.sprite.Group()
@@ -235,7 +237,7 @@ while running:
         # 2. Render friendly lasers and the player ship on top
         player.draw(screen)  # 2. player ON TOP
         projectile_group.draw(screen)
-        
+
         # 3. Render the alien fleet and their incoming laser fire
         enemy_projectile_group.draw(screen)
         alien_group.draw(screen)

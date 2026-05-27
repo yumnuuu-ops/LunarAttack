@@ -5,7 +5,7 @@ from AnimationManager import AnimationManager
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, assetMgr, selectedWeapon, speed, x, y, vx, vy, damage):
         super().__init__()
-        self.selectedProj = "ZapperProj"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
+        self.selectedProj = "Mass"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
         animation = assetMgr.getAnim(self.selectedProj)
         self.animator = AnimationManager(animation, speed=0.24)
         self.image = self.animator.get_current_frame()
