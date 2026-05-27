@@ -117,6 +117,7 @@ proj4Anim = assetMgr.loadAnim("RocketProj",     "imgs\\Main ship weapon - Projec
 
 enemy1Anim = assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
 attack = assetMgr.loadAnim("Mass", "imgs\\Mass Attack Anim.png")
+massExplosion = assetMgr.loadAnim("MassE", "imgs\\mass_implosion_strip-sheet.png")
 
 # ===================================== Initial Setting =====================================
 font = pygame.font.SysFont('freesansbold.ttf', 20)
