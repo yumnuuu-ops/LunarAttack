@@ -126,6 +126,7 @@ proj3Anim = assetMgr.loadAnim("ZapperProj",     "imgs\\Main ship weapon - Projec
 proj4Anim = assetMgr.loadAnim("RocketProj",     "imgs\\Main ship weapon - Projectile - Rocket.png")
 
 attack = assetMgr.loadAnimScale("Mass", "imgs\\Mass Attack Anim.png", 4)
+attack2 = assetMgr.loadAnimScale("MassX", "imgs\\Mass Attack Anim X.png", 4)
 massExplosion = assetMgr.loadAnimScale("MassE", "imgs\\mass_implosion_strip-sheet.png", 4)
 moon_phase1_idle = assetMgr.loadAnimScale("MoonP1", "Assets\\Moon\\moon_phase1_idle_strip.png", 6)
 moon_phase_transition = assetMgr.loadAnimScale("MoonP1TP2", "Assets\\Moon\\moon_phase1_to_phase2_strip.png", 6)
