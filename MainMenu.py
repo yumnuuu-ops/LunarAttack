@@ -95,6 +95,11 @@ class MainMenu:
         # call this from main.py when play is pressed to trigger slide away
         self.state = self.STATE_SLIDEOUT
 
+    def reset(self):
+        self.state = self.STATE_MENU
+        self.logo_y = self.logo_y_target_menu
+        self.buttons_y = self.buttons_y_target_shown
+
     def update(self, events):
         self.timer += 1
         self.action = None

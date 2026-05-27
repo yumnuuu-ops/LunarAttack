@@ -9,8 +9,8 @@ class Background:
         # (filename, scroll_speed) — back to front
         layer_data = [
             # ("imgs/blue-back.png", 0.3, (screen_width, screen_height)),  # this one SHOULD fill screen
-            ("imgs/blue-with-stars.png", 0.9, (screen_width, screen_height)),  # and this
-            ("imgs/blue-stars.png", 0.8, (screen_width, screen_height)),  # this too
+            ("imgs/Background/BlueNebula/bNebula4.png", 0.9, (screen_width, screen_height)),  # and this
+            # ("imgs/Background/BlueNebula/bNebula4.png", 0.8, (screen_width, screen_height)),  # this too
             # ("imgs/prop-planet-big.png", 1.2, (300, 300)),  # planet, medium
             # ("imgs/prop-planet-small.png", 1.5, (150, 150)),  # planet, small
             # ("imgs/asteroid-1.png", 2.0, (80, 80)),  # asteroid
@@ -20,7 +20,16 @@ class Background:
         self.layers = []
         for path, speed, size in layer_data:
             img = pygame.image.load(path).convert_alpha()
-            img = pygame.transform.scale(img, (screen_width, screen_height))
+
+            # scale to square fitting the height
+            tile = pygame.transform.scale(img, (720, 720))
+
+            # create a 1280x720 surface and tile across it
+            tiled = pygame.Surface((screen_width, screen_height))
+            tiled.blit(tile, (0, 0))  # left tile
+            tiled.blit(tile, (720, 0))  # right tile, slight overlap crop handled naturally
+
+            img = tiled
             self.layers.append({
                 "img": img,
                 "speed": speed,

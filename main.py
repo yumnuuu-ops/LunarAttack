@@ -9,6 +9,9 @@ from Player import Player
 from background import Background
 from PlayScreen import PlayScreen
 from CutScene import CutScene
+from ScoreManager import ScoreManager
+from HUD import HUD
+from DummyEnemy import DummyEnemy #TESTING PURPOSES ONLY
 
 pygame.init()
 pygame.font.init()
@@ -21,6 +24,8 @@ cutscene = CutScene(screen_w, screen_h)
 bg = Background(1280, 720)
 clock = pygame.time.Clock()
 assetMgr = AssetManager(2)
+score_manager = ScoreManager()
+dummy = DummyEnemy(screen_w, screen_h) #TESTING PURPOSES ONLY
 
 
 #states
@@ -156,6 +161,7 @@ while running:
         elif menu.action == "QUIT":
             running = False
 
+
     elif currState == PLAY_SCREEN:
         dt = clock.get_time() / 1000.0
         screen.fill((0, 0, 0))
@@ -163,11 +169,14 @@ while running:
         bg.draw(screen, darkened=True)
         play_screen.update(events)
         play_screen.draw(screen)
-
         if play_screen.action == "START":
             selected_difficulty = play_screen.difficulty
             currState = CUTSCENE
-            cutscene = CutScene(screen_w, screen_h)
+            cutscene = CutScene(screen_w, screen_h, play_screen.player_name)
+        elif play_screen.action == "BACK":
+            currState = MENU
+            menu.reset()
+
 
     elif currState == CUTSCENE:
         dt = clock.get_time() / 1000.0
@@ -183,30 +192,58 @@ while running:
                 currState = DIFFICULTY_2
             elif selected_difficulty == "Hard":
                 currState = DIFFICULTY_3
+            hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
 
     elif currState == DIFFICULTY_1:
         dt = clock.get_time() / 1000.0
-
         bg.update(dt)
         bg.draw(screen)
         player.draw(screen)
         projectile_group.draw(screen)
+        # =====================================
+        if dummy.alive:
+            dummy.check_hit(projectile_group)
+            dummy.draw(screen)
+        else:
+            points = hud.register_kill(dummy.points)
+            dummy.spawn()
+        # ======================================
+        hud.update(dt)
+        hud.draw(screen)
 
     elif currState == DIFFICULTY_2:
         dt = clock.get_time() / 1000.0
-
         bg.update(dt)
         bg.draw(screen)
         player.draw(screen)
         projectile_group.draw(screen)
+        # =====================================
+        if dummy.alive:
+            dummy.check_hit(projectile_group)
+            dummy.draw(screen)
+        else:
+            points = hud.register_kill(dummy.points)
+            dummy.spawn()
+        # ======================================
+        hud.update(dt)
+        hud.draw(screen)
 
     elif currState == DIFFICULTY_3:
         dt = clock.get_time() / 1000.0
-
         bg.update(dt)
         bg.draw(screen)
         player.draw(screen)
         projectile_group.draw(screen)
+#=====================================
+        if dummy.alive:
+            dummy.check_hit(projectile_group)
+            dummy.draw(screen)
+        else:
+            points = hud.register_kill(dummy.points)
+            dummy.spawn()
+#======================================
+        hud.update(dt)
+        hud.draw(screen)
 
     pygame.display.flip()
     clock.tick(60)

@@ -9,12 +9,13 @@ class CutScene:
     STATE_FADEOUT = "fadeout"
     STATE_BANDOUT = "bandout"  # new state for fading the band away at the end
 
-    def __init__(self, screen_w, screen_h):
+    def __init__(self, screen_w, screen_h, player_name="Cadet"):
         self.sw = screen_w
         self.sh = screen_h
 
-        self.font       = pygame.font.Font("PressStart2P-Regular.ttf", 10)
-        self.font_small = pygame.font.Font("PressStart2P-Regular.ttf", 8)
+        self.font       = pygame.font.Font("PressStart2P-Regular.ttf", 12)
+        self.font_small = pygame.font.Font("PressStart2P-Regular.ttf", 10)
+
 
         self.img_w = 371
         self.img_h = 209
@@ -38,8 +39,13 @@ class CutScene:
 
         self.img_surface = pygame.Surface((self.img_w, self.img_h))
 
+        self.player_name = player_name
+
         # band starts fully visible, fades away only at the very end
         self.band_alpha = 255
+
+        self.skip_hold_timer = 0
+        self.skip_hold_required = 90
 
         self.scenes = [
             {
@@ -97,11 +103,12 @@ class CutScene:
                 "image"  : "imgs/Narration/nTerraDefense.png",
                 "layout" : "text_left",
                 "lines"  : [
-                    "You " + #username,
-                    "our bravest soldier"
+                    f"You... {self.player_name}.",  #username,
+                    "Our bravest soldier.",
                     "Everyone we sent before you",
-                    "did not return.",
-                    "But this ends today!!",
+                    "did not return...",
+                    "You are different..",
+                    "This ends today!!",
                 ],
                 "sound"  : "launch",
                 "size": (371, 209)
@@ -174,22 +181,40 @@ class CutScene:
         self.flash_timer += 1
         if self.flash_timer >= 30:
             self.flash_visible = not self.flash_visible
-            self.flash_timer   = 0
+            self.flash_timer = 0
 
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     if self.state in (self.STATE_TYPING, self.STATE_WAIT):
+                        if self.skip_hold_timer < 5:  # only advance if not already holding
+                            self._advance()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.state in (self.STATE_TYPING, self.STATE_WAIT):
+                    if self.skip_hold_timer < 5:
                         self._advance()
 
-        # band fading out after last scene — separate from normal flow
+        # long hold skip
+        keys = pygame.key.get_pressed()
+        mouse = pygame.mouse.get_pressed()
+
+        if keys[pygame.K_SPACE] or mouse[0]:
+            self.skip_hold_timer += 1
+            if self.skip_hold_timer >= self.skip_hold_required:
+                self.skip_hold_timer = self.skip_hold_required  # cap it so bar stays full
+                if self.state != self.STATE_BANDOUT:  # only trigger once
+                    self.state = self.STATE_BANDOUT
+                    self.band_alpha = 255
+                    self.scene_index = len(self.scenes)
+        else:
+            self.skip_hold_timer = 0
+
         if self.state == self.STATE_BANDOUT:
             self.band_alpha = max(0, self.band_alpha - self.fade_speed * 2)
             if self.band_alpha <= 0:
                 self.action = "DONE"
             return
 
-        # stop processing if all scenes done
         if self.scene_index >= len(self.scenes):
             return
 
@@ -199,7 +224,7 @@ class CutScene:
             self.img_alpha = min(255, self.img_alpha + self.fade_speed * 3)
             if self.img_alpha >= 255:
                 self.img_alpha = 255
-                self.state     = self.STATE_TYPING
+                self.state = self.STATE_TYPING
 
         elif self.state == self.STATE_TYPING:
             if self.current_line < len(scene["lines"]):
@@ -212,17 +237,16 @@ class CutScene:
                     else:
                         self.displayed_lines.append(line)
                         self.current_line += 1
-                        self.current_char  = 0
+                        self.current_char = 0
             else:
                 self.typing_done = True
-                self.state       = self.STATE_WAIT
+                self.state = self.STATE_WAIT
 
         elif self.state == self.STATE_FADEOUT:
             self.img_alpha = max(0, self.img_alpha - self.fade_speed * 3)
             if self.img_alpha <= 0:
                 self.scene_index += 1
                 if self.scene_index >= len(self.scenes):
-                    # last scene done, start fading band away
                     self.state = self.STATE_BANDOUT
                 else:
                     self._load_scene(self.scene_index)
@@ -236,6 +260,17 @@ class CutScene:
             band_surf.fill((5, 5, 15))
             band_surf.set_alpha(self.band_alpha)
             screen.blit(band_surf, (0, band_y))
+
+            if self.skip_hold_timer > 0:
+                bar_w = 200
+                bar_h = 6
+                bar_x = self.sw // 2 - bar_w // 2
+                bar_y = self.sh - 30
+                fill_w = int((self.skip_hold_timer / self.skip_hold_required) * bar_w)
+                pygame.draw.rect(screen, (40, 40, 40), (bar_x, bar_y, bar_w, bar_h), border_radius=3)
+                pygame.draw.rect(screen, (180, 180, 255), (bar_x, bar_y, fill_w, bar_h), border_radius=3)
+                label = self.font_small.render("HOLD TO SKIP", True, (140, 140, 200))
+                screen.blit(label, label.get_rect(centerx=self.sw // 2, bottom=bar_y - 4))
             return
 
         scene = self.scenes[self.scene_index]
@@ -278,6 +313,17 @@ class CutScene:
             prompt_surf = self.font_small.render(prompt, True, (140, 140, 200))
             screen.blit(prompt_surf, (text_x, text_y + line_h * 8))
 
+            # skip hold progress bar
+        if self.skip_hold_timer > 0:
+            bar_w = 200
+            bar_h = 6
+            bar_x = self.sw // 2 - bar_w // 2
+            bar_y = self.sh - 30
+            fill_w = int((self.skip_hold_timer / self.skip_hold_required) * bar_w)
+            pygame.draw.rect(screen, (40, 40, 40), (bar_x, bar_y, bar_w, bar_h), border_radius=3)
+            pygame.draw.rect(screen, (180, 180, 255), (bar_x, bar_y, fill_w, bar_h), border_radius=3)
+            label = self.font_small.render("HOLD TO SKIP", True, (140, 140, 200))
+            screen.blit(label, label.get_rect(centerx=self.sw // 2, bottom=bar_y - 4))
         # scene counter
         counter = self.font_small.render(
             f"{self.scene_index + 1} / {len(self.scenes)}", True, (80, 80, 100)
