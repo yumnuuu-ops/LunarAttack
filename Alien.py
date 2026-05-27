@@ -2,7 +2,7 @@ import pygame
 import random
 import math
 import utils
-from Projectile import Projectile
+from AnimationManager import AnimationManager
 
 
 class Alien(pygame.sprite.Sprite):
@@ -10,9 +10,12 @@ class Alien(pygame.sprite.Sprite):
         super().__init__()
         
         self.alien_type = alien_type
-        
+        animation = assetMgr.getAnim(alien_type)
+        self.animator = AnimationManager(animation, speed=0.24)
+        self.image = self.animator.get_current_frame()
+
         # 1. Dynamically load the correct texture from AssetManager
-        self.image = assetMgr.getTexture(alien_type)
+        # self.image = assetMgr.getTexture(alien_type)
         self.rect = self.image.get_rect()
         
         self.pos = pygame.math.Vector2(x, y)
@@ -51,6 +54,9 @@ class Alien(pygame.sprite.Sprite):
         self.wave_time = 0
         self.wave_speed = 0.05
         self.wave_amplitude = 100
+
+        if alien_type == "alien_drone":
+            self.image = pygame.transform.flip(self.image, False, True)
 
     def update(self):
         # Stage 2 Entry & Formation Logic

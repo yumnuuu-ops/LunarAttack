@@ -97,7 +97,7 @@ imageScale = 2
 
 assetMgr.loadTexture("cadet","imgs\\cadet.png")
 assetMgr.loadTexture("alien","imgs\\alien.png")
-assetMgr.loadTexture("alien_drone", "Assets\\Aliens\\enemy_drone_f0.png")
+# assetMgr.loadTexture("alien_drone", "Assets\\Aliens\\enemy_drone_f0.png")
 
 
 # Ship
@@ -118,7 +118,7 @@ proj5Anim =  assetMgr.loadAnim("BigProjEx", "imgs\\Main ship weapon - Projectile
 proj3Anim =  assetMgr.loadAnim("ZapperProj", "imgs\\Main ship weapon - Projectile - Zapper.png")
 proj4Anim =  assetMgr.loadAnim("RocketProj", "imgs\\Main ship weapon - Projectile - Rocket.png")
 
-
+enemy1Anim = assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
 # ===================================== Initial Setting =====================================
 font = pygame.font.SysFont('freesansbold.ttf', 20)
 
@@ -213,6 +213,9 @@ while running:
             if alien.hp <= 0 and currState == STAGE_2: # If killed, return slot (Stage 2 only)
                 formation.release_alien(alien)
 
+    # =========================================================================
+    # PHASE 3: DRAW (Back to Front)
+    # =========================================================================
 
     if currState == MENU:
         # Clear groups when on menu to reset the level state clean
