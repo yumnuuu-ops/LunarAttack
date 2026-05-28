@@ -171,11 +171,7 @@ class HUD:
             screen.blit(combo_surf, (pad, pad + 24))
 
         # time
-        if self.current_stage == 1:
-            remaining_time = max(0.0, 20.0 - self.wave_time)
-            time_surf = self.font_medium.render(f"SURVIVE {self._format_time(remaining_time)}", True, (255, 100, 100))
-        else:
-            time_surf = self.font_medium.render(f"TIME   {self._format_time(self.wave_time)}", True, (180, 180, 255))
+        time_surf = self.font_medium.render(f"TIME   {self._format_time(self.wave_time)}", True, (180, 180, 255))
         screen.blit(time_surf, (pad, pad + 48))
 
         # dark panel top right
