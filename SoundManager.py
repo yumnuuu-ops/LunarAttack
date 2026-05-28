@@ -16,10 +16,9 @@ class SoundManager:
     }
 
     def __init__(self):
-        pygame.mixer.init()
         self.current_track = None
         self.music_volume  = 0.5
-        self.sfx_volume = 0.6
+        self.sfx_volume = 0.3
 
         self.sounds = {}
         for name, path in self.SFX.items():
@@ -50,6 +49,7 @@ class SoundManager:
 
     def play_sfx(self, sfx_name):
         if sfx_name in self.sounds:
+            self.sounds[sfx_name].set_volume(self.sfx_volume)
             self.sounds[sfx_name].play()
         else:
             print(f"SoundManager: sfx '{sfx_name}' not found")
