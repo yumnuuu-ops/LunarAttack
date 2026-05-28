@@ -15,6 +15,7 @@ import cv2
 import numpy as np
 import os
 from AnimationManager import AnimationManager
+import utils
 
 # I am gonna be an astrophysician after this
 # Am I a computer science student with specialization in Artificial Intelligence
@@ -38,7 +39,7 @@ class Boss:
     max_hp = 60
     phase2_hp = max_hp // 2 # Floor Division, phase 2 will start when HP is 50% or below
 
-    def __init__(self, assetManager):
+    def __init__(self, assetManager, soundManager):
         # Initial State
         self.hp = self.max_hp
         self.phase = 1
@@ -47,6 +48,7 @@ class Boss:
         self.radius = 90
         self.speed  = 10 # Need to experiment
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
+        self.soundManager = soundManager
         self.assetManager = assetManager
         self.animation_phase1_idle = AnimationManager(assetManager.getAnim("MoonP1"), speed=0.2)
 
@@ -151,7 +153,7 @@ class Boss:
 
     def gravityPull(self, player_rect, screen_w, screen_h):
         # Create summonedMass at a location randomly under specified conditions that pulls players in
-        mass = Mass(self.assetManager)
+        mass = Mass(self.assetManager, self.soundManager)
         mass.spawnLocation(player_rect, self.rect, screen_w, screen_h)
         self.active_masses.append(mass)
 
@@ -190,9 +192,10 @@ class Beam:
         self.screen_h = screen_h
         self.active = False
 
-    def BeamStorm(self, asteroid_type):
+    def BeamStorm(self, asteroid_type, soundManager):
         if self.active == True:
             return
+        self.soundManager = soundManager
         self.active = True
         self.asteroid_type = asteroid_type
         self.beamWavesLeft = self.waves
@@ -226,6 +229,7 @@ class Beam:
         self.beamTimer -= 1
         if self.beamTimer <= 0:
             if self.beamState == "telegraph":
+                self.soundManager.play_sfx("asteroid")
                 self.asteroidAttack(self.asteroid_type)
             else:
                 self.beamWavesLeft -= 1
@@ -283,17 +287,54 @@ class Asteroid:
 
 class Mass:
     G = 6.674
-    def __init__(self, assetManager):
+    def __init__(self, assetManager, soundManager):
+        self.life = 100
         self.radius = 30
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
         self.generatedMass = random.randint(1000, 1500)
+        self.soundManager = soundManager
         self.animation = AnimationManager(assetManager.getAnim("Mass"), speed=0.2)
+        self.animation_spawn = AnimationManager(assetManager.getAnim("MassSpawn"), speed=0.2)
+        self.animation_despawn = AnimationManager(assetManager.getAnim("MassE"), speed=0.2)
+        self.animation_spawn_loaded = False
+        self.animation_despawn_loaded = False
+        self.isDead = False
 
     def update(self):
-        self.animation.update()
+        if self.isDead:
+            return
+        elif self.life <= 0:
+            self.animation_despawn.update(loop=False)
+            lastFrameTrans = len(self.animation_despawn.frames) - 1
+            if self.animation_despawn.index >= lastFrameTrans:
+                self.animation_despawn_loaded = True
+                self.isDead = True
+                self.soundManager.stop_sfx("mass_active")
+        elif self.life > 0 and not self.isDead:
+            if self.animation_spawn_loaded:
+                self.animation.update()
+                self.life -= 1
+                self.soundManager.play_sfx("mass_active")
+            else:
+                self.animation_spawn.update(loop=False)
+                lastFrameTrans = len(self.animation_spawn.frames) - 1
+                if self.animation_spawn.index >= lastFrameTrans:
+                    self.animation_spawn_loaded = True
 
     def draw(self, screen):
-        frame = self.animation.get_current_frame()
+        frame = None
+        if self.isDead:
+            return
+        elif self.life <= 0:
+            if self.animation_despawn_loaded:
+                return
+            else:
+                frame = self.animation_despawn.get_current_frame()
+        elif self.life > 0 and not self.isDead:
+            if self.animation_spawn_loaded:
+                frame = self.animation.get_current_frame()
+            else:
+                frame = self.animation_spawn.get_current_frame()
         if frame:
             draw_rect = frame.get_rect(center=self.rect.center)
             screen.blit(frame, draw_rect)
