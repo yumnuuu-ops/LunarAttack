@@ -163,8 +163,14 @@ y_spacing = 20
 cols_s2 = [((screen_w - 5 * 150) // 2) + i * 150 for i in range(6)]
 grid_slots_stage2 = [(col, last_y + ((5 - i if i > 2 else i) * y_spacing)) for i, col in enumerate(cols_s2)]
 
-cols_s3 = [((screen_w - 7 * 130) // 2) + i * 130 for i in range(8)]
-grid_slots_stage3 = [(col, (row * last_y) + ((7 - i if i > 3 else i) * y_spacing)) for row in range(1, 3) for i, col in enumerate(cols_s3)]
+cols_s3 = [((screen_w - 7 * 130) // 2) + i * 130 for i in range(7)]
+grid_slots_stage3 = []
+# Build second row formation (closest to player - spawns first)
+for i, col in enumerate(cols_s3):
+    grid_slots_stage3.append((col, 2 * last_y + ((6 - i if i > 2 else i) * y_spacing)))
+# Build first row formation (further away - spawns second)
+for i, col in enumerate(cols_s3):
+    grid_slots_stage3.append((col, last_y + ((6 - i if i > 2 else i) * y_spacing)))
 
 formation = Formation(screen_w, screen_h, grid_slots_stage2)
 
