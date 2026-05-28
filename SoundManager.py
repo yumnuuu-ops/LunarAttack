@@ -18,7 +18,9 @@ class SoundManager:
         "Rockets fire": "audio\\sfx\\Rocket fire.wav",
         "BigGun fire": "audio\\sfx\\BigGun fire.wav",
         "asteroid": "audio/sfx/BossFight/Asteroid Sound.wav",
-        "mass_active": "audio/sfx/BossFight/Mass Active.wav"
+        "mass_active": "audio/sfx/BossFight/Mass Active.wav",
+        "mass despawn": "audio\\sfx\\Mass despawn.wav",
+        "mass spawn": "audio\\sfx\\Mass spawn.wav",
     }
 
     def __init__(self):

@@ -19,7 +19,7 @@ class Weapon:
         self.cooldown = 0
         self.projectileCount = 1
         self.projectileSize = 1
-        self.projectileSpeed = 5
+        self.projectileSpeed = 1
 
         self.damage = 10
 
@@ -71,7 +71,7 @@ class Weapon:
                     new_bullet = Projectile(self.assetMgr, self.selectedWeapon, self.projectileSpeed, bullet_x, bullet_y, 0, -1, self.damage)
                     spawned_projectiles.append(new_bullet)
                 weapon_sfx = self.selectedWeapon + " fire"
-                sound.play_sfx(weapon_sfx)
+                sound.play_sfx("mass spawn")
                 return spawned_projectiles
 
         #  If the gun is on cooldown, return nothing
