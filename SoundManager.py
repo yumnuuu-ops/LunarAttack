@@ -21,6 +21,9 @@ class SoundManager:
         "mass_active": "audio/sfx/BossFight/Mass Active.wav",
         "mass despawn": "audio\\sfx\\Mass despawn.wav",
         "mass spawn": "audio\\sfx\\Mass spawn.wav",
+        "phase 1 to 2": "audio\\sfx\\phase 1 to 2.wav",
+        "phase 2 to eclipse": "audio\\sfx\\phase 2 to eclipse.wav",
+        "eclipse to scarred": "audio\\sfx\\eclipse to scarred.wav",
     }
 
     def __init__(self):
