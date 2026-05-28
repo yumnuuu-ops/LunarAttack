@@ -51,6 +51,7 @@ class PlayScreen:
         self.on_hover = lambda: None
         self.on_hover = lambda: None
         self.on_error = lambda: None #error sfx
+        self.on_confirm = lambda: None #selection sfx
 
         # ── Layout ──────────────────────────────────────────
         cx = self.sw // 2  # center x
@@ -177,11 +178,13 @@ class PlayScreen:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 # USE LAST NAME
                 if self.btn_last.is_clicked(mouse_pos):
+                    self.on_confirm()#click on buttons, difficulty and some menu buttons
                     self.load_last_name()
 
                 # Difficulty toggle
                 for btn, label in self.diff_buttons:
                     if btn.is_clicked(mouse_pos):
+                        self.on_confirm()
                         self.difficulty = label
 
                 # Confirm

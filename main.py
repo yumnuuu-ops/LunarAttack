@@ -169,14 +169,16 @@ grid_slots_stage3 = [(col, (row * last_y) + ((7 - i if i > 3 else i) * y_spacing
 formation = Formation(screen_w, screen_h, grid_slots_stage2)
 
 menu = MainMenu(screen_w, screen_h)
-menu.on_hover = lambda: sound.play_sfx("select") #hover sfx
+menu.on_hover       = lambda: sound.play_sfx("select")
 menu.on_press_start = lambda: sound.play_sfx("save_load")
+
 play_screen = PlayScreen(screen_w, screen_h, score_manager)
-play_screen.on_hover = lambda: sound.play_sfx("select") #playscreen hover
-play_screen.on_hover = lambda: sound.play_sfx("select")
-play_screen.on_error = lambda: sound.play_sfx("error")#error sfx if no name or difficulty selected
+play_screen.on_hover   = lambda: sound.play_sfx("select")
+play_screen.on_error   = lambda: sound.play_sfx("error")
+play_screen.on_confirm = lambda: sound.play_sfx("confirm")
+
 cutscene = CutScene(screen_w, screen_h)
-cutscene.on_advance = lambda: sound.play_sfx("save_load")#cutscene sfx
+cutscene.on_advance = lambda: sound.play_sfx("save_load")
 bossFight = BossFight(screen_w, screen_h, assetMgr, player)
 
 # main loop
@@ -322,11 +324,16 @@ while running:
         if menu.action == "PLAY":
             sound.play_sfx("save_load")
             menu.slide_out()
+        elif menu.action == "HISTORY":
+            sound.play_sfx("confirm")
+        elif menu.action == "CREDITS":
+            sound.play_sfx("confirm")
         elif menu.action == "SLIDEOUT_DONE":
             currState = PLAY_SCREEN
             play_screen = PlayScreen(screen_w, screen_h, score_manager)
             play_screen.on_hover = lambda: sound.play_sfx("select")
             play_screen.on_error = lambda: sound.play_sfx("error")
+            play_screen.on_confirm = lambda: sound.play_sfx("confirm")
         elif menu.action == "QUIT":
             sound.play_sfx("back")
             running = False
