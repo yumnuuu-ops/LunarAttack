@@ -3,7 +3,6 @@ import sys
 import os
 import random
 import pygame_menu as pyMenu
-from AssetManager import AssetManager
 from MainMenu import MainMenu
 from Player import Player
 from background import Background
@@ -11,10 +10,10 @@ from PlayScreen import PlayScreen
 from CutScene import CutScene
 from ScoreManager import ScoreManager
 from HUD import HUD
-from SoundManager import SoundManager
 from Alien import Alien
 from Formation import Formation
 from BossFight import BossFight
+from globals import sound, assetMgr
 import math
 
 pygame.init()
@@ -30,9 +29,7 @@ screen = pygame.display.set_mode((1280, 720))
 screen_w, screen_h = screen.get_size()
 bg = Background(1280, 720)
 clock = pygame.time.Clock()
-assetMgr = AssetManager(2)
 score_manager = ScoreManager()
-sound = SoundManager()
 
 alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
 

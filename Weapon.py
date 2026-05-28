@@ -1,11 +1,11 @@
 import pygame
 from AnimationManager import AnimationManager
 from Projectile import Projectile
-
+from globals import sound
 
 class Weapon:
     def __init__(self, assetMgr, x, y):
-        self.selectedWeapon = "AutoCannon"
+        self.selectedWeapon = "BigGun"
         animation = assetMgr.getAnim(self.selectedWeapon)
         self.animator = AnimationManager(animation, speed=0.24)
         self.image = self.animator.get_current_frame()
@@ -50,6 +50,9 @@ class Weapon:
                 self.current_barrel += 1
                 if self.current_barrel >= len(rocket_list):
                     self.current_barrel = 0
+                weapon_sfx = self.selectedWeapon + " fire"
+                sound.play_sfx(weapon_sfx)
+
                 return [new_bullet]
 
             else:
@@ -67,7 +70,8 @@ class Weapon:
 
                     new_bullet = Projectile(self.assetMgr, self.selectedWeapon, self.projectileSpeed, bullet_x, bullet_y, 0, -1, self.damage)
                     spawned_projectiles.append(new_bullet)
-
+                weapon_sfx = self.selectedWeapon + " fire"
+                sound.play_sfx(weapon_sfx)
                 return spawned_projectiles
 
         #  If the gun is on cooldown, return nothing
