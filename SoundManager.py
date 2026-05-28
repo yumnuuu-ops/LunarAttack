@@ -13,6 +13,8 @@ class SoundManager:
         "error": "audio/sfx/Menu/UI_Error.wav",
         "save_load": "audio/sfx/Menu/UI_Save-Load.wav",
         "select": "audio/sfx/Menu/UI_Select.wav",
+        "asteroid": "audio/sfx/BossFight/Asteroid Sound.wav",
+        "mass_active": "audio/sfx/BossFight/Mass Active.wav"
     }
 
     def __init__(self):
@@ -53,3 +55,7 @@ class SoundManager:
             self.sounds[sfx_name].play()
         else:
             print(f"SoundManager: sfx '{sfx_name}' not found")
+
+    def stop_sfx(self, sfx_name):
+        if sfx_name in self.sounds:
+            self.sounds[sfx_name].stop()

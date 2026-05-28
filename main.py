@@ -130,6 +130,7 @@ proj4Anim = assetMgr.loadAnim("RocketProj",     "imgs\\Main ship weapon - Projec
 attack = assetMgr.loadAnimScale("Mass", "imgs\\Mass Attack Anim.png", 4)
 attack2 = assetMgr.loadAnimScale("MassX", "imgs\\Mass Attack Anim X.png", 4)
 massExplosion = assetMgr.loadAnimScale("MassE", "imgs\\mass_implosion_strip-sheet.png", 4)
+massSpawn = assetMgr.loadAnimScale("MassSpawn", "Assets\\Mass\\mass_spawn_strip_new.png", 4)
 moon_phase1_idle = assetMgr.loadAnimScale("MoonP1", "Assets\\Moon\\moon_phase1_idle_strip.png", 6)
 moon_phase_transition = assetMgr.loadAnimScale("MoonP1TP2", "Assets\\Moon\\moon_phase1_to_phase2_strip.png", 6)
 moon_phase2_idle = assetMgr.loadAnimScale("MoonP2", "Assets\\Moon\\moon_phase2_idle_strip.png", 6)
@@ -185,7 +186,7 @@ play_screen.on_confirm = lambda: sound.play_sfx("confirm")
 
 cutscene = CutScene(screen_w, screen_h)
 cutscene.on_advance = lambda: sound.play_sfx("save_load")
-bossFight = BossFight(screen_w, screen_h, assetMgr, player)
+bossFight = BossFight(screen_w, screen_h, assetMgr, player, sound)
 
 # main loop
 running = True
@@ -299,7 +300,7 @@ while running:
                 transition_active = False
                 hud.next_wave()
                 currState = transition_target_state
-                
+
                 # Set up the new stage config
                 if currState == STAGE_2:
                     formation = Formation(screen_w, screen_h, grid_slots_stage2)
@@ -398,15 +399,21 @@ while running:
         dt = clock.get_time() / 1000.0
         bg.update(dt)
         bg.draw(screen)
+        bossFight.update(events)
+        mouse_buttons = pygame.mouse.get_pressed()
+        if mouse_buttons[0]:
+            bullets = player.weapon.shootProjectile()
+            if bullets is not None:
+                projectile_group.add(*bullets)
+        projectile_group.update()
         player.draw(screen)
         projectile_group.draw(screen)
-        bossFight.update(events)
         bossFight.draw(screen)
 
     # Transition to the next stage
     if transition_active:
         print("preparing for: " + transition_target_state)
-        
+
 
     pygame.display.flip()
     clock.tick(60)
