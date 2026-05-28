@@ -1,6 +1,7 @@
 import pygame
 import utils
 from AnimationManager import AnimationManager
+from globals import sound
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, assetMgr, selectedWeapon, speed, x, y, vx, vy, damage):
@@ -42,7 +43,7 @@ class Projectile(pygame.sprite.Sprite):
             if self.animator.checkEndOfAnimation():
                 newProj = self.selectedProj + "E"
                 self.changeAnim(newProj)
-
+                sound.play_sfx("mass despawn")
             self.animator.update(False)
         elif self.selectedProj in self.AfterEffect:
             self.animator.update(False)
