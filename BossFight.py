@@ -2,39 +2,93 @@ from Boss import Boss, Beam, Mass
 import os
 import pygame
 
+
 class BossFight:
-    # FUTURE IMPROVEMENTS
-    # Cutscene where players move in on the corrupted moon. The moon will summon a massive blackhole
-    # The blackhole will sucks in players and then the moon will go in later.
-    # The boss fight will then start
     moonFolder = os.path.join("Assets", "Moon")
-    def __init__(self, screen_w, screen_h, assetManager, player):
-        self.boss = Boss(assetManager)
+
+    def __init__(self, screen_w, screen_h, assetManager, player, soundManager):
+        self.boss = Boss(assetManager, soundManager)
         self.player = player
         self.screen_w = screen_w
         self.screen_h = screen_h
+        self.soundManager = soundManager
         self.assetManager = assetManager
-        for filename in ["moon_phase1", "moon_phase2", "moon_giant"]:
-            assetManager.loadTextureScale(filename, os.path.join(self.moonFolder, filename + ".png"), 6)
         self.boss.rect.center = (screen_w // 2, 160)
         self.beam = None
-
-        # For testing purposes, the attack will be implemented via a decision tree at a later date
         self.testKeys = True
+        self.finished = False
 
-    def loadMoonTexture(self):
-        if self.boss.giant_state:
-            return self.assetManager.getTexture("moon_giant")
-        elif self.boss.phase == 1:
-            return self.assetManager.getTexture("moon_phase1")
-        else:
-            return self.assetManager.getTexture("moon_phase2")
+        self.mode = "intro"
+        self.intro_step = "approach"
+        self.intro_timer = 0
+        self.approach_target_y = 450
+        self.blackhole = None
+        self.fade_alpha = 0
+        self.player_speed_backup = player.speed
 
     def update(self, events):
+        if self.mode == "intro":
+            self.updateIntro()
+            return
+        self.player.update()
+        self.updateFight(events)
+
+    def updateIntro(self):
+        self.player.speed = 0
+
+        if self.intro_step == "approach":
+            if self.player.rect.centery > self.approach_target_y:
+                self.player.apply_push(0, -5)
+                self.player.rect.x = int(self.player.pos.x)
+                self.player.rect.y = int(self.player.pos.y)
+            else:
+                self.intro_step = "blackhole"
+                self.intro_timer = 120
+                self.blackhole = Mass(self.assetManager, self.soundManager)
+                self.blackhole.rect.center = self.boss.rect.center # Reposition to screen center later
+                self.blackhole.generatedMass = 5000
+
+        elif self.intro_step == "blackhole":
+            self.intro_timer -= 1
+            self.blackhole.update()
+            dx = self.blackhole.rect.centerx - self.player.rect.centerx
+            dy = self.blackhole.rect.centery - self.player.rect.centery
+            dist = max(20.0, (dx * dx + dy * dy) ** 0.5)
+            self.player.apply_push(dx / dist * 7, dy / dist * 7)
+            self.player.rect.x = int(self.player.pos.x)
+            self.player.rect.y = int(self.player.pos.y)
+            if self.intro_timer <= 0:
+                self.intro_step = "descend"
+                self.intro_timer = 50
+
+        elif self.intro_step == "descend":
+            self.intro_timer -= 1
+            self.boss.rect.centery += 4
+            if self.intro_timer <= 0:
+                self.intro_step = "blackout"
+
+        elif self.intro_step == "blackout":
+            self.fade_alpha += 8
+            if self.fade_alpha >= 255:
+                self.fade_alpha = 255
+                self._startFight()
+
+    def _startFight(self):
+        self.mode = "fight"
+        self.player.speed = self.player_speed_backup
+        self.boss.rect.center = (self.screen_w // 2, 160)
+        self.blackhole = None
+        self.player.pos.x = self.screen_w // 2
+        self.player.pos.y = self.screen_h - 150
+        self.player.rect.x = int(self.player.pos.x)
+        self.player.rect.y = int(self.player.pos.y)
+
+    def updateFight(self, events):
         if self.testKeys:
             for event in events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_1:
+                        self.soundManager.play_sfx("asteroid")
                         self.boss.asteroidBarrage(self.player.rect)
                     elif event.key == pygame.K_2:
                         self.boss.gravityPull(self.player.rect,
@@ -43,7 +97,7 @@ class BossFight:
                         if self.beam is None or not self.beam.active:
                             self.beam = Beam(self.screen_w, self.screen_h)
                             asteroid_type = "Neutral" if self.boss.phase == 1 else "Fiery"
-                            self.beam.BeamStorm(asteroid_type)
+                            self.beam.BeamStorm(asteroid_type, self.soundManager)
                     elif event.key == pygame.K_p:
                         self.boss.phase = 2 if self.boss.phase == 1 else 1
                         if self.boss.phase == 1:
@@ -53,8 +107,7 @@ class BossFight:
                     elif event.key == pygame.K_u:
                         self.boss.phase = 3
 
-        if self.boss:
-            self.boss.update()
+        self.boss.update()
 
         for asteroid in self.boss.asteroids:
             asteroid.move()
@@ -70,18 +123,20 @@ class BossFight:
         if self.beam is not None:
             self.beam.update()
 
-        # Boss Giant Form
-        # Placeholder for future testing
-
         if not self.boss.alive:
             self.finished = True
 
     def draw(self, screen):
-        if self.boss:
-            self.boss.draw(screen)
+        self.boss.draw(screen)
+
+        if self.blackhole is not None:
+            self.blackhole.draw(screen)
 
         for mass in self.boss.active_masses:
-            mass.draw(screen)
+            if not mass.isDead:
+                mass.draw(screen)
+            else:
+                self.boss.active_masses.remove(mass)
 
         for asteroid in self.boss.asteroids:
             asteroid.draw(screen)
@@ -90,3 +145,9 @@ class BossFight:
             self.beam.drawTelegraph(screen)
             for asteroid in self.beam.asteroids:
                 asteroid.draw(screen)
+
+        if self.mode == "intro" and self.fade_alpha > 0:
+            overlay = pygame.Surface((self.screen_w, self.screen_h))
+            overlay.fill((0, 0, 0))
+            overlay.set_alpha(self.fade_alpha)
+            screen.blit(overlay, (0, 0))
