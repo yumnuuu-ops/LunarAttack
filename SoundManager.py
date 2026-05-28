@@ -13,6 +13,10 @@ class SoundManager:
         "error": "audio/sfx/Menu/UI_Error.wav",
         "save_load": "audio/sfx/Menu/UI_Save-Load.wav",
         "select": "audio/sfx/Menu/UI_Select.wav",
+        "AutoCannon fire": "audio\\sfx\\autocannon fire.wav",
+        "Zapper fire": "audio\\sfx\\Zapper fire.wav",
+        "Rockets fire": "audio\\sfx\\Rocket fire.wav",
+        "BigGun fire": "audio\\sfx\\BigGun fire.wav",
         "asteroid": "audio/sfx/BossFight/Asteroid Sound.wav",
         "mass_active": "audio/sfx/BossFight/Mass Active.wav"
     }
@@ -25,8 +29,9 @@ class SoundManager:
         self.sounds = {}
         for name, path in self.SFX.items():
             try:
-                self.sounds[name] = pygame.mixer.Sound(path)
-                self.soundsp[name] = set_volume(self.sfx_volume)
+                loaded_sound = pygame.mixer.Sound(path)
+                loaded_sound.set_volume(self.sfx_volume)
+                self.sounds[name] = loaded_sound
             except Exception as e:
                 print(f"SoundManager: Could not load sfx 'name': {e}")
 
