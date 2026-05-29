@@ -6,7 +6,7 @@ from AnimationManager import AnimationManager
 from Projectile import Projectile
 from ShatterEffect import ShatterEffect
 from globals import assetMgr
-
+from enemy.EnemyProjectile import EnemyProjectile
 
 class Alien(pygame.sprite.Sprite):
     def __init__(self, alien_type, x, y, stage=1, target_x=None, target_y=None):
@@ -212,9 +212,7 @@ class Alien(pygame.sprite.Sprite):
             if dist > 0:
                 vx = dx / dist
                 vy = dy / dist
-        bullet = Projectile(assetMgr, "AutoCannon", 5, self.rect.centerx, self.rect.bottom, vx, vy, 5)
-        # Give enemy bullet a vibrant red color
-        bullet.image.fill((255, 50, 50))
+        bullet = EnemyProjectile(assetMgr, 5, self.rect.centerx, self.rect.bottom, vx, vy, 5)
         return bullet
 
     def takeDamage(self, damage):
