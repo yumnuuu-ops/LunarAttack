@@ -4,7 +4,7 @@ import math
 import utils
 from AnimationManager import AnimationManager
 from Projectile import Projectile
-from ShatterEffect import ShatterEffect
+from faddingEffect import faddingEffect
 from globals import assetMgr
 from enemy.EnemyProjectile import EnemyProjectile
 
@@ -194,6 +194,11 @@ class Alien(pygame.sprite.Sprite):
             self.rect.center = (int(self.pos.x), int(self.pos.y))
         else:
             self.image = raw_image.subsurface(tight_box)
+            if self.phase == "stage2_dive":
+                # Rotate the plane to face the movement/dive vector
+                deg = math.degrees(math.atan2(self.dive_vy, self.dive_vx))
+                rotation_angle = 90.0 - deg
+                self.image = pygame.transform.rotate(self.image, rotation_angle)
             self.rect = self.image.get_rect()
             self.rect.center = (int(self.pos.x), int(self.pos.y))
         
@@ -218,5 +223,5 @@ class Alien(pygame.sprite.Sprite):
     def takeDamage(self, damage):
         self.hp -= damage
         if self.hp <= 0:
-            ShatterEffect.trigger(self, rows=6, cols=6)
+            faddingEffect.trigger(self)
             self.kill()

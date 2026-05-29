@@ -141,6 +141,7 @@ font = pygame.font.SysFont('freesansbold.ttf', 20)
 
 # ====================================== Object Creation ======================================
 player = Player(608, 948)
+player.trigger_shake = trigger_shake
 font = pygame.font.SysFont('freesansbold.ttf', 20)
 
 enemy_manager = EnemyManager(player, None, screen_w, screen_h, trigger_shake)
