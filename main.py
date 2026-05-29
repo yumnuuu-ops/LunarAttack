@@ -220,7 +220,7 @@ while running:
             currState = BOSS
 
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_z:
-            sound.play_sfx("eclipse to scarred") # phase 2 to eclipse     phase 1 to 2      eclipse to scarred
+            sound.play_sfx("phase 1 to 2") # phase 2 to eclipse     phase 1 to 2      eclipse to scarred
 
 
     # update gameplay only if active and not transitioning
