@@ -1,8 +1,8 @@
 import pygame
 import random
 import math
-from Alien import Alien
-from Formation import Formation
+from enemy.Alien import Alien
+from enemy.Formation import Formation
 from globals import projectile_group
 
 STAGE_1 = "stage_1"
@@ -192,11 +192,8 @@ class EnemyManager:
         self.enemy_projectile_group.draw(game_surface)
         self.alien_group.draw(game_surface)
         
-        # Render lock-on visual sights and red rect outlines
+        # Render lock-on visual sights (no red rect debug outlines!)
         for alien in self.alien_group:
-            if hasattr(alien, "phase") and alien.phase != "stage2_align":
-                pygame.draw.rect(game_surface, (255, 0, 0), alien.rect, 1)
-            
             # Draw blinking red Lock-On laser sights only for stationary sentries
             if hasattr(alien, "phase") and alien.phase == "stationary":
                 timer = alien.shoot_cooldown
