@@ -83,15 +83,26 @@ class Boss:
 
         # Define which move can be used in each phase
         # If we want to explain how it can move, let's just say he used domain expansion :D
-        self.phase1Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp"]
+        self.phase1Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp", "Teleportation"]
         self.phase2Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp", "Teleportation", "Mass Release"]
 
-        # in Boss.__init__, add movement state:
+        # Movement State:
         self.move_dir = 1  # 1 = right, -1 = left
         self.move_speed = 2
         self.move_left_bound = 200
         self.move_right_bound = self.screen_w - 200
-        self.moving = True  # off during teleport/giant
+        self.moving = True  # Off During Eclipse Phase (Invincible no need to move)
+
+        # Teleportation
+        self.teleport_active = False
+        self.teleport_state = None  # "vanish" / "appear" / "barrage" / "break" (what should I call this?)
+        self.teleport_timer = 0
+        self.teleports_left = 0
+        self.teleportCount = 3
+        self.teleportBreak = 30
+
+        self.animation_teleport_vanish = AnimationManager(assetManager.getAnim("MoonTeleFastOut"), speed=0.3)
+        self.animation_teleport_appear = AnimationManager(assetManager.getAnim("MoonTeleFastIn"), speed=0.3)
 
     def move(self):
         if not self.moving:
@@ -113,7 +124,10 @@ class Boss:
             self.alive = False
 
     def update(self):
-        if self.phase == 3:
+        if self.teleport_active:
+            self.updateTeleport()
+            return
+        elif self.phase == 3:
             if self.phase2_scarred_transition_animation:
                 self.animation_phase2_scarred_idle.update()
             else:
@@ -151,7 +165,17 @@ class Boss:
     def draw(self, screen):
         frame = None
         frame2 = None
-        if self.phase == 3:
+        if self.teleport_active:
+            if self.teleport_state == "vanish":
+                frame = self.animation_teleport_vanish.get_current_frame()
+            elif self.teleport_state == "appear":
+                frame = self.animation_teleport_appear.get_current_frame()
+            elif self.teleport_state == "pause":
+                if self.phase == 2:
+                    frame = self.animation_phase2_idle.get_current_frame()
+                else:
+                    frame = self.animation_phase1_idle.get_current_frame()
+        elif self.phase == 3:
             if self.phase2_scarred_transition_animation:
                 frame = self.animation_phase2_scarred_idle.get_current_frame()
             else:
@@ -204,6 +228,58 @@ class Boss:
     def massRelease(self):
         self.giant_state = True
         self.invincibility = True
+
+    def teleportAttack(self, player_rect, screen_w):
+        if self.teleport_active:
+            return
+        self.teleport_active = True
+        self.teleports_left = self.teleportCount
+        self.moving = False  # Stop movement during teleportation
+        self.invincibility = True
+        self.player_rect = player_rect
+        self.screen_w = screen_w
+        self.beginTeleport()
+
+    def beginTeleport(self):
+        self.teleport_state = "vanish"
+        self.soundManager.play_sfx("")
+        self.teleport_timer = len(self.animation_teleport_vanish.frames)
+        self.animation_teleport_vanish.index = 0
+
+    def updateTeleport(self):
+        if not self.teleport_active:
+            return
+
+        if self.teleport_state == "vanish":
+            self.animation_teleport_vanish.update(loop=False)
+            if self.animation_teleport_vanish.index >= len(self.animation_teleport_vanish.frames) - 1:
+                new_x = random.randint(self.move_left_bound, self.move_right_bound)
+                self.rect.centerx = new_x
+                self.soundManager.play_sfx("")
+                self.teleport_state = "appear"
+                self.animation_teleport_appear.index = 0
+
+        elif self.teleport_state == "appear":
+            self.animation_teleport_appear.update(loop=False)
+            if self.animation_teleport_appear.index >= len(self.animation_teleport_appear.frames) - 1:
+                self.asteroidBarrage(self.player_rect)
+                self.teleport_state = "break"
+                self.teleport_timer = self.teleportBreak
+
+        elif self.teleport_state == "break":
+            self.teleport_timer -= 1
+            if self.teleport_timer <= 0:
+                self.teleports_left -= 1
+                if self.teleports_left > 0:
+                    self.beginTeleport()
+                else:
+                    self.endTeleport()
+
+    def endTeleport(self):
+        self.teleport_active = False
+        self.teleport_state = None
+        self.moving = True  # Resume movement
+        self.invincibility = False
 
 class Beam:
     def __init__(self, screen_w, screen_h):
