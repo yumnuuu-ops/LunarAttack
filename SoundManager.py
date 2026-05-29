@@ -24,6 +24,8 @@ class SoundManager:
         "phase 1 to 2": "audio\\sfx\\phase 1 to 2.wav",
         "phase 2 to eclipse": "audio\\sfx\\phase 2 to eclipse.wav",
         "eclipse to scarred": "audio\\sfx\\eclipse to scarred.wav",
+        "teleport in": "audio\\sfx\\teleport in.wav",
+        "teleport out": "audio\\sfx\\teleport out.wav",
     }
 
     def __init__(self):

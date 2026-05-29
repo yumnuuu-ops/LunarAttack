@@ -16,24 +16,25 @@ import numpy as np
 import os
 from globals import assetMgr, soundMgr
 from AnimationManager import AnimationManager
-import utils
 
 # I am gonna be an astrophysician after this
 # Am I a computer science student with specialization in Artificial Intelligence
 # Or am I a Physician? Hm, I don't know anymore
 
 def loadAsteroidImages():
-    folder = os.path.join("Assets", "Asteroids")
+    folderPhase1 = os.path.join("Assets", "Asteroids", "phase 1")
+    folderPhase2 = os.path.join("Assets", "Asteroids", "phase 2")
     asteroidGroups = {"Fiery": [], "Neutral": [], "Small": []}
-    for filename in (os.listdir(folder)):
-        img = pygame.image.load(os.path.join(folder, filename)).convert_alpha()
+    for filename in (os.listdir(folderPhase1)):
+        img = pygame.image.load(os.path.join(folderPhase1, filename)).convert_alpha()
         name = filename.lower()
-        if "fiery" in name:
-            asteroidGroups["Fiery"].append(img)
-        elif "small" in name:
+        if "small" in name:
             asteroidGroups["Small"].append(img)
         else:
             asteroidGroups["Neutral"].append(img)
+    for filename in (os.listdir(folderPhase2)):
+        img = pygame.image.load(os.path.join(folderPhase2, filename)).convert_alpha()
+        asteroidGroups["Fiery"].append(img)
     return asteroidGroups
 
 class Boss:
@@ -99,10 +100,10 @@ class Boss:
         self.teleport_timer = 0
         self.teleports_left = 0
         self.teleportCount = 3
-        self.teleportBreak = 30
+        self.teleportBreak = 10
 
-        self.animation_teleport_vanish = AnimationManager(assetManager.getAnim("MoonTeleFastOut"), speed=0.3)
-        self.animation_teleport_appear = AnimationManager(assetManager.getAnim("MoonTeleFastIn"), speed=0.3)
+        self.animation_teleport_vanish = AnimationManager(assetMgr.getAnim("MoonTeleFastOut"), 24)
+        self.animation_teleport_appear = AnimationManager(assetMgr.getAnim("MoonTeleFastIn"), 24)
 
     def move(self):
         if not self.moving:
@@ -242,7 +243,7 @@ class Boss:
 
     def beginTeleport(self):
         self.teleport_state = "vanish"
-        self.soundManager.play_sfx("")
+        soundMgr.play_sfx("teleport out")
         self.teleport_timer = len(self.animation_teleport_vanish.frames)
         self.animation_teleport_vanish.index = 0
 
@@ -255,7 +256,7 @@ class Boss:
             if self.animation_teleport_vanish.index >= len(self.animation_teleport_vanish.frames) - 1:
                 new_x = random.randint(self.move_left_bound, self.move_right_bound)
                 self.rect.centerx = new_x
-                self.soundManager.play_sfx("")
+                soundMgr.play_sfx("teleport in")
                 self.teleport_state = "appear"
                 self.animation_teleport_appear.index = 0
 
