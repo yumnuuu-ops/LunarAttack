@@ -101,8 +101,8 @@ class Boss:
         self.teleportCount = 3
         self.teleportBreak = 30
 
-        self.animation_teleport_vanish = AnimationManager(assetManager.getAnim("MoonTeleFastOut"), speed=0.3)
-        self.animation_teleport_appear = AnimationManager(assetManager.getAnim("MoonTeleFastIn"), speed=0.3)
+        self.animation_teleport_vanish = AnimationManager(assetMgr.getAnim("MoonTeleFastOut"), target_fps=24)
+        self.animation_teleport_appear = AnimationManager(assetMgr.getAnim("MoonTeleFastIn"), target_fps=24)
 
     def move(self):
         if not self.moving:
@@ -242,7 +242,7 @@ class Boss:
 
     def beginTeleport(self):
         self.teleport_state = "vanish"
-        self.soundManager.play_sfx("")
+        soundMgr.play_sfx("")
         self.teleport_timer = len(self.animation_teleport_vanish.frames)
         self.animation_teleport_vanish.index = 0
 
@@ -255,7 +255,7 @@ class Boss:
             if self.animation_teleport_vanish.index >= len(self.animation_teleport_vanish.frames) - 1:
                 new_x = random.randint(self.move_left_bound, self.move_right_bound)
                 self.rect.centerx = new_x
-                self.soundManager.play_sfx("")
+                soundMgr.play_sfx("")
                 self.teleport_state = "appear"
                 self.animation_teleport_appear.index = 0
 
