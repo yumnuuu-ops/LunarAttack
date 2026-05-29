@@ -2,7 +2,6 @@ import pygame
 class AssetManager:
     def __init__(self, global_scale=1):
         self.textures = {}
-
         self.Animation = {}
         self.frameW = 32
         self.frameH = 32

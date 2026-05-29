@@ -1,12 +1,11 @@
 import pygame
 import utils
+from globals import assetMgr
 import random
 
 class EnemyProjectile(pygame.sprite.Sprite):
-    def __init__(self, assetMgr, speed, x, y, vx, vy, damage):
+    def __init__(self, speed, x, y, vx, vy, damage):
         super().__init__()
-        self.assetMgr = assetMgr
-        
         # Get loaded texture from asset manager
         self.original_image = assetMgr.getTexture("enemy_bullet")
         if self.original_image is None:
