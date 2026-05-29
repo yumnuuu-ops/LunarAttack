@@ -13,7 +13,7 @@ class Alien(pygame.sprite.Sprite):
         self.alien_type = alien_type
         self.assetMgr = assetMgr
         animation = assetMgr.getAnim(alien_type)
-        self.animator = AnimationManager(animation, speed=0.24)
+        self.animator = AnimationManager(animation, 14)
         raw_image = self.animator.get_current_frame()
         tight_box = raw_image.get_bounding_rect()
         self.image = raw_image.subsurface(tight_box)
