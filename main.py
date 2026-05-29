@@ -542,7 +542,7 @@ while running:
         for proj in projectile_group:
             pygame.draw.rect(game_surface, (0, 255, 0), proj.rect, 1)
 
-        hud.update(dt)
+        hud.update(g.dt)
 
     elif currState == BOSS:
         bg.update(g.dt)
