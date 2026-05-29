@@ -107,6 +107,8 @@ class BossFight:
                         self.boss.massRelease()
                     elif event.key == pygame.K_u:
                         self.boss.phase = 3
+                    elif event.key == pygame.K_4:
+                        self.boss.teleportAttack()
 
         self.boss.update()
         self.boss.move()
