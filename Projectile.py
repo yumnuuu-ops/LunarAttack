@@ -7,7 +7,7 @@ class Projectile(pygame.sprite.Sprite):
     def __init__(self, assetMgr, selectedWeapon, speed, x, y, vx, vy, damage):
         super().__init__()
         self.assetMgr = assetMgr
-        self.selectedProj = "MoonTeleSlowOut"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
+        self.selectedProj = "MoonTeleFastIn"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
         animation = assetMgr.getAnim(self.selectedProj)
         self.animator = AnimationManager(animation, 24)
 
@@ -30,7 +30,7 @@ class Projectile(pygame.sprite.Sprite):
         self.damage = damage
 
         self.ExplosiveProjectile = ["Mass"]
-        self.AfterEffect = ["MassE", "MoonTeleSlowIn", "MoonTeleSlowOut", "MoonTeleFastOut"]
+        self.AfterEffect = ["MassE", "MoonTeleSlowIn", "MoonTeleSlowOut", "MoonTeleFastIn", "MoonTeleFastOut"]
 
     def moveProjectile(self):
         self.pos.x += self.vx * self.speed
@@ -47,11 +47,9 @@ class Projectile(pygame.sprite.Sprite):
             self.animator.update(False)
         elif self.selectedProj in self.AfterEffect:
             self.animator.update(False)
-            if self.animator.checkEndOfAnimation():
-                self.kill()
-                return  # Exit early since the bullet is dead
         else:
             self.animator.update()
+
         raw_image = self.animator.get_current_frame()
         tight_box = raw_image.get_bounding_rect()
         self.image = raw_image.subsurface(tight_box)
@@ -62,7 +60,11 @@ class Projectile(pygame.sprite.Sprite):
 
         self.moveProjectile()
 
-        #  Check if it went off screen, kill it if it did
+        if self.selectedProj in self.AfterEffect and self.animator.checkEndOfAnimation():
+            #self.kill()
+            return
+
+        # Check if it went off screen
         if utils.is_off_screen(self.pos.x, self.pos.y):
             self.kill()
 
