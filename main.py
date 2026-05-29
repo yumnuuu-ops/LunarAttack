@@ -13,8 +13,9 @@ from Alien import Alien
 from Formation import Formation
 from BossFight import BossFight
 from EnemyManager import EnemyManager
+from ShatterEffect import ShatterEffect
 import globals as g
-from globals import sound, assetMgr
+from globals import soundMgr, assetMgr, particle_group, projectile_group
 import math
 
 pygame.init()
@@ -39,10 +40,11 @@ alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
 SPAWN_ALIEN_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
-MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS = \
-    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss"
+MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE = \
+    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene"
 currState = MENU
 selected_difficulty = None
+death_timer = 0.0
 
 transition_active = False
 transition_timer = 0.0
@@ -71,11 +73,12 @@ def setDifficulty(selected_diff):
     enemy_manager.total_enemies_to_spawn = 20
 
 def game_over():
-    global currState, player
-    currState = MENU
-    menu.reset()
-    player.health = 100
-    sound.play_music("menu")
+    global currState, player, death_timer
+
+    ShatterEffect.trigger(player, rows=6, cols=6)
+
+    currState = DEATH_SCENE
+    death_timer = 2.0
 
 def quitGame():
     global running
@@ -138,25 +141,23 @@ font = pygame.font.SysFont('freesansbold.ttf', 20)
 #removed for background
 
 # ====================================== Object Creation ======================================
-player = Player(assetMgr,608, 848)
+player = Player(608, 948)
 font = pygame.font.SysFont('freesansbold.ttf', 20)
 
-
-projectile_group = pygame.sprite.Group()
-enemy_manager = EnemyManager(assetMgr, player, None, sound, screen_w, screen_h, trigger_shake)
+enemy_manager = EnemyManager(player, None, screen_w, screen_h, trigger_shake)
 
 menu = MainMenu(screen_w, screen_h)
-menu.on_hover       = lambda: sound.play_sfx("select")
-menu.on_press_start = lambda: sound.play_sfx("save_load")
+menu.on_hover       = lambda: soundMgr.play_sfx("select")
+menu.on_press_start = lambda: soundMgr.play_sfx("save_load")
 
 play_screen = PlayScreen(screen_w, screen_h, score_manager)
-play_screen.on_hover   = lambda: sound.play_sfx("select")
-play_screen.on_error   = lambda: sound.play_sfx("error")
-play_screen.on_confirm = lambda: sound.play_sfx("confirm")
+play_screen.on_hover   = lambda: soundMgr.play_sfx("select")
+play_screen.on_error   = lambda: soundMgr.play_sfx("error")
+play_screen.on_confirm = lambda: soundMgr.play_sfx("confirm")
 
 cutscene = CutScene(screen_w, screen_h)
-cutscene.on_advance = lambda: sound.play_sfx("save_load")
-bossFight = BossFight(screen_w, screen_h, assetMgr, player, sound, projectile_group)
+cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
+bossFight = BossFight(screen_w, screen_h, player)
 
 # main loop
 running = True
@@ -174,7 +175,7 @@ while running:
             currState = BOSS
 
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_z:
-            sound.play_sfx("phase 1 to 2") # phase 2 to eclipse     phase 1 to 2      eclipse to scarred
+            soundMgr.play_sfx("phase 1 to 2") # phase 2 to eclipse     phase 1 to 2      eclipse to scarred
 
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
@@ -188,16 +189,15 @@ while running:
                     projectile_group.add(*bullets)
 
             projectile_group.update()
+            particle_group.update()
 
             player_touching_edge = (player.pos.x <= 0 or player.pos.x >= 1280 - player.rect.width)
 
-            enemy_manager.handle_updates_and_collisions(currState, projectile_group, player_touching_edge)
+            enemy_manager.handle_updates_and_collisions(currState, player_touching_edge)
 
             # Game Over Check
-            if player.health <= 0:
-                currState = MENU
-                menu.reset()
-                player.health = 100
+            if player.hp <= 0:
+                game_over()
 
             # Check Stage Clear Conditions
             stage_configs = {
@@ -234,15 +234,30 @@ while running:
                 # Set up the new stage config
                 enemy_manager.setup_stage_config(currState)
 
+    elif currState == DEATH_SCENE:
+        # Countdown the timer
+        death_timer -= g.dt
+
+        particle_group.update()
+        enemy_manager.enemy_projectile_group.update()
+
+        # Once time runs out, clean up and head to the menu
+        if death_timer <= 0:
+            currState = MENU
+            menu.reset()
+            player.hp = 100
+            soundMgr.play_music("menu")
+
     # Clear the intermediate drawing surface
     game_surface.fill((0, 0, 0))
 
     # draw
     if currState == MENU:
-        if not sound.is_playing():
-            sound.play_music("menu")
+        if not soundMgr.is_playing():
+            soundMgr.play_music("menu")
         enemy_manager.alien_group.empty()
         projectile_group.empty()
+        particle_group.empty()
         enemy_manager.enemy_projectile_group.empty()
         enemy_manager.formation.reset()
         enemy_manager.enemies_spawned_so_far = 0
@@ -254,20 +269,20 @@ while running:
         menu.draw(game_surface)
 
         if menu.action == "PLAY":
-            sound.play_sfx("save_load")
+            soundMgr.play_sfx("save_load")
             menu.slide_out()
         elif menu.action == "HISTORY":
-            sound.play_sfx("confirm")
+            soundMgr.play_sfx("confirm")
         elif menu.action == "CREDITS":
-            sound.play_sfx("confirm")
+            soundMgr.play_sfx("confirm")
         elif menu.action == "SLIDEOUT_DONE":
             currState = PLAY_SCREEN
             play_screen = PlayScreen(screen_w, screen_h, score_manager)
-            play_screen.on_hover = lambda: sound.play_sfx("select")
-            play_screen.on_error = lambda: sound.play_sfx("error")
-            play_screen.on_confirm = lambda: sound.play_sfx("confirm")
+            play_screen.on_hover = lambda: soundMgr.play_sfx("select")
+            play_screen.on_error = lambda: soundMgr.play_sfx("error")
+            play_screen.on_confirm = lambda: soundMgr.play_sfx("confirm")
         elif menu.action == "QUIT":
-            sound.play_sfx("back")
+            soundMgr.play_sfx("back")
             running = False
 
     elif currState == PLAY_SCREEN:
@@ -277,12 +292,12 @@ while running:
         play_screen.draw(game_surface)
 
         if play_screen.action == "START":
-            sound.play_sfx("save_load")
+            soundMgr.play_sfx("save_load")
             selected_difficulty = play_screen.difficulty
             currState = CUTSCENE
             cutscene = CutScene(screen_w, screen_h, play_screen.player_name)
         elif play_screen.action == "BACK":
-            sound.play_sfx("back")
+            soundMgr.play_sfx("back")
             currState = MENU
             menu.reset()
 
@@ -297,7 +312,7 @@ while running:
             hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
-            sound.stop_music()
+            soundMgr.stop_music()
             enemy_manager.alien_group.empty()
             projectile_group.empty()
             enemy_manager.enemy_projectile_group.empty()
@@ -310,6 +325,7 @@ while running:
         bg.draw(game_surface)
         player.draw(game_surface)
         projectile_group.draw(game_surface)
+        particle_group.draw(game_surface)
 
         # 3. Render the alien fleet, lasers, and target indicators
         enemy_manager.draw(game_surface, currState)
@@ -331,7 +347,22 @@ while running:
         projectile_group.update()
         player.draw(game_surface)
         projectile_group.draw(game_surface)
+        particle_group.draw(game_surface)
         bossFight.draw(game_surface)
+
+    elif currState == DEATH_SCENE:
+        bg.update(g.dt)
+        bg.draw(game_surface)
+
+        enemy_manager.draw(game_surface, currState)
+        enemy_manager.enemy_projectile_group.draw(game_surface)
+
+        particle_group.draw(game_surface)
+
+        # Draw GAME OVER at center of the screen
+        text_surf = press_start_large.render("GAME OVER", True, (255, 0, 0))
+        text_rect = text_surf.get_rect(center=(screen_w // 2, screen_h // 2))
+        game_surface.blit(text_surf, text_rect)
 
     # Process and Blit Screen Shake
     shake_offset_x = 0

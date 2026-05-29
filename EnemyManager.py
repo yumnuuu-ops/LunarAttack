@@ -3,7 +3,7 @@ import random
 import math
 from Alien import Alien
 from Formation import Formation
-import globals as g
+from globals import projectile_group
 
 STAGE_1 = "stage_1"
 STAGE_2 = "stage_2"
@@ -12,11 +12,9 @@ STAGE_4 = "stage_4"
 STAGE_5 = "stage_5"
 
 class EnemyManager:
-    def __init__(self, assetMgr, player, hud, sound, screen_w, screen_h, trigger_shake_func):
-        self.assetMgr = assetMgr
+    def __init__(self, player, hud, screen_w, screen_h, trigger_shake_func):
         self.player = player
         self.hud = hud
-        self.sound = sound
         self.screen_w = screen_w
         self.screen_h = screen_h
         self.trigger_shake = trigger_shake_func
@@ -57,19 +55,19 @@ class EnemyManager:
         if stage == STAGE_2:
             self.enemies_spawned_so_far = 2
             self.total_enemies_to_spawn = 20
-            p1 = Alien(self.assetMgr, "tendril_alien", 480, 150, stage=2)
+            p1 = Alien("tendril_alien", 480, 150, stage=2)
             p1.phase = "stationary"
             self.alien_group.add(p1)
-            p2 = Alien(self.assetMgr, "tendril_alien", 800, 150, stage=2)
+            p2 = Alien("tendril_alien", 800, 150, stage=2)
             p2.phase = "stationary"
             self.alien_group.add(p2)
         elif stage == STAGE_3:
             self.enemies_spawned_so_far = 2
             self.total_enemies_to_spawn = 30
-            p1 = Alien(self.assetMgr, "tendril_alien", 480, 150, stage=3)
+            p1 = Alien("tendril_alien", 480, 150, stage=3)
             p1.phase = "stationary"
             self.alien_group.add(p1)
-            p2 = Alien(self.assetMgr, "tendril_alien", 800, 150, stage=3)
+            p2 = Alien("tendril_alien", 800, 150, stage=3)
             p2.phase = "stationary"
             self.alien_group.add(p2)
         elif stage == STAGE_4:
@@ -109,7 +107,7 @@ class EnemyManager:
                     if valid_x is None:
                         valid_x = random.randint(100, 1180)
                     chosen_xs.append(valid_x)
-                    new_alien = Alien(self.assetMgr, "alien_drone", valid_x, -100, stage=1)
+                    new_alien = Alien("alien_drone", valid_x, -100, stage=1)
                     self.alien_group.add(new_alien)
                     self.enemies_spawned_so_far += 1
         elif stage in [STAGE_2, STAGE_3]:
@@ -121,7 +119,7 @@ class EnemyManager:
                     else:
                         spawn_x = 1380 # Off-screen right
                     spawn_y = 60 + (idx * 110)
-                    new_alien = Alien(self.assetMgr, "alien_drone", spawn_x, spawn_y, stage=2 if stage == STAGE_2 else 3)
+                    new_alien = Alien("alien_drone", spawn_x, spawn_y, stage=2 if stage == STAGE_2 else 3)
                     self.alien_group.add(new_alien)
                     self.enemies_spawned_so_far += 1
         elif stage in [STAGE_4, STAGE_5]:
@@ -138,13 +136,13 @@ class EnemyManager:
                         spawn_x = self.screen_w + 50 + (idx * 80)
                         spawn_y = 0
                     alien_type = self.alien_types[1] if stage == STAGE_4 else self.alien_types[2]
-                    new_alien = Alien(self.assetMgr, alien_type, spawn_x, spawn_y, stage=4 if stage == STAGE_4 else 5,
+                    new_alien = Alien(alien_type, spawn_x, spawn_y, stage=4 if stage == STAGE_4 else 5,
                                       target_x=slot[0], target_y=slot[1])
                     self.alien_group.add(new_alien)
                     self.formation.register_alien(new_alien, slot)
                     self.enemies_spawned_so_far += 1
 
-    def handle_updates_and_collisions(self, stage, projectile_group, player_touching_edge=False):
+    def handle_updates_and_collisions(self, stage, player_touching_edge=False):
         # 1. Update enemies and collect enemy bullets
         enemy_bullets = []
         for alien in self.alien_group:

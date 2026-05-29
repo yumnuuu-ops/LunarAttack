@@ -1,19 +1,21 @@
 import pygame
 from Weapon import Weapon
+from globals import assetMgr
+from ShatterEffect import ShatterEffect
 
 class Player:
-    def __init__(self, assetMgr, x, y):
+    def __init__(self, x, y):
         self.image = assetMgr.getTexture("MainShip Full")
         self.rect = assetMgr.getRect("MainShip Full")
-        self.health = 100
+        self.hp = 100
         self.pos = pygame.math.Vector2(x, y)
         self.speed = 10
-        self.weapon = Weapon(assetMgr, x, y)
+        self.weapon = Weapon(x, y)
 
     #def shootBomb(self):
 
     def takeDamage(self, damage):
-        self.health -= damage
+        self.hp -= damage
 
     #def changeFireMode(self):
 
@@ -82,4 +84,3 @@ class Player:
     def apply_push(self, dx, dy):
         self.pos.x += dx
         self.pos.y += dy
-

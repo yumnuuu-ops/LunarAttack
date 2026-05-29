@@ -1,10 +1,10 @@
 import pygame
 import utils
 from AnimationManager import AnimationManager
-from globals import sound
+from globals import soundMgr, assetMgr
 
 class Projectile(pygame.sprite.Sprite):
-    def __init__(self, assetMgr, selectedWeapon, speed, x, y, vx, vy, damage):
+    def __init__(self, selectedWeapon, speed, x, y, vx, vy, damage):
         super().__init__()
         self.assetMgr = assetMgr
         self.selectedProj = "MoonTeleFastIn"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
@@ -43,7 +43,7 @@ class Projectile(pygame.sprite.Sprite):
             if self.animator.checkEndOfAnimation():
                 newProj = self.selectedProj + "E"
                 self.changeAnim(newProj)
-                sound.play_sfx("mass despawn")
+                soundMgr.play_sfx("mass despawn")
             self.animator.update(False)
         elif self.selectedProj in self.AfterEffect:
             self.animator.update(False)

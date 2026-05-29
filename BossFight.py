@@ -1,4 +1,5 @@
 from Boss import Boss, Beam, Mass
+from globals import projectile_group, assetMgr, soundMgr
 import os
 import pygame
 
@@ -6,14 +7,11 @@ import pygame
 class BossFight:
     moonFolder = os.path.join("Assets", "Moon")
 
-    def __init__(self, screen_w, screen_h, assetManager, player, soundManager, projectiles):
-        self.boss = Boss(assetManager, soundManager, screen_w)
+    def __init__(self, screen_w, screen_h, player):
+        self.boss = Boss(screen_w)
         self.player = player
-        self.projectiles = projectiles
         self.screen_w = screen_w
         self.screen_h = screen_h
-        self.soundManager = soundManager
-        self.assetManager = assetManager
         self.boss.rect.center = (screen_w // 2, 160)
         self.beam = None
         self.testKeys = True
@@ -45,7 +43,7 @@ class BossFight:
             else:
                 self.intro_step = "blackhole"
                 self.intro_timer = 120
-                self.blackhole = Mass(self.assetManager, self.soundManager)
+                self.blackhole = Mass()
                 self.blackhole.rect.center = self.boss.rect.center # Reposition to screen center later
                 self.blackhole.generatedMass = 5000
 
@@ -89,7 +87,7 @@ class BossFight:
             for event in events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_1:
-                        self.soundManager.play_sfx("asteroid")
+                        soundMgr.play_sfx("asteroid")
                         self.boss.asteroidBarrage(self.player.rect)
                     elif event.key == pygame.K_2:
                         self.boss.gravityPull(self.player.rect,
@@ -98,7 +96,7 @@ class BossFight:
                         if self.beam is None or not self.beam.active:
                             self.beam = Beam(self.screen_w, self.screen_h)
                             asteroid_type = "Neutral" if self.boss.phase == 1 else "Fiery"
-                            self.beam.BeamStorm(asteroid_type, self.soundManager)
+                            self.beam.BeamStorm(asteroid_type)
                     elif event.key == pygame.K_p:
                         self.boss.phase = 2 if self.boss.phase == 1 else 1
                         if self.boss.phase == 1:
@@ -111,7 +109,7 @@ class BossFight:
         self.boss.update()
         self.boss.move()
 
-        for projectile in self.projectiles:
+        for projectile in projectile_group:
             if projectile.rect.colliderect(self.boss.rect):
                 self.boss.takeDamage(projectile.damage)
                 projectile.kill()

@@ -4,14 +4,14 @@ import math
 import utils
 from AnimationManager import AnimationManager
 from Projectile import Projectile
+from ShatterEffect import ShatterEffect
+from globals import assetMgr
 
 
 class Alien(pygame.sprite.Sprite):
-    def __init__(self, assetMgr, alien_type, x, y, stage=1, target_x=None, target_y=None):
+    def __init__(self, alien_type, x, y, stage=1, target_x=None, target_y=None):
         super().__init__()
-        
         self.alien_type = alien_type
-        self.assetMgr = assetMgr
         animation = assetMgr.getAnim(alien_type)
         self.animator = AnimationManager(animation, 14)
         raw_image = self.animator.get_current_frame()
@@ -212,7 +212,7 @@ class Alien(pygame.sprite.Sprite):
             if dist > 0:
                 vx = dx / dist
                 vy = dy / dist
-        bullet = Projectile(self.assetMgr, "AutoCannon", 5, self.rect.centerx, self.rect.bottom, vx, vy, 5)
+        bullet = Projectile(assetMgr, "AutoCannon", 5, self.rect.centerx, self.rect.bottom, vx, vy, 5)
         # Give enemy bullet a vibrant red color
         bullet.image.fill((255, 50, 50))
         return bullet
@@ -220,4 +220,5 @@ class Alien(pygame.sprite.Sprite):
     def takeDamage(self, damage):
         self.hp -= damage
         if self.hp <= 0:
+            ShatterEffect.trigger(self, rows=6, cols=6)
             self.kill()

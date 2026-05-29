@@ -1,10 +1,10 @@
 import pygame
 from AnimationManager import AnimationManager
 from Projectile import Projectile
-from globals import sound
+from globals import soundMgr, assetMgr
 
 class Weapon:
-    def __init__(self, assetMgr, x, y):
+    def __init__(self, x, y):
         self.selectedWeapon = "BigGun"
         animation = assetMgr.getAnim(self.selectedWeapon)
         self.animator = AnimationManager(animation)
@@ -45,13 +45,13 @@ class Weapon:
                 bullet_x = self.rect.x + (local_x * self.scale)
                 bullet_y = self.rect.y + (local_y * self.scale)
 
-                new_bullet = Projectile(self.assetMgr, self.selectedWeapon, self.projectileSpeed, bullet_x, bullet_y, 0, -1, self.damage)
+                new_bullet = Projectile(self.selectedWeapon, self.projectileSpeed, bullet_x, bullet_y, 0, -1, self.damage)
 
                 self.current_barrel += 1
                 if self.current_barrel >= len(rocket_list):
                     self.current_barrel = 0
                 weapon_sfx = self.selectedWeapon + " fire"
-                sound.play_sfx(weapon_sfx)
+                soundMgr.play_sfx(weapon_sfx)
 
                 return [new_bullet]
 
@@ -68,10 +68,10 @@ class Weapon:
                     bullet_x = self.rect.x + scaled_offset_x
                     bullet_y = self.rect.y + scaled_offset_y
 
-                    new_bullet = Projectile(self.assetMgr, self.selectedWeapon, self.projectileSpeed, bullet_x, bullet_y, 0, -1, self.damage)
+                    new_bullet = Projectile(self.selectedWeapon, self.projectileSpeed, bullet_x, bullet_y, 0, -1, self.damage)
                     spawned_projectiles.append(new_bullet)
                 weapon_sfx = self.selectedWeapon + " fire"
-                sound.play_sfx("mass spawn")
+                soundMgr.play_sfx("mass spawn")
                 return spawned_projectiles
 
         #  If the gun is on cooldown, return nothing

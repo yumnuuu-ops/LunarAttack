@@ -14,6 +14,7 @@ import random
 import cv2
 import numpy as np
 import os
+from globals import assetMgr, soundMgr
 from AnimationManager import AnimationManager
 import utils
 
@@ -39,7 +40,7 @@ class Boss:
     max_hp = 60
     phase2_hp = max_hp // 2 # Floor Division, phase 2 will start when HP is 50% or below
 
-    def __init__(self, assetManager, soundManager, screen_w):
+    def __init__(self, screen_w):
         # Initial State
         self.hp = self.max_hp
         self.phase = 1
@@ -49,32 +50,30 @@ class Boss:
         self.radius = 90
         self.speed  = 10 # Need to experiment
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
-        self.soundManager = soundManager
-        self.assetManager = assetManager
-        self.animation_phase1_idle = AnimationManager(assetManager.getAnim("MoonP1"))
+        self.animation_phase1_idle = AnimationManager(assetMgr.getAnim("MoonP1"))
 
         # Phase 2
         self.phase2_transition_animation = False
-        self.animation_phase1_phase2_transition = AnimationManager(assetManager.getAnim("MoonP1TP2"))
-        self.animation_phase2_idle = AnimationManager(assetManager.getAnim("MoonP2"))
+        self.animation_phase1_phase2_transition = AnimationManager(assetMgr.getAnim("MoonP1TP2"))
+        self.animation_phase2_idle = AnimationManager(assetMgr.getAnim("MoonP2"))
 
         # Phase 2 Clone
         self.clone_rect = self.rect.copy()
         self.clone_active = False
-        self.animation_clone_spawn = AnimationManager(assetManager.getAnim("MoonCSpawn"))
-        self.animation_clone_idle = AnimationManager(assetManager.getAnim("MoonC"))
+        self.animation_clone_spawn = AnimationManager(assetMgr.getAnim("MoonCSpawn"))
+        self.animation_clone_idle = AnimationManager(assetMgr.getAnim("MoonC"))
 
         # Giant State
         self.giant_state = False
         self.giant_state_transition_animation = False
-        self.animation_giant_transition = AnimationManager(assetManager.getAnim("MoonP2TG"))
-        self.animation_giant_idle = AnimationManager(assetManager.getAnim("MoonG"))
+        self.animation_giant_transition = AnimationManager(assetMgr.getAnim("MoonP2TG"))
+        self.animation_giant_idle = AnimationManager(assetMgr.getAnim("MoonG"))
 
         # Phase 2 Scarred
         self.phase2_scarred = False
         self.phase2_scarred_transition_animation = False
-        self.animation_phase2_scarred_transition = AnimationManager(assetManager.getAnim("MoonGTP2Scarred"))
-        self.animation_phase2_scarred_idle = AnimationManager(assetManager.getAnim("MoonP2Scarred"))
+        self.animation_phase2_scarred_transition = AnimationManager(assetMgr.getAnim("MoonGTP2Scarred"))
+        self.animation_phase2_scarred_idle = AnimationManager(assetMgr.getAnim("MoonP2Scarred"))
 
         # Current Move Used and Asteroids Spawn
         self.attack_highlight = []
@@ -180,7 +179,7 @@ class Boss:
 
     def gravityPull(self, player_rect, screen_w, screen_h):
         # Create summonedMass at a location randomly under specified conditions that pulls players in
-        mass = Mass(self.assetManager, self.soundManager)
+        mass = Mass()
         mass.spawnLocation(player_rect, self.rect, screen_w, screen_h)
         self.active_masses.append(mass)
 
@@ -219,10 +218,9 @@ class Beam:
         self.screen_h = screen_h
         self.active = False
 
-    def BeamStorm(self, asteroid_type, soundManager):
+    def BeamStorm(self, asteroid_type):
         if self.active == True:
             return
-        self.soundManager = soundManager
         self.active = True
         self.asteroid_type = asteroid_type
         self.beamWavesLeft = self.waves
@@ -256,7 +254,7 @@ class Beam:
         self.beamTimer -= 1
         if self.beamTimer <= 0:
             if self.beamState == "telegraph":
-                self.soundManager.play_sfx("asteroid")
+                soundMgr.play_sfx("asteroid")
                 self.asteroidAttack(self.asteroid_type)
             else:
                 self.beamWavesLeft -= 1
@@ -314,15 +312,14 @@ class Asteroid:
 
 class Mass:
     G = 6.674
-    def __init__(self, assetManager, soundManager):
+    def __init__(self):
         self.life = 100
         self.radius = 30
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
         self.generatedMass = random.randint(1000, 1500)
-        self.soundManager = soundManager
-        self.animation = AnimationManager(assetManager.getAnim("Mass"))
-        self.animation_spawn = AnimationManager(assetManager.getAnim("MassSpawn"))
-        self.animation_despawn = AnimationManager(assetManager.getAnim("MassE"))
+        self.animation = AnimationManager(assetMgr.getAnim("Mass"))
+        self.animation_spawn = AnimationManager(assetMgr.getAnim("MassSpawn"))
+        self.animation_despawn = AnimationManager(assetMgr.getAnim("MassE"))
         self.animation_spawn_loaded = False
         self.animation_despawn_loaded = False
         self.isDead = False
@@ -336,7 +333,7 @@ class Mass:
             if self.animation_despawn.index >= lastFrameTrans:
                 self.animation_despawn_loaded = True
                 self.isDead = True
-                self.soundManager.stop_sfx("mass_active")
+                soundMgr.stop_sfx("mass_active")
         elif self.life > 0 and not self.isDead:
             if self.animation_spawn_loaded:
                 self.animation.update()
@@ -346,7 +343,7 @@ class Mass:
                 lastFrameTrans = len(self.animation_spawn.frames) - 1
                 if self.animation_spawn.index >= lastFrameTrans:
                     self.animation_spawn_loaded = True
-                    self.soundManager.loop_sfx("mass_active", 0.5)
+                    soundMgr.loop_sfx("mass_active", 0.5)
 
     def draw(self, screen):
         frame = None
