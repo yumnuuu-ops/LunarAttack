@@ -288,7 +288,7 @@ class Asteroid:
 class Mass:
     G = 6.674
     def __init__(self, assetManager, soundManager):
-        self.life = 100
+        self.life = 1000
         self.radius = 30
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
         self.generatedMass = random.randint(1000, 1500)
@@ -314,12 +314,12 @@ class Mass:
             if self.animation_spawn_loaded:
                 self.animation.update()
                 self.life -= 1
-                self.soundManager.play_sfx("mass_active")
             else:
                 self.animation_spawn.update(loop=False)
                 lastFrameTrans = len(self.animation_spawn.frames) - 1
                 if self.animation_spawn.index >= lastFrameTrans:
                     self.animation_spawn_loaded = True
+                    self.soundManager.loop_sfx("mass_active", 0.5)
 
     def draw(self, screen):
         frame = None
