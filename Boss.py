@@ -39,10 +39,11 @@ class Boss:
     max_hp = 60
     phase2_hp = max_hp // 2 # Floor Division, phase 2 will start when HP is 50% or below
 
-    def __init__(self, assetManager, soundManager):
+    def __init__(self, assetManager, soundManager, screen_w):
         # Initial State
         self.hp = self.max_hp
         self.phase = 1
+        self.screen_w = screen_w
         self.alive = True
         self.invincibility = False
         self.radius = 90
@@ -85,6 +86,32 @@ class Boss:
         # If we want to explain how it can move, let's just say he used domain expansion :D
         self.phase1Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp"]
         self.phase2Move = ["Asteroid Barrage", "Asteroid AOE", "Gravity Pull", "Warp", "Teleportation", "Mass Release"]
+
+        # in Boss.__init__, add movement state:
+        self.move_dir = 1  # 1 = right, -1 = left
+        self.move_speed = 2
+        self.move_left_bound = 200
+        self.move_right_bound = self.screen_w - 200
+        self.moving = True  # off during teleport/giant
+
+    def move(self):
+        if not self.moving:
+            return
+        self.rect.x += self.move_dir * self.move_speed
+        if self.rect.left <= self.move_left_bound:
+            self.move_dir = 1
+        elif self.rect.right >= self.move_right_bound:
+            self.move_dir = -1
+
+    def takeDamage(self, n):
+        if self.invincibility:
+            return
+        self.hp -= n
+        if self.phase == 1 and self.hp <= self.phase2_hp:
+            self.phase = 2  # Triggers phase 2 transition animation
+        if self.hp <= 0:
+            self.hp = 0
+            self.alive = False
 
     def update(self):
         if self.phase == 3:

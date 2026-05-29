@@ -6,9 +6,10 @@ import pygame
 class BossFight:
     moonFolder = os.path.join("Assets", "Moon")
 
-    def __init__(self, screen_w, screen_h, assetManager, player, soundManager):
-        self.boss = Boss(assetManager, soundManager)
+    def __init__(self, screen_w, screen_h, assetManager, player, soundManager, projectiles):
+        self.boss = Boss(assetManager, soundManager, screen_w)
         self.player = player
+        self.projectiles = projectiles
         self.screen_w = screen_w
         self.screen_h = screen_h
         self.soundManager = soundManager
@@ -108,6 +109,12 @@ class BossFight:
                         self.boss.phase = 3
 
         self.boss.update()
+        self.boss.move()
+
+        for projectile in self.projectiles:
+            if projectile.rect.colliderect(self.boss.rect):
+                self.boss.takeDamage(projectile.damage)
+                projectile.kill()
 
         for asteroid in self.boss.asteroids:
             asteroid.move()

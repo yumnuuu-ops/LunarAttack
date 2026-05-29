@@ -202,7 +202,7 @@ play_screen.on_confirm = lambda: sound.play_sfx("confirm")
 
 cutscene = CutScene(screen_w, screen_h)
 cutscene.on_advance = lambda: sound.play_sfx("save_load")
-bossFight = BossFight(screen_w, screen_h, assetMgr, player, sound)
+bossFight = BossFight(screen_w, screen_h, assetMgr, player, sound, projectile_group)
 
 # main loop
 running = True
