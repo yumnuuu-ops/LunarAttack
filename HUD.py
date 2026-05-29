@@ -2,12 +2,18 @@ import pygame
 
 class HUD:
     COMBO_TIMEOUT = 3.0  # seconds before combo resets
-    MAX_COMBO     = 10
+    MAX_COMBO     = 8
 
     DIFF_MULTIPLIER = {
         "Easy"  : 1.0,
         "Medium": 1.5,
         "Hard"  : 2.0,
+    }
+
+    DIFF_HEARTS = {
+        "Easy"  : 4,
+        "Medium" : 3,
+        "Hard" : 2,
     }
 
     def __init__(self, screen_w, screen_h, player_name, difficulty):
@@ -31,9 +37,19 @@ class HUD:
         self.combo_active  = False
         self.combo_flash   = 0   # frames to flash combo text
 
-        # health
-        self.max_hp  = 100
-        self.hp      = 100
+        #hearts
+        self.max_hearts = self.DIFF_HEARTS.get(difficulty, 3)
+        self.hearts     = self.max_hearts
+
+        #heart images
+        raw = pygame.image.load("imgs/HUD/heart.png").convert_alpha()
+        self.heart_img = pygame.transform.scale(raw, (28, 28))
+        self.heart_img_dead = pygame.transform.scale(raw, (28, 28))
+        dark = pygame.Surface((28, 28), pygame.SRCALPHA)
+        dark.fill((0, 0, 0,180))
+        self.heart_img_dead.blit(dark,(0,0))
+
+        self.dying_hearts = []
 
         # wave
         self.current_wave = 1
@@ -47,6 +63,8 @@ class HUD:
 
         # no damage bonus tracking
         self.took_damage_this_wave = False
+
+        self.on_game_over = lambda: None
 
     # called every frame
     def update(self, dt):
@@ -70,9 +88,14 @@ class HUD:
         if self.combo_flash > 0:
             self.combo_flash -= 1
 
+        #tick dying heart animation
+        for dh in self.dying_hearts[:]:
+            dh["alpha"] -= 8
+            if dh ["alpha"] <= 0:
+                self.dying_hearts.remove(dh)
+
     def register_kill(self, base_points):
-        # reset combo timer on each kill
-        self.combo_timer  = 0.0
+        self.combo_timer  = 0.0 # reset combo timer on each kill
         self.combo_active = True
 
         # calculate points with combo and difficulty multiplier
@@ -92,9 +115,19 @@ class HUD:
         self.combo_active = False
         self.combo_flash  = 0
 
-    def take_damage(self, amount):
-        self.hp = max(0, self.hp - amount)
+    def take_damage(self):
+        if self.hearts <= 0:
+            return
+
+        self.dying_hearts.append({
+            "index": self.hearts - 1,
+            "alpha": 255
+        })
+        self.hearts -= 1
         self.took_damage_this_wave = True
+
+        if self.hearts <= 0:
+            self.on_game_over()
 
     def next_wave(self):
         # wave clear bonus
@@ -110,34 +143,14 @@ class HUD:
         self.reset_combo()
 
     def add_boss_hit(self):
-        points = int(150 * self.multiplier)
-        self.score += points
+        self.score = int(150 * self.multiplier)
+
 
     def add_boss_kill(self):
-        points = int(5000 * self.multiplier)
-        self.score += points
+        self.score = int(5000 * self.multiplier)
 
     def set_weapon(self, name):
         self.weapon_name = name
-
-    def _hp_color(self):
-        ratio = self.hp / self.max_hp
-        if ratio > 0.6:
-            return (50, 220, 80)   # green
-        elif ratio > 0.3:
-            return (220, 180, 50)  # yellow
-        else:
-            return (220, 50, 50)   # red
-
-    def _draw_bar(self, screen, x, y, w, h, value, max_value, color):
-        # background
-        pygame.draw.rect(screen, (30, 30, 30), (x, y, w, h), border_radius=3)
-        # fill
-        fill_w = int((value / max_value) * w)
-        if fill_w > 0:
-            pygame.draw.rect(screen, color, (x, y, fill_w, h), border_radius=3)
-        # border
-        pygame.draw.rect(screen, (180, 180, 180), (x, y, w, h), 1, border_radius=3)
 
     def _format_time(self, seconds):
         m = int(seconds) // 60
@@ -150,6 +163,22 @@ class HUD:
         panel.fill((0, 0, 0))
         screen.blit(panel, (x, y))
         pygame.draw.rect(screen, (80, 80, 120), (x, y, w, h), 1)
+
+    def _draw_hearts(self, screen, x, y):
+        spacing = 34
+        for i in range(self.max_hearts):
+            hx = x + i * spacing
+            if i < self.hearts:
+                screen.blit(self.heart_img, (hx, y))
+            else:
+                screen.blit(self.heart_img_dead, (hx, y))
+
+        for dh in self.dying_hearts:
+            i = dh["index"]
+            hx = x+ i * spacing
+            faded = self.heart_img.copy()
+            faded.set_alpha(dh["alpha"])
+            screen.blit(faded, ( hx, y))
 
     def draw(self, screen):
         pad = 16
@@ -182,14 +211,8 @@ class HUD:
         # player name
         name_surf = self.font_medium.render(f"CADET  {self.player_name[:8]}", True, (50, 220, 100))
         screen.blit(name_surf, (panel_x + pad, pad))
-
-        # hp label
-        hp_label = self.font_small.render(f"HP  {self.hp}/{self.max_hp}", True, self._hp_color())
-        screen.blit(hp_label, (panel_x + pad, pad + 26))
-
-        # hp bar
-        self._draw_bar(screen, panel_x + pad, pad + 40, panel_w - pad * 2, 12,
-                       self.hp, self.max_hp, self._hp_color())
+        #hearts
+        self._draw_hearts(screen, panel_x + pad, pad + 22)
 
         # stage
         stage_surf = self.font_medium.render(f"STAGE  {self.current_stage}", True, (180, 180, 255))

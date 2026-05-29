@@ -72,6 +72,13 @@ def setDifficulty(selected_diff):
     enemies_spawned_so_far = 0
     total_enemies_to_spawn = 20
 
+def game_over():
+    global currState, player
+    currState = MENU
+    menu.reset()
+    player.health = 100
+    sound.play_music("menu")
+
 def quitGame():
     global running
     running = False
@@ -335,7 +342,10 @@ while running:
             collided_aliens = [alien for alien in alien_group if player.rect.colliderect(alien.rect)]
             for alien in collided_aliens:
                 alien.kill()
-                player.takeDamage(15) # Deduct 15 HP on crash
+                player.takeDamage(1) # Deduct 1 HP on crash
+
+                hud.take_damage()
+
                 trigger_shake(12, 25) # Trigger a dramatic screen shake!
                 if currState in [STAGE_4, STAGE_5]:
                     formation.release_alien(alien)
@@ -344,7 +354,10 @@ while running:
             collided_bullets = [bullet for bullet in enemy_projectile_group if player.rect.colliderect(bullet.rect)]
             for bullet in collided_bullets:
                 bullet.kill()
-                player.takeDamage(5) # Deduct 5 HP on bullet hit
+                player.takeDamage(1) # Deduct 1 HP on bullet hit
+
+                hud.take_damage()
+
                 trigger_shake(5, 10) # Subtle screen shake on player hit
 
             # Game Over Check
@@ -504,6 +517,7 @@ while running:
         if cutscene.action == "DONE":
             currState = STAGE_1
             hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
+            hud.on_game_over = lambda: game_over()
             sound.stop_music()
             alien_group.empty()
             projectile_group.empty()
