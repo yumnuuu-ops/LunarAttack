@@ -5,7 +5,7 @@ from globals import sound
 
 class Weapon:
     def __init__(self, assetMgr, x, y):
-        self.selectedWeapon = "BigGun"
+        self.selectedWeapon = "Rockets"
         animation = assetMgr.getAnim(self.selectedWeapon)
         self.animator = AnimationManager(animation, speed=0.24)
         self.image = self.animator.get_current_frame()
@@ -19,7 +19,7 @@ class Weapon:
         self.cooldown = 0
         self.projectileCount = 1
         self.projectileSize = 1
-        self.projectileSpeed = 1
+        self.projectileSpeed = 5
 
         self.damage = 10
 

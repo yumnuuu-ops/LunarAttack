@@ -233,8 +233,7 @@ while running:
                             if valid_x is None:
                                 valid_x = random.randint(100, 1180)
                             chosen_xs.append(valid_x)
-                            alien_type = random.choice(["alien_drone", "tendril_alien"])
-                            new_alien = Alien(assetMgr, alien_type, valid_x, -100, stage=1)
+                            new_alien = Alien(assetMgr, "alien_drone", valid_x, -100, stage=1)
                             alien_group.add(new_alien)
                             enemies_spawned_so_far += 1
                 elif currState in [STAGE_2, STAGE_3]:
@@ -250,8 +249,7 @@ while running:
                             # Stagger Y coordinates off-screen down the sides
                             spawn_y = 60 + (idx * 110)
                             
-                            alien_type = random.choice(["alien_drone", "tendril_alien"])
-                            new_alien = Alien(assetMgr, alien_type, spawn_x, spawn_y, stage=2 if currState == STAGE_2 else 3)
+                            new_alien = Alien(assetMgr, "alien_drone", spawn_x, spawn_y, stage=2 if currState == STAGE_2 else 3)
                             alien_group.add(new_alien)
                             enemies_spawned_so_far += 1
                 elif currState in [STAGE_4, STAGE_5]:
@@ -362,7 +360,7 @@ while running:
                 formation.reset()
 
             # Check Stage 2 clear condition
-            elif currState == STAGE_2 and enemies_spawned_so_far >= total_enemies_to_spawn and len(alien_group) == 0:
+            elif currState == STAGE_2 and enemies_spawned_so_far >= total_enemies_to_spawn:
                 transition_active = True
                 transition_timer = TRANSITION_DURATION
                 transition_target_state = STAGE_3
@@ -373,7 +371,7 @@ while running:
                 formation.reset()
 
             # Check Stage 3 clear condition
-            elif currState == STAGE_3 and enemies_spawned_so_far >= total_enemies_to_spawn and len(alien_group) == 0:
+            elif currState == STAGE_3 and enemies_spawned_so_far >= total_enemies_to_spawn:
                 transition_active = True
                 transition_timer = TRANSITION_DURATION
                 transition_target_state = STAGE_4
