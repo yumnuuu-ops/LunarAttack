@@ -16,8 +16,6 @@ class Player:
 
     def takeDamage(self, damage):
         self.hp -= damage
-        if hasattr(self, 'trigger_shake') and self.trigger_shake:
-            self.trigger_shake(10, 15)
 
     #def changeFireMode(self):
 
