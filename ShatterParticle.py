@@ -12,8 +12,8 @@ class ShatterParticle(pygame.sprite.Sprite):
         self.rect.y = y
 
         # Random directions
-        self.vx = random.uniform(-4, 4)
-        self.vy = random.uniform(-4, 4)
+        self.vx = random.uniform(-8, 8)
+        self.vy = random.uniform(-8, 8)
         self.alpha = 255
 
     def update(self):
@@ -21,7 +21,7 @@ class ShatterParticle(pygame.sprite.Sprite):
         self.rect.x += self.vx
         self.rect.y += self.vy
 
-        self.alpha -= 8
+        self.alpha -= 2.83
         if self.alpha <= 0:
             self.kill()
         else:

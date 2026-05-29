@@ -9,10 +9,8 @@ from PlayScreen import PlayScreen
 from CutScene import CutScene
 from ScoreManager import ScoreManager
 from HUD import HUD
-from Alien import Alien
-from Formation import Formation
 from BossFight import BossFight
-from EnemyManager import EnemyManager
+from enemy.EnemyManager import EnemyManager
 from ShatterEffect import ShatterEffect
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
@@ -120,9 +118,10 @@ def load_all_assets(assetMgr):
     assetMgr.loadAnimScale("MoonGTP2Scarred", "Assets\\Moon\\moon_eclipse_to_phase2_scarred_strip.png", 6)
     assetMgr.loadAnimScale("MoonP2Scarred", "Assets\\Moon\\moon_phase2_scarred_idle_strip.png", 6)
 
-    # Loading Enemy Animations
+    # Loading Enemy Animations & Bullets
     assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
     assetMgr.loadAnim("tendril_alien", "Assets\\Aliens\\enemy_tendril_strip.png")
+    assetMgr.loadTexture("enemy_bullet", "Assets\\Aliens\\enemy_bullets.png")
 
     # Loading Teleport Animations
     assetMgr.loadAnimScale("MoonTeleSlowOut", "imgs\\moon_phase1_teleport out slow.png", 6)
@@ -330,8 +329,6 @@ while running:
         # 3. Render the alien fleet, lasers, and target indicators
         enemy_manager.draw(game_surface, currState)
 
-        for proj in projectile_group:
-            pygame.draw.rect(game_surface, (0, 255, 0), proj.rect, 1)
 
         hud.update(g.dt)
 
