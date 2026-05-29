@@ -7,9 +7,9 @@ class Projectile(pygame.sprite.Sprite):
     def __init__(self, assetMgr, selectedWeapon, speed, x, y, vx, vy, damage):
         super().__init__()
         self.assetMgr = assetMgr
-        self.selectedProj = "Mass"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
+        self.selectedProj = "MoonTeleSlowOut"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
         animation = assetMgr.getAnim(self.selectedProj)
-        self.animator = AnimationManager(animation, speed=0.24)
+        self.animator = AnimationManager(animation, 24)
 
         raw_image = self.animator.get_current_frame()
         tight_box = raw_image.get_bounding_rect()
@@ -30,7 +30,7 @@ class Projectile(pygame.sprite.Sprite):
         self.damage = damage
 
         self.ExplosiveProjectile = ["Mass"]
-        self.AfterEffect = ["MassE", ]
+        self.AfterEffect = ["MassE", "MoonTeleSlowIn", "MoonTeleSlowOut", "MoonTeleFastOut"]
 
     def moveProjectile(self):
         self.pos.x += self.vx * self.speed

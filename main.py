@@ -13,6 +13,7 @@ from HUD import HUD
 from Alien import Alien
 from Formation import Formation
 from BossFight import BossFight
+import globals as g
 from globals import sound, assetMgr
 import math
 
@@ -140,6 +141,10 @@ moon_phase2_scarred_idle = assetMgr.loadAnimScale("MoonP2Scarred", "Assets\\Moon
 assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
 assetMgr.loadAnim("tendril_alien", "Assets\\Aliens\\enemy_tendril_strip.png")
 
+teleport_out_slow = assetMgr.loadAnimScale("MoonTeleSlowOut", "imgs\\moon_phase1_teleport out slow.png", 6)
+teleport_out_fast = assetMgr.loadAnimScale("MoonTeleFastOut", "imgs\\moon_phase1_teleport out fast.png", 6)
+teleport_in_fast = assetMgr.loadAnimScale("MoonTeleSlowIn", "imgs\\moon_phase1_teleport in slow.png", 6)
+
 # ===================================== Initial Setting =====================================
 font = pygame.font.SysFont('freesansbold.ttf', 20)
 
@@ -189,7 +194,7 @@ bossFight = BossFight(screen_w, screen_h, assetMgr, player, sound)
 running = True
 
 while running:
-    dt = clock.get_time() / 1000.0
+    g.dt = clock.tick(60) / 1000.0
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
@@ -220,7 +225,7 @@ while running:
             currState = BOSS
 
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_z:
-            sound.play_sfx("eclipse to scarred") # phase 2 to eclipse     phase 1 to 2      eclipse to scarred
+            sound.play_sfx("phase 1 to 2") # phase 2 to eclipse     phase 1 to 2      eclipse to scarred
 
 
     # update gameplay only if active and not transitioning
@@ -296,7 +301,7 @@ while running:
                 formation.reset()
         else:
             # Transition active: tick timer
-            transition_timer -= dt
+            transition_timer -= g.dt
             if transition_timer <= 0:
                 transition_active = False
                 hud.next_wave()
@@ -324,7 +329,7 @@ while running:
         total_enemies_to_spawn = 0
 
         screen.fill((0, 0, 0))
-        bg.update(dt)
+        bg.update(g.dt)
         bg.draw(screen, darkened=True)
         menu.update(events)
         menu.draw(screen)
@@ -348,7 +353,7 @@ while running:
 
     elif currState == PLAY_SCREEN:
         screen.fill((0, 0, 0))
-        bg.update(dt)
+        bg.update(g.dt)
         bg.draw(screen, darkened=True)
         play_screen.update(events)
         play_screen.draw(screen)
@@ -364,7 +369,7 @@ while running:
             menu.reset()
 
     elif currState == CUTSCENE:
-        bg.update(dt)
+        bg.update(g.dt)
         bg.draw(screen)
         cutscene.update(events)
         cutscene.draw(screen)
@@ -381,7 +386,7 @@ while running:
             total_enemies_to_spawn = 0
 
     elif currState in [STAGE_1, STAGE_2, STAGE_3]:
-        bg.update(dt)
+        bg.update(g.dt)
         bg.draw(screen)
         player.draw(screen)
         projectile_group.draw(screen)
@@ -394,11 +399,10 @@ while running:
         for proj in projectile_group:
             pygame.draw.rect(screen, (0, 255, 0), proj.rect, 1)
 
-        hud.update(dt)
+        hud.update(g.dt)
         hud.draw(screen)
     elif currState == BOSS:
-        dt = clock.get_time() / 1000.0
-        bg.update(dt)
+        bg.update(g.dt)
         bg.draw(screen)
         bossFight.update(events)
         mouse_buttons = pygame.mouse.get_pressed()
@@ -417,7 +421,6 @@ while running:
 
 
     pygame.display.flip()
-    clock.tick(60)
 
 pygame.quit()
 sys.exit()
