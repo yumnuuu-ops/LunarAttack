@@ -24,7 +24,8 @@ from AnimationManager import AnimationManager
 def loadAsteroidImages():
     folderPhase1 = os.path.join("Assets", "Asteroids", "phase 1")
     folderPhase2 = os.path.join("Assets", "Asteroids", "phase 2")
-    asteroidGroups = {"Fiery": [], "Neutral": [], "Small": []}
+    folderClone = os.path.join("Assets", "Asteroids", "quantum moon")
+    asteroidGroups = {"Fiery": [], "Clone": [], "Neutral": [], "Small": []}
     for filename in (os.listdir(folderPhase1)):
         img = pygame.image.load(os.path.join(folderPhase1, filename)).convert_alpha()
         name = filename.lower()
@@ -35,6 +36,9 @@ def loadAsteroidImages():
     for filename in (os.listdir(folderPhase2)):
         img = pygame.image.load(os.path.join(folderPhase2, filename)).convert_alpha()
         asteroidGroups["Fiery"].append(img)
+    for filename in (os.listdir(folderClone)):
+        img = pygame.image.load(os.path.join(folderClone, filename)).convert_alpha()
+        asteroidGroups["Clone"].append(img)
     return asteroidGroups
 
 class Boss:
@@ -99,8 +103,8 @@ class Boss:
         self.teleport_state = None  # "vanish" / "appear" / "barrage" / "break" (what should I call this?)
         self.teleport_timer = 0
         self.teleports_left = 0
-        self.teleportCount = 3
-        self.teleportBreak = 10
+        self.teleportCount = 5
+        self.teleportBreak = 0
 
         self.animation_teleport_vanish = AnimationManager(assetMgr.getAnim("MoonTeleFastOut"), 24)
         self.animation_teleport_appear = AnimationManager(assetMgr.getAnim("MoonTeleFastIn"), 24)
@@ -216,7 +220,7 @@ class Boss:
         if self.phase == 1:
             asteroidType = "Neutral"
         else:
-            asteroidType = "Fiery"
+            asteroidType = "Clone"
         for i in range(count):
             # t is made to even the spread of the asteroids
             t = i / (count - 1)
@@ -263,6 +267,7 @@ class Boss:
         elif self.teleport_state == "appear":
             self.animation_teleport_appear.update(loop=False)
             if self.animation_teleport_appear.index >= len(self.animation_teleport_appear.frames) - 1:
+                soundMgr.play_sfx("asteroid")
                 self.asteroidBarrage(self.player_rect)
                 self.teleport_state = "break"
                 self.teleport_timer = self.teleportBreak
@@ -281,6 +286,9 @@ class Boss:
         self.teleport_state = None
         self.moving = True  # Resume movement
         self.invincibility = False
+
+# class Clone:
+#     self.
 
 class Beam:
     def __init__(self, screen_w, screen_h):
@@ -319,7 +327,7 @@ class Beam:
         for (px, py), (vx, vy) in self.beams:
             sx = px - vx * self.spawnBack
             sy = py - vy * self.spawnBack
-            size = 50
+            size = 30
             self.asteroids.append(Asteroid(sx, sy, vx, vy, size, fixed_speed=self.beamSpeed, asteroid_type=asteroid_type))
 
     def update(self):
@@ -410,7 +418,7 @@ class Mass:
             if self.animation_despawn.index >= lastFrameTrans:
                 self.animation_despawn_loaded = True
                 self.isDead = True
-                soundMgr.stop_sfx("mass_active")
+                soundMgr.stop_sfx("mass active")
         elif self.life > 0 and not self.isDead:
             if self.animation_spawn_loaded:
                 self.animation.update()
@@ -420,7 +428,7 @@ class Mass:
                 lastFrameTrans = len(self.animation_spawn.frames) - 1
                 if self.animation_spawn.index >= lastFrameTrans:
                     self.animation_spawn_loaded = True
-                    soundMgr.loop_sfx("mass_active", 0.5)
+                    soundMgr.loop_sfx("mass active", 0.5)
 
     def draw(self, screen):
         frame = None

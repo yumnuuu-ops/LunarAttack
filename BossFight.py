@@ -73,6 +73,7 @@ class BossFight:
                 self._startFight()
 
     def _startFight(self):
+        soundMgr.stop_sfx("mass active")
         self.mode = "fight"
         self.player.speed = self.player_speed_backup
         self.boss.rect.center = (self.screen_w // 2, 160)
