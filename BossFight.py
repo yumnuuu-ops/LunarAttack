@@ -73,7 +73,6 @@ class BossFight:
                 self._startFight()
 
     def _startFight(self):
-        soundMgr.stop_sfx("mass active")
         self.mode = "fight"
         self.player.speed = self.player_speed_backup
         self.boss.rect.center = (self.screen_w // 2, 160)
@@ -107,7 +106,7 @@ class BossFight:
                     elif event.key == pygame.K_u:
                         self.boss.phase = 3
                     elif event.key == pygame.K_4:
-                        self.boss.teleportAttack(self.player.rect, self.screen_w)
+                        self.boss.teleportAttack()
 
         self.boss.update()
         self.boss.move()
