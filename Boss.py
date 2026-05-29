@@ -315,7 +315,7 @@ class Asteroid:
 class Mass:
     G = 6.674
     def __init__(self, assetManager, soundManager):
-        self.life = 1000
+        self.life = 100
         self.radius = 30
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
         self.generatedMass = random.randint(1000, 1500)
