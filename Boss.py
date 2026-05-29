@@ -50,30 +50,30 @@ class Boss:
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
         self.soundManager = soundManager
         self.assetManager = assetManager
-        self.animation_phase1_idle = AnimationManager(assetManager.getAnim("MoonP1"), speed=0.2)
+        self.animation_phase1_idle = AnimationManager(assetManager.getAnim("MoonP1"))
 
         # Phase 2
         self.phase2_transition_animation = False
-        self.animation_phase1_phase2_transition = AnimationManager(assetManager.getAnim("MoonP1TP2"), speed=0.2)
-        self.animation_phase2_idle = AnimationManager(assetManager.getAnim("MoonP2"), speed=0.2)
+        self.animation_phase1_phase2_transition = AnimationManager(assetManager.getAnim("MoonP1TP2"))
+        self.animation_phase2_idle = AnimationManager(assetManager.getAnim("MoonP2"))
 
         # Phase 2 Clone
         self.clone_rect = self.rect.copy()
         self.clone_active = False
-        self.animation_clone_spawn = AnimationManager(assetManager.getAnim("MoonCSpawn"), speed=0.2)
-        self.animation_clone_idle = AnimationManager(assetManager.getAnim("MoonC"), speed=0.2)
+        self.animation_clone_spawn = AnimationManager(assetManager.getAnim("MoonCSpawn"))
+        self.animation_clone_idle = AnimationManager(assetManager.getAnim("MoonC"))
 
         # Giant State
         self.giant_state = False
         self.giant_state_transition_animation = False
-        self.animation_giant_transition = AnimationManager(assetManager.getAnim("MoonP2TG"), speed=0.2)
-        self.animation_giant_idle = AnimationManager(assetManager.getAnim("MoonG"), speed=0.2)
+        self.animation_giant_transition = AnimationManager(assetManager.getAnim("MoonP2TG"))
+        self.animation_giant_idle = AnimationManager(assetManager.getAnim("MoonG"))
 
         # Phase 2 Scarred
         self.phase2_scarred = False
         self.phase2_scarred_transition_animation = False
-        self.animation_phase2_scarred_transition = AnimationManager(assetManager.getAnim("MoonGTP2Scarred"), speed=0.2)
-        self.animation_phase2_scarred_idle = AnimationManager(assetManager.getAnim("MoonP2Scarred"), speed=0.2)
+        self.animation_phase2_scarred_transition = AnimationManager(assetManager.getAnim("MoonGTP2Scarred"))
+        self.animation_phase2_scarred_idle = AnimationManager(assetManager.getAnim("MoonP2Scarred"))
 
         # Current Move Used and Asteroids Spawn
         self.attack_highlight = []
@@ -293,9 +293,9 @@ class Mass:
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
         self.generatedMass = random.randint(1000, 1500)
         self.soundManager = soundManager
-        self.animation = AnimationManager(assetManager.getAnim("Mass"), speed=0.2)
-        self.animation_spawn = AnimationManager(assetManager.getAnim("MassSpawn"), speed=0.2)
-        self.animation_despawn = AnimationManager(assetManager.getAnim("MassE"), speed=0.2)
+        self.animation = AnimationManager(assetManager.getAnim("Mass"))
+        self.animation_spawn = AnimationManager(assetManager.getAnim("MassSpawn"))
+        self.animation_despawn = AnimationManager(assetManager.getAnim("MassE"))
         self.animation_spawn_loaded = False
         self.animation_despawn_loaded = False
         self.isDead = False

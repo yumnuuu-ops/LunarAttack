@@ -7,3 +7,4 @@ pygame.init()
 pygame.mixer.set_num_channels(32)
 sound = SoundManager()
 assetMgr = AssetManager(2)
+dt = 0.0

@@ -1,12 +1,14 @@
+import globals as g
+
 class AnimationManager:
-    def __init__(self, frame_list, speed=0.15):
+    def __init__(self, frame_list, target_fps=12): # 0.24 speed is 14 fps, change to 0.4 speed for 24 fps for faster pace
         self.frames = frame_list       # Receives the array from assetMgr.getAnim()
         self.index = 0.0               # Tracks floating time cursor
-        self.animation_speed = speed   # Adjust per object type
+        self.animation_speed = float(target_fps)   # Adjust per object type
 
     def update(self, loop = True):
         # Tick the clock forward
-        self.index += self.animation_speed
+        self.index += self.animation_speed * g.dt
         max_index = len(self.frames)
 
         if self.index >= max_index:

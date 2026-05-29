@@ -7,7 +7,7 @@ class Weapon:
     def __init__(self, assetMgr, x, y):
         self.selectedWeapon = "Rockets"
         animation = assetMgr.getAnim(self.selectedWeapon)
-        self.animator = AnimationManager(animation, speed=0.24)
+        self.animator = AnimationManager(animation)
         self.image = self.animator.get_current_frame()
         self.rect = self.image.get_rect()
         self.scale = assetMgr.global_scale
