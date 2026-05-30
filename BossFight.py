@@ -1,9 +1,8 @@
-from Boss import Boss, Beam, Mass
+from Boss import Boss, Beam, CircularBeam
 from globals import projectile_group, assetMgr, soundMgr
 import os
 import pygame
 from AnimationManager import AnimationManager
-from globals import assetMgr, soundMgr
 
 
 class BossFight:
@@ -154,7 +153,7 @@ class BossFight:
                     elif event.key == pygame.K_u:
                         soundMgr.play_sfx("asteroid")
                         self.boss.asteroidBarrage(self.player.rect)
-                    elif event.key == pygame.K_4:
+                    elif event.key == pygame.K_7:
                         self.boss.teleportAttack(self.player.rect, self.screen_w, self.screen_h)
                     elif event.key == pygame.K_5:
                         self.boss.swapWithClone(self.player.rect)
@@ -170,12 +169,34 @@ class BossFight:
         if self.boss.request_beams:
             self.boss.request_beams = False
             if self.beam is None or not self.beam.active:
-                self.beam = Beam(self.screen_w, self.screen_h)
+                waveAmount = 5
+                if self.boss.phase == 3:
+                    waveAmount = 3
+                self.beam = Beam(self.screen_w, self.screen_h, waveAmount)
                 if self.boss.phase == 2:
                     asteroid_type = "Fiery"
                 else:
                     asteroid_type = "Scarred"
                 self.beam.BeamStorm(asteroid_type)
+
+        if self.boss.last_ditch_active or self.boss.dying:
+            self.weapons_disabled = True
+        else:
+            self.weapons_disabled = False
+
+        if self.boss.request_circular_beam:
+            self.boss.request_circular_beam = False
+            self.beam = CircularBeam(self.screen_w, self.screen_h)
+            self.beam.start("Scarred")
+
+        if self.boss.request_normal_beam:
+            self.boss.request_normal_beam = False
+            self.beam = Beam(self.screen_w, self.screen_h, waves=5)
+            self.beam.BeamStorm("Scarred")
+
+        if self.boss.last_ditch_active:
+            if self.beam is not None and not self.beam.active:
+                self.boss.beams_cleared = True
 
         for projectile in projectile_group:
             if projectile.rect.colliderect(self.boss.rect):
@@ -284,7 +305,7 @@ class BossFight:
             if frame:
                 screen.blit(frame, frame.get_rect(center=self.blackhole_pos))
 
-        if self.mode == "intro" and self.intro_step == "blackout":
+        if (self.mode == "intro" and self.intro_step == "blackout") or self.finished:
             overlay = pygame.Surface((self.screen_w, self.screen_h))
             overlay.fill((0, 0, 0))
             overlay.set_alpha(self.fade_alpha)

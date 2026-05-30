@@ -101,14 +101,19 @@ class Boss:
         self.giant_timer = 0
         self.giant_duration = 480
 
-        # Phase 2 Scarred
+        # Phase 3
         self.phase2_scarred = False
         self.phase2_scarred_transition_animation = False
         self.animation_phase2_scarred_transition = AnimationManager(assetMgr.getAnim("MoonGTP2Scarred"))
         self.animation_phase2_scarred_idle = AnimationManager(assetMgr.getAnim("MoonP2Scarred"))
+        self.last_ditch_active = False
+        self.last_ditch_step = None  # "circular_beam" -> "normal_beams" -> "circular_beam"
+        self.last_ditch_timer = 0
+        self.request_circular_beam = False
+        self.request_normal_beam = False
+        self.beams_cleared = False
 
         # Current Move Used and Asteroids Spawn
-        self.attack_highlight = []
         self.asteroids = []
         self.active_masses = []
         self.currentMove = []
@@ -145,11 +150,19 @@ class Boss:
         self.animation_clone_teleport_vanish = AnimationManager(assetMgr.getAnim("CMoonTeleOut"), 24)
         self.animation_clone_teleport_appear = AnimationManager(assetMgr.getAnim("CMoonTeleIn"), 24)
         # Phase 3 Teleport
-        self.animation_teleport3_vanish = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowOut"), 24)
-        self.animation_teleport3_appear = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowIn"), 24)
+        self.animation_teleport3_vanish = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowOut"), 12)
+        self.animation_teleport3_appear = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowIn"), 12)
         # Swapping Teleport
         self.swap_active = False
         self.swap_state = None
+
+        # Move Cooldown
+        self.beam_cooldown_phase2_timer = 0
+        self.beam_cooldown_phase2 = 300
+        self.beam_cooldown_phase3_timer = 0
+        self.beam_cooldown_phase3 = 240
+        self.teleport_cooldown_timer = 0
+        self.teleport_cooldown = 300
 
     def move(self):
         if not self.moving:
@@ -174,8 +187,8 @@ class Boss:
             self.massRelease()
         if self.hp <= 0:
             self.hp = 0
-            self.dying = True
-            self.startDeath()
+            if not self.last_ditch_active and not self.dying:
+                self.startLastDitch()
 
     def startDeath(self):
         self.invincibility = True
@@ -200,6 +213,10 @@ class Boss:
                 if self.death_hold_timer <= 0:
                     self.death_animation_done = True
                     self.alive = False
+            return
+        if self.last_ditch_active:
+            self.updateLastDitch()
+            self.animation_phase2_scarred_idle.update()
             return
         elif self.swap_active:
             self.updateSwap()
@@ -312,6 +329,38 @@ class Boss:
             draw_rect = frame2.get_rect(center=self.clone_rect.center)
             screen.blit(frame2, draw_rect)
 
+    def startLastDitch(self):
+        self.last_ditch_active = True
+        self.last_ditch_step = "circular1"
+        self.last_ditch_timer = 0
+        self.invincibility = True
+        self.moving = False
+        self.clone_active = False
+        self.asteroids.clear()
+        self.clone_asteroids.clear()
+        self.active_masses.clear()
+        self.request_circular_beam = True
+        self.beams_cleared = False
+
+    def updateLastDitch(self):
+        if self.last_ditch_step == "circular1":
+            if self.beams_cleared:
+                self.last_ditch_step = "normal"
+                self.request_normal_beam = True
+                self.beams_cleared = False
+
+        elif self.last_ditch_step == "normal":
+            if self.beams_cleared:
+                self.last_ditch_step = "circular2"
+                self.request_circular_beam = True
+                self.beams_cleared = False
+
+        elif self.last_ditch_step == "circular2":
+            if self.beams_cleared:
+                self.last_ditch_step = "done"
+                self.dying = True
+                self.startDeath()
+
     def gravityPull(self, player_rect, screen_w, screen_h):
         # Create summonedMass at a location randomly under specified conditions that pulls players in
         mass = Mass()
@@ -360,7 +409,7 @@ class Boss:
     def cloneMass(self, player_rect):
         mass = Mass(True)
         mass.spawnLocation(player_rect, self.clone_rect, self.screen_w, self.screen_h)
-        mass.generatedMass = random.randint(400, 700)  # significantly weaker
+        mass.generatedMass = random.randint(300, 600)  # significantly weaker
         mass.isCloneMass = True
         self.active_masses.append(mass)
 
@@ -551,12 +600,19 @@ class Boss:
             self.asteroids.append(Asteroid(cx, cy, vx, vy, size, asteroid_type="Eclipse"))
 
     def chooseMove(self, player_rect):
-        if self.teleport_active or self.giant_state or self.dying:
+        if self.teleport_active or self.giant_state or self.dying or self.last_ditch_active:
             return
         if self.inTransition():
             return
         if not hasattr(self, 'move_cooldown'):
             self.move_cooldown = 0
+        # Cooldown
+        if self.teleport_cooldown_timer > 0:
+            self.teleport_cooldown_timer -= 1
+        if self.beam_cooldown_phase2_timer > 0:
+            self.beam_cooldown_phase2_timer -= 1
+        if self.beam_cooldown_phase3_timer > 0:
+            self.beam_cooldown_phase3_timer -= 1
         if self.move_cooldown > 0:
             self.move_cooldown -= 1
             return
@@ -573,7 +629,10 @@ class Boss:
                 if choice == "barrage":
                     self.asteroidBarrage(player_rect)
                 elif choice == "teleport":
+                    if self.teleport_cooldown_timer > 0:
+                        return
                     self.teleportAttack(player_rect, self.screen_w, self.screen_h)
+                    self.teleport_cooldown_timer = self.teleport_cooldown
                 else:
                     self.gravityPull(player_rect, self.screen_w, self.screen_h)
             self.move_cooldown = random.randint(60, 120)
@@ -586,12 +645,18 @@ class Boss:
                 if choice == "barrage":
                     self.asteroidBarrage(player_rect)
                 elif choice == "teleport":
+                    if self.teleport_cooldown_timer > 0:
+                        return
                     self.teleportAttack(player_rect, self.screen_w, self.screen_h)
+                    self.teleport_cooldown_timer = self.teleport_cooldown
                 elif choice == "gravity":
                     self.gravityPull(player_rect, self.screen_w, self.screen_h)
                     self.cloneMass(player_rect)
                 elif choice == "beam":
+                    if self.beam_cooldown_phase2_timer > 0:
+                        return
                     self.request_beams = True
+                    self.beam_cooldown_phase2_timer = self.beam_cooldown_phase2
                 else:
                     self.swapWithClone(player_rect)
             self.move_cooldown = random.randint(45, 90)
@@ -601,11 +666,17 @@ class Boss:
             if choice == "barrage":
                 self.asteroidBarrage(player_rect)
             elif choice == "teleport":
+                if self.teleport_cooldown_timer > 0:
+                    return
                 self.teleportAttack(player_rect, self.screen_w, self.screen_h)
+                self.teleport_cooldown_timer = self.teleport_cooldown
             elif choice == "gravity":
                 self.gravityPull(player_rect, self.screen_w, self.screen_h)
             elif choice == "beam":
+                if self.beam_cooldown_phase3_timer > 0:
+                    return
                 self.request_beams = True
+                self.beam_cooldown_phase3_timer = self.beam_cooldown_phase3
             self.move_cooldown = random.randint(30, 70)
 
     def inTransition(self):
@@ -618,8 +689,8 @@ class Boss:
         return False
 
 class Beam:
-    def __init__(self, screen_w, screen_h):
-        self.waves = 5
+    def __init__(self, screen_w, screen_h, waves=5):
+        self.waves = waves
         self.beamsPerWave = 10
         self.beamSpeed = 32
         self.spawnBack = 500
@@ -684,6 +755,86 @@ class Beam:
                 end = (px + vx * 2000, py + vy * 2000)
                 pygame.draw.line(screen, col, start, end, 3)
 
+class CircularBeam:
+    def __init__(self, screen_w, screen_h):
+        self.screen_w = screen_w
+        self.screen_h = screen_h
+        self.center = (screen_w // 2, screen_h // 2)
+        self.beamCount = 16
+        self.gap_size = 3
+        self.asteroids = []
+        self.active = False
+        self.state = None
+        self.timer = 0
+        self.duration = 360
+        self.spawn_interval = 12
+        self.spawn_timer = 0
+        self.rings_left = 5
+        self.rotation = 0.0
+        self.rotation_speed = 0.3
+        self.gap_start = 0
+
+    def start(self, asteroid_type):
+        self.active = True
+        self.asteroid_type = asteroid_type
+        self.state = "telegraph"
+        self.timer = 40
+        self.duration_timer = self.duration
+
+    def emitRing(self):
+        cx, cy = self.center
+        gap_start = random.randint(0, self.beamCount - 1)
+        for i in range(self.beamCount):
+            if gap_start <= i < gap_start + self.gap_size:
+                continue
+            ang = self.rotation + (math.tau / self.beamCount) * i
+            vx, vy = math.cos(ang), math.sin(ang)
+            self.asteroids.append(Asteroid(cx, cy, vx, vy, 30,
+                                  fixed_speed=14, asteroid_type=self.asteroid_type))
+        self.rotation += self.rotation_speed
+
+    def update(self):
+        for asteroid in self.asteroids:
+            asteroid.move()
+        self.asteroids = [asteroid for asteroid in self.asteroids
+                          if not asteroid.removeAsteroid(self.screen_w, self.screen_h)]
+        if not self.active:
+            return
+
+        if self.state == "telegraph":
+            self.timer -= 1
+            if self.timer <= 0:
+                self.state = "firing"
+        elif self.state == "firing":
+            self.duration_timer -= 1
+            self.spawn_timer -= 1
+            if self.spawn_timer <= 0:
+                self.emitRing()
+                self.spawn_timer = self.spawn_interval
+            if self.duration_timer <= 0:
+                self.state = "done"
+                self.active = False
+
+    def drawTelegraph(self, screen):
+        cx, cy = self.center
+        if self.state == "telegraph":
+            pulse = abs(math.sin(self.timer * 0.4))
+            col = (255, int(50 + 130 * pulse), int(50 * pulse))
+            for i in range(self.beamCount):
+                if self.gap_start <= i < self.gap_start + self.gap_size:
+                    continue
+                ang = self.rotation + (math.tau / self.beamCount) * i
+                ex = cx + math.cos(ang) * 2000
+                ey = cy + math.sin(ang) * 2000
+                pygame.draw.line(screen, col, (cx, cy), (ex, ey), 3)
+
+        if self.state in ("telegraph", "strike"):
+            for i in range(self.gap_start, self.gap_start + self.gap_size):
+                ang = self.rotation + (math.tau / self.beamCount) * (i % self.beamCount)
+                ex = cx + math.cos(ang) * 2000
+                ey = cy + math.sin(ang) * 2000
+                pygame.draw.line(screen, (80, 255, 80), (cx, cy), (ex, ey), 4)
+
 class Asteroid:
     asteroidImages = None
     def __init__(self, x, y, vx, vy, size, fixed_speed=None, asteroid_type="Neutral"):
@@ -738,7 +889,7 @@ class Mass:
         self.life = 100
         self.radius = 30
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
-        self.generatedMass = random.randint(1000, 1500)
+        self.generatedMass = random.randint(500, 1000)
         self.animation = AnimationManager(assetMgr.getAnim("Mass"))
         self.animation_spawn = AnimationManager(assetMgr.getAnim("MassSpawn"))
         self.animation_despawn = AnimationManager(assetMgr.getAnim("MassDespawn"))
@@ -800,7 +951,7 @@ class Mass:
             draw_rect = frame.get_rect(center=self.rect.center)
             screen.blit(frame, draw_rect)
 
-    def spawnLocation(self, player_rect, moon_rect, screen_w, screen_h, min_dist=400):
+    def spawnLocation(self, player_rect, moon_rect, screen_w, screen_h, min_dist=250):
         x = random.randint(50, screen_w)
         y = random.randint(50, screen_h)
         if math.hypot(x - player_rect.centerx, y - player_rect.centery) < min_dist and math.hypot(x - moon_rect.centerx, y - moon_rect.centery) < min_dist:
@@ -829,10 +980,10 @@ class Mass:
         # Fall off will be used to control how fast the force dies the further it moves out
         force = self.G * ((player_mass * self.generatedMass) // (dist ** falloff))
         # Ensures force is felt across the screen
-        if (not self.isCloneMass):
+        if not self.isCloneMass:
             force = max(1.5, force)
         # Ensures force is not overly strong when near
-        force = min(6.0, force)
+        force = min(5.0, force)
         nx, ny = dx / dist, dy / dist
         pull_x = int(nx * force)
         pull_y = int(ny * force)
