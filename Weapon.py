@@ -15,11 +15,11 @@ class Weapon:
         self.fireRate = 7
         self.projectileSpeed = 11
         self.damage = 10
+        self.anim_fps = 24
         self.cooldown = 0
 
         animation = assetMgr.getAnim(self.selectedWeapon)
-        target_fps = len(animation) * self.fireRate
-        self.animator = AnimationManager(animation, target_fps)
+        self.animator = AnimationManager(animation, self.anim_fps)
         self.image = self.animator.get_current_frame()
         self.rect = self.image.get_rect()
 
@@ -99,10 +99,12 @@ class Weapon:
                     self.projectileSpeed = 15
                     self.damage = 40
 
+                    animation = assetMgr.getAnim(self.selectedWeapon)
+                    self.anim_fps = len(animation) * self.fireRate
+
                 if self.selectedWeapon != old_weapon:
                     animation = assetMgr.getAnim(self.selectedWeapon)
-                    target_fps = len(animation) * self.fireRate
-                    self.animator = AnimationManager(animation, target_fps)
+                    self.animator = AnimationManager(animation, self.anim_fps)
 
         if is_firing:
             # If pressing down, run the animation loop normally
