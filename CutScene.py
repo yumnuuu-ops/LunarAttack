@@ -164,6 +164,18 @@ class CutScene:
                 "sound": "",
                 "size": (371, 209)
             },
+            {
+                "image": "imgs/apcard.png",
+                "layout": "text_left",
+                "lines": [
+                    "As a token of our appreciation..",
+                    "we have wired 21 Ringgit",
+                    "to your AP CARD!",
+                    "$$$..",
+                ],
+                "sound": "",
+                "size": (371, 209)
+            },
         ]
 
         self.scenes = self.ending_scenes if scenes == "ending" else self.intro_scenes
