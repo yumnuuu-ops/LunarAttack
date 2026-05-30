@@ -323,6 +323,7 @@ while running:
 
         if bossFight.finished:
             currState = END_SCENE
+            soundMgr.stop_sfx("mass active")
             name = getattr(play_screen, "player_name", "") or "Cadet"
             end_cutscene = CutScene(screen_w, screen_h, player_name=name, scenes="ending")
             end_cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
