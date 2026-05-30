@@ -406,6 +406,9 @@ class Asteroid:
         self.vx = vx
         self.vy = vy
 
+        self.rotated_image = self.image
+        self.mask = pygame.mask.from_surface(self.image)
+
     def move(self):
         if self.fixed_speed is None:
             self.speed += 0.2
@@ -413,14 +416,21 @@ class Asteroid:
                 self.speed = 15
         self.fx += self.vx * self.speed
         self.fy += self.vy * self.speed
-        self.rect.x = int(self.fx)
-        self.rect.y = int(self.fy)
+        self.rect.center = (int(self.fx), int(self.fy))
         self.angle += (self.speed * 2) % 360
 
+        # Perform rotation here during the physics update
+        self.rotated_image = pygame.transform.rotate(self.image, self.angle)
+        # Update self.rect to match the expanded rotated boundaries, keeping center locked
+        self.rect = self.rotated_image.get_rect(center=(int(self.fx), int(self.fy)))
+        # Generate a pixel-perfect mask from this frame's rotated image
+        self.mask = pygame.mask.from_surface(self.rotated_image)
+
     def draw(self, screen):
-        rotatedImage = pygame.transform.rotate(self.image, self.angle)
-        drawAsteroid = rotatedImage.get_rect(center=self.rect.center)
-        screen.blit(rotatedImage, drawAsteroid)
+        screen.blit(self.rotated_image, self.rect)
+
+        for point in self.mask.outline():
+            screen.set_at((self.rect.x + point[0], self.rect.y + point[1]), (255, 255, 0))
 
     def removeAsteroid(self, w, h):
         return(self.rect.right < -200 or self.rect.left > w + 200 or

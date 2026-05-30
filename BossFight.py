@@ -137,13 +137,16 @@ class BossFight:
             self.finished = True
 
     def checkAsteroidHits(self):
+        if self.player.invincible:
+            return
+
         for asteroid in self.boss.asteroids[:]:
-            if asteroid.rect.colliderect(self.player.rect):
+            if pygame.sprite.collide_mask(self.player, asteroid):
                 self.player.takeDamage(1)
                 self.boss.asteroids.remove(asteroid)
         if self.beam is not None:
             for asteroid in self.beam.asteroids[:]:
-                if asteroid.rect.colliderect(self.player.rect):
+                if pygame.sprite.collide_mask(self.player, asteroid):
                     self.player.takeDamage(1)
                     self.beam.asteroids.remove(asteroid)
 
