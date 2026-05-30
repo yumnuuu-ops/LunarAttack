@@ -7,10 +7,6 @@ import globals as g
 class Weapon:
     def __init__(self, x, y):
         self.selectedWeapon = "AutoCannon"
-        animation = assetMgr.getAnim(self.selectedWeapon)
-        self.animator = AnimationManager(animation)
-        self.image = self.animator.get_current_frame()
-        self.rect = self.image.get_rect()
         self.scale = assetMgr.global_scale
         self.assetMgr = assetMgr
 
@@ -19,8 +15,13 @@ class Weapon:
         self.fireRate = 7
         self.projectileSpeed = 11
         self.damage = 10
-
         self.cooldown = 0
+
+        animation = assetMgr.getAnim(self.selectedWeapon)
+        target_fps = len(animation) * self.fireRate
+        self.animator = AnimationManager(animation, target_fps)
+        self.image = self.animator.get_current_frame()
+        self.rect = self.image.get_rect()
 
         self.gun_map = {
             "AutoCannon": [(6, 7), (24, 7)],
@@ -100,9 +101,8 @@ class Weapon:
 
                 if self.selectedWeapon != old_weapon:
                     animation = assetMgr.getAnim(self.selectedWeapon)
-
-                    self.animator = AnimationManager(animation)
-
+                    target_fps = len(animation) * self.fireRate
+                    self.animator = AnimationManager(animation, target_fps)
 
         if is_firing:
             # If pressing down, run the animation loop normally

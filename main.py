@@ -144,7 +144,7 @@ font = pygame.font.SysFont('freesansbold.ttf', 20)
 #removed for background
 
 # ====================================== Object Creation ======================================
-player = Player(608, 948)
+player = Player(608, 500)
 player.trigger_shake = trigger_shake
 font = pygame.font.SysFont('freesansbold.ttf', 20)
 
