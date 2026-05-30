@@ -107,9 +107,10 @@ class SoundManager:
     def loop_sfx(self, sfx_name, volume):
         if sfx_name in self.sounds:
             self.sounds[sfx_name].set_volume(volume)
-            self.sounds[sfx_name].play(loops=-1)
+            return self.sounds[sfx_name].play(loops=-1)
         else:
             print(f"SoundManager: sfx '{sfx_name}' not found")
+            return None
 
     def stop_sfx(self, sfx_name):
         if sfx_name in self.sounds:
