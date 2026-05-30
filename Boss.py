@@ -137,7 +137,9 @@ class Boss:
         # Clone Teleport
         self.animation_clone_teleport_vanish = AnimationManager(assetMgr.getAnim("CMoonTeleOut"), 24)
         self.animation_clone_teleport_appear = AnimationManager(assetMgr.getAnim("CMoonTeleIn"), 24)
-
+        # Phase 3 Teleport
+        self.animation_teleport3_vanish = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowOut"), 24)
+        self.animation_teleport3_appear = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowIn"), 24)
         # Swapping Teleport
         self.swap_active = False
         self.swap_state = None
@@ -231,12 +233,16 @@ class Boss:
                 elif self.phase == 2:
                     frame = self.animation_teleport2_vanish.get_current_frame()
                     frame2 = self.animation_clone_teleport_vanish.get_current_frame()
+                elif self.phase == 3:
+                    frame = self.animation_teleport3_vanish.get_current_frame()
             elif self.teleport_state == "appear":
                 if self.phase == 1:
                     frame = self.animation_teleport_appear.get_current_frame()
                 elif self.phase == 2:
                     frame = self.animation_teleport2_appear.get_current_frame()
                     frame2 = self.animation_clone_teleport_appear.get_current_frame()
+                elif self.phase == 3:
+                    frame = self.animation_teleport3_appear.get_current_frame()
             elif self.teleport_state == "pause":
                 if self.phase == 2:
                     frame = self.animation_phase2_idle.get_current_frame()
@@ -396,11 +402,14 @@ class Boss:
         if self.phase == 1:
             self.teleport_timer = len(self.animation_teleport_vanish.frames)
             self.animation_teleport_vanish.index = 0
-        else:
+        elif self.phase == 2:
             self.teleport_timer = len(self.animation_teleport2_vanish.frames)
             self.animation_teleport2_vanish.index = 0
             self.teleport_timer = len(self.animation_teleport2_vanish.frames)
             self.animation_clone_teleport_vanish.index = 0
+        else:
+            self.teleport_timer = len(self.animation_teleport2_vanish.frames)
+            self.animation_teleport2_vanish.index = 0
 
     def updateTeleport(self, player_rect):
         if not self.teleport_active:
@@ -409,9 +418,12 @@ class Boss:
         if self.phase == 1:
             self.selected_vanish = self.animation_teleport_vanish
             self.selected_appear = self.animation_teleport_appear
-        else:
+        elif self.phase == 2:
             self.selected_vanish = self.animation_teleport2_vanish
             self.selected_appear = self.animation_teleport2_appear
+        else:
+            self.selected_vanish = self.animation_teleport3_vanish
+            self.selected_appear = self.animation_teleport3_appear
 
         if self.teleport_state == "vanish":
             self.selected_vanish.update(loop=False)
