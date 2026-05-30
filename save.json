@@ -1,19 +1,91 @@
 {
-    "last_name": "ACE",
-    "achievements": [],
-    "history": [
-        {
-            "name": "ACE",
-            "score": 12400,
-            "difficulty": "Hard",
-            "wave_reached": 3,
-            "date": "2026-05-27",
-            "is_highscore": true
-        }
-    ],
-    "stats": {
-        "total_runs": 5,
-        "highest_score": 12400,
-        "highest_wave": 3
+  "last_name": "WDWD",
+  "achievements": [],
+  "history": [
+    {
+      "name": "WDWD",
+      "score": 0,
+      "difficulty": "Hard",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WQEWR",
+      "score": 0,
+      "difficulty": "Hard",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 6300,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": true
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "SADFSDF",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
     }
+  ],
+  "stats": {
+    "total_runs": 52,
+    "highest_score": 128800,
+    "highest_wave": 5
+  }
 }

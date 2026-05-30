@@ -354,7 +354,6 @@ class Boss:
                         distanceToPlayer = math.hypot(new_x - player_rect.centerx, new_y - player_rect.centery)
                         if distanceToPlayer >= min_dist:
                             self.rect.center = (new_x, new_y)
-
                 if self.clone_active:
                     self.cloneTeleport(self.rect.center, player_rect)
                     self.animation_clone_teleport_appear.index = 0

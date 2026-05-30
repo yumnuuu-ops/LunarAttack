@@ -29,12 +29,16 @@ class SoundManager:
         "BigGunProj explosion": "audio\\sfx\\BigGun fire.wav",
         "player hit": "audio\\sfx\\player hit.wav",
         "player dies": "audio\\sfx\\player dies.wav",
+
+        "shield break": "audio\\sfx\\Enemy\\broken_shield.mp3",
+        "enemy hit": "audio\\sfx\\Enemy\\enemy hit.wav",
+        "spaceship died": "audio\\sfx\\Enemy\\died_spaceship.wav"
     }
 
     def __init__(self):
         self.current_track = None
-        self.music_volume  = 0.5
-        self.sfx_volume = 0.3
+        self.music_volume  = 0.4
+        self.sfx_volume = 0.1
 
         self.sounds = {}
         for name, path in self.SFX.items():
