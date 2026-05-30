@@ -144,6 +144,10 @@ def load_all_assets(assetMgr):
     assetMgr.loadAnimScale("MoonPha2TeleSlowIn", "imgs\\moon_phase2_teleport in slow.png", 6)
     assetMgr.loadAnimScale("MoonPha2TeleFastIn", "imgs\\moon_phase2_teleport in fast.png", 6)
 
+    # Clone Teleport Animations
+    assetMgr.loadAnimScale("CMoonTeleIn", "imgs\\moon_clone_teleport in.png", 6)
+    assetMgr.loadAnimScale("CMoonTeleOut", "imgs\\moon_clone_teleport out.png", 6)
+
 # asset loading
 load_all_assets(assetMgr)
 

@@ -122,6 +122,9 @@ class Boss:
         # Phase 2 teleport
         self.animation_teleport2_vanish = AnimationManager(assetMgr.getAnim("MoonPha2TeleFastOut"), 24)
         self.animation_teleport2_appear = AnimationManager(assetMgr.getAnim("MoonPha2TeleFastIn"), 24)
+        # Clone Teleport
+        self.animation_clone_teleport_vanish = AnimationManager(assetMgr.getAnim("CMoonTeleOut"), 24)
+        self.animation_clone_teleport_appear = AnimationManager(assetMgr.getAnim("CMoonTeleIn"), 24)
 
     def move(self):
         if not self.moving:
@@ -173,7 +176,7 @@ class Boss:
                 self.animation_clone_idle.update()
             else:
                 self.clone_rect = self.rect.copy()
-                self.clone_rect.x = self.clone_rect.x + 300
+                self.clone_rect.centerx = self.screen_w - self.rect.centerx
                 self.animation_phase1_phase2_transition.update(loop=False)
                 lastFrameTrans = len(self.animation_phase1_phase2_transition.frames) - 1
                 self.animation_clone_spawn.update(loop=False)
@@ -190,11 +193,13 @@ class Boss:
                     frame = self.animation_teleport_vanish.get_current_frame()
                 elif self.phase == 2:
                     frame = self.animation_teleport2_vanish.get_current_frame()
+                    frame2 = self.animation_clone_teleport_vanish.get_current_frame()
             elif self.teleport_state == "appear":
                 if self.phase == 1:
                     frame = self.animation_teleport_appear.get_current_frame()
                 elif self.phase == 2:
                     frame = self.animation_teleport2_appear.get_current_frame()
+                    frame2 = self.animation_clone_teleport_appear.get_current_frame()
             elif self.teleport_state == "pause":
                 if self.phase == 2:
                     frame = self.animation_phase2_idle.get_current_frame()
@@ -235,7 +240,10 @@ class Boss:
     def asteroidBarrage(self, player_rect):
         cx, cy = self.rect.center
         aim = math.atan2(player_rect.centery - cy, player_rect.centerx - cx)
-        count = random.randint(5, 8)
+        if self.clone_active:
+            count = random.randint(3, 4)
+        else:
+            count = random.randint(5, 8)
         spread = math.radians(120)
         if self.phase == 1:
             asteroidType = "Neutral"
@@ -255,7 +263,7 @@ class Boss:
     def cloneBarrage(self, player_rect):
         cx, cy = self.clone_rect.center
         aim = math.atan2(player_rect.centery - cy, player_rect.centerx - cx)
-        count = random.randint(5, 8)
+        count = random.randint(3, 4)
         spread = math.radians(120)
         for i in range(count):
             t = i / (count - 1)
@@ -267,7 +275,7 @@ class Boss:
                 Asteroid(cx, cy, vx, vy, size, asteroid_type="Clone"))
 
     def cloneMass(self, player_rect):
-        mass = Mass()
+        mass = Mass(True)
         mass.spawnLocation(player_rect, self.clone_rect, self.screen_w, self.screen_h)
         mass.generatedMass = random.randint(400, 700)  # significantly weaker
         mass.isCloneMass = True
@@ -310,8 +318,14 @@ class Boss:
     def beginTeleport(self):
         self.teleport_state = "vanish"
         soundMgr.play_sfx("teleport out")
-        self.teleport_timer = len(self.animation_teleport_vanish.frames)
-        self.animation_teleport_vanish.index = 0
+        if self.phase == 1:
+            self.teleport_timer = len(self.animation_teleport_vanish.frames)
+            self.animation_teleport_vanish.index = 0
+        else:
+            self.teleport_timer = len(self.animation_teleport2_vanish.frames)
+            self.animation_teleport2_vanish.index = 0
+            self.teleport_timer = len(self.animation_teleport2_vanish.frames)
+            self.animation_clone_teleport_vanish.index = 0
 
     def updateTeleport(self, player_rect):
         if not self.teleport_active:
@@ -326,6 +340,8 @@ class Boss:
 
         if self.teleport_state == "vanish":
             self.selected_vanish.update(loop=False)
+            if self.clone_active:
+                self.animation_clone_teleport_vanish.update(loop=False)
             if self.selected_vanish.index >= len(self.selected_vanish.frames) - 1:
                 new_x = random.randint(self.move_left_bound, self.move_right_bound)
                 new_y = random.randint(120, int(self.screen_h * 0.6))
@@ -338,12 +354,17 @@ class Boss:
                         distanceToPlayer = math.hypot(new_x - player_rect.centerx, new_y - player_rect.centery)
                         if distanceToPlayer >= min_dist:
                             self.rect.center = (new_x, new_y)
+                if self.clone_active:
+                    self.cloneTeleport(self.rect.center, player_rect)
+                    self.animation_clone_teleport_appear.index = 0
                 soundMgr.play_sfx("teleport in")
                 self.teleport_state = "appear"
                 self.selected_appear.index = 0
 
         elif self.teleport_state == "appear":
             self.selected_appear.update(loop=False)
+            if self.clone_active:
+                self.animation_clone_teleport_appear.update(loop=False)
             if self.selected_appear.index >= len(self.selected_appear.frames) - 1:
                 soundMgr.play_sfx("asteroid")
                 self.asteroidBarrage(self.player_rect)
@@ -365,8 +386,19 @@ class Boss:
         self.moving = True  # Resume movement
         self.invincibility = False
 
-# class Clone:
-#     self.
+    def cloneTeleport(self, real_pos, player_rect):
+        minDistMoon = 500
+        minDistPlayer = 250
+        rx, ry = real_pos
+        for i in range(100):
+            cx = random.randint(self.move_left_bound, self.move_right_bound)
+            cy = random.randint(120, int(self.screen_h * 0.6))
+            far_from_real = math.hypot(cx - rx, cy - ry) >= minDistMoon
+            far_from_player = math.hypot(cx - player_rect.centerx, cy - player_rect.centery) >= minDistPlayer
+            if far_from_real and far_from_player:
+                self.clone_rect.center = (cx, cy)
+                return
+        self.clone_rect.center = (self.screen_w - rx, ry)
 
 class Beam:
     def __init__(self, screen_w, screen_h):
@@ -485,18 +517,26 @@ class Asteroid:
 
 class Mass:
     G = 6.674
-    def __init__(self):
+    def __init__(self, isClone=False):
         self.life = 100
         self.radius = 30
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
         self.generatedMass = random.randint(1000, 1500)
         self.animation = AnimationManager(assetMgr.getAnim("Mass"))
         self.animation_spawn = AnimationManager(assetMgr.getAnim("MassSpawn"))
-        self.animation_despawn = AnimationManager(assetMgr.getAnim("MassDespawn"))
-        self.isCloneMass = False
+        self.animation_despawn = AnimationManager(assetMgr.getAnim("MassE"))
+        self.isCloneMass = isClone
         self.animation_spawn_loaded = False
         self.animation_despawn_loaded = False
         self.isDead = False
+        if self.isCloneMass:
+            self.animation = AnimationManager(assetMgr.getAnim("MassX"))
+            self.animation_spawn = AnimationManager(assetMgr.getAnim("MassSpawn"))
+            self.animation_despawn = AnimationManager(assetMgr.getAnim("MassE"))
+        else:
+            self.animation = AnimationManager(assetMgr.getAnim("Mass"))
+            self.animation_spawn = AnimationManager(assetMgr.getAnim("MassSpawn"))
+            self.animation_despawn = AnimationManager(assetMgr.getAnim("MassE"))
 
     def update(self):
         if self.isDead:
