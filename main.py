@@ -295,8 +295,14 @@ while running:
 
     elif currState == BOSS:
         bg.update(g.dt)
-        bossFight.update(events)
-        projectile_group.update()
+
+        if not is_paused:
+            player.update(events)
+            bg.update(g.dt)
+            bossFight.update(events)
+            projectile_group.update()
+            hud.update(g.dt)
+
         if bossFight.finished:
             currState = END_SCENE
             name = getattr(play_screen, "player_name", "") or "Cadet"
@@ -376,7 +382,7 @@ while running:
             hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
-            BossFight.hud = hud
+            bossFight.hud = hud
             soundMgr.stop_music()
             enemy_manager.alien_group.empty()
             projectile_group.empty()
@@ -467,6 +473,7 @@ while running:
             hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
+            bossFight.hud = hud
             enemy_manager.alien_group.empty()
             projectile_group.empty()
             enemy_manager.enemy_projectile_group.empty()
