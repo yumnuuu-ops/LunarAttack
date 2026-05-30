@@ -18,10 +18,13 @@ from Credits import Credits
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
 
+pygame.mixer.pre_init(44100, -16, 2, 512)
+
 pygame.init()
-
-
 pygame.font.init()
+
+pygame.mixer.set_num_channels(32)
+
 press_start = pygame.font.Font("PressStart2P-Regular.ttf", 20)
 press_start_large = pygame.font.Font("PressStart2P-Regular.ttf", 32)
 press_start_sub = pygame.font.Font("PressStart2P-Regular.ttf", 16)
@@ -225,14 +228,6 @@ while running:
                     pygame.mixer.music.pause()
                 else:
                     pygame.mixer.music.unpause()
-
-
-
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-            name = getattr(play_screen, "player_name", "") or "Cadet"
-            end_cutscene = CutScene(screen_w, screen_h, player_name=name, scenes="ending")
-            end_cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
-            currState = END_SCENE
 
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
