@@ -156,6 +156,7 @@ def load_all_assets(assetMgr):
     assetMgr.loadAnimScale("BlackholeSpawn", "Assets\\Mass\\mass_spawn_strip.png", 12)
     assetMgr.loadAnimScale("Blackhole", "imgs\\Mass Attack Anim.png", 12)
     assetMgr.loadAnimScale("BlackholeDespawn", "Assets\\Mass\\mass_implosion_strip.png", 12)
+    assetMgr.loadAnimScale("ScarToNormal", "imgs\\moon_scarred_to_normal.png", 6)
 
 # asset loading
 load_all_assets(assetMgr)

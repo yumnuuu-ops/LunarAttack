@@ -51,7 +51,7 @@ def loadAsteroidImages():
     return asteroidGroups
 
 class Boss:
-    max_hp = 10000
+    max_hp = 100
     phase2_hp = max_hp // 2 # Floor Division, phase 2 will start when HP is 50% or below
     giant_hp = round(max_hp * 0.3)
 
@@ -67,6 +67,9 @@ class Boss:
         self.speed  = 10 # Need to experiment
         self.rect = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
         self.animation_phase1_idle = AnimationManager(assetMgr.getAnim("MoonP1"))
+        self.dying = False
+        self.death_animation_done = False
+        self.animation_death = AnimationManager(assetMgr.getAnim("ScarToNormal"), 6)
 
         # Phase 2
         self.phase2_transition_animation = False
@@ -168,10 +171,28 @@ class Boss:
             self.massRelease()
         if self.hp <= 0:
             self.hp = 0
-            self.alive = False
+            self.dying = True
+            self.startDeath()
+
+    def startDeath(self):
+        self.invincibility = True
+        self.moving = False
+        self.clone_active = False
+        self.asteroids.clear()
+        self.clone_asteroids.clear()
+        self.active_masses.clear()
+        self.animation_death.index = 0
+        # soundMgr.play_sfx("boss death")
 
     def update(self, player_rect):
-        if self.swap_active:
+        if self.dying:
+            self.animation_death.update(loop=False)
+            last = len(self.animation_death.frames) - 1
+            if self.animation_death.index >= last:
+                self.death_animation_done = True
+                self.alive = False
+            return
+        elif self.swap_active:
             self.updateSwap()
             return
         elif self.teleport_active:
@@ -222,7 +243,12 @@ class Boss:
     def draw(self, screen):
         frame = None
         frame2 = None
-        if self.swap_active:
+        if self.dying:
+            frame = self.animation_death.get_current_frame()
+            if frame:
+                screen.blit(frame, frame.get_rect(center=self.rect.center))
+            return
+        elif self.swap_active:
             if self.swap_state == "out":
                 frame = self.animation_teleport2_vanish.get_current_frame()
                 frame2 = self.animation_clone_teleport_vanish.get_current_frame()
@@ -511,7 +537,7 @@ class Boss:
             self.asteroids.append(Asteroid(cx, cy, vx, vy, size, asteroid_type="Eclipse"))
 
     def chooseMove(self, player_rect):
-        if self.teleport_active or self.giant_state:
+        if self.teleport_active or self.giant_state or self.dying:
             return
         if not hasattr(self, 'move_cooldown'):
             self.move_cooldown = 0
