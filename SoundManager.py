@@ -27,8 +27,6 @@ class SoundManager:
         "teleport in": "audio\\sfx\\teleport in.wav",
         "teleport out": "audio\\sfx\\teleport out.wav",
         "BigGunProj explosion": "audio\\sfx\\BigGun fire.wav",
-
-
         "player hit": "audio\\sfx\\player hit.wav",
         "player dies": "audio\\sfx\\player dies.wav",
     }
