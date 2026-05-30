@@ -128,15 +128,19 @@ class Boss:
         self.teleportCount = 5
         self.teleportBreak = 0
 
-        # Phase 1 teleport
+        # Phase 1 Teleport
         self.animation_teleport_vanish = AnimationManager(assetMgr.getAnim("MoonTeleFastOut"), 24)
         self.animation_teleport_appear = AnimationManager(assetMgr.getAnim("MoonTeleFastIn"), 24)
-        # Phase 2 teleport
+        # Phase 2 Teleport
         self.animation_teleport2_vanish = AnimationManager(assetMgr.getAnim("MoonPha2TeleFastOut"), 24)
         self.animation_teleport2_appear = AnimationManager(assetMgr.getAnim("MoonPha2TeleFastIn"), 24)
         # Clone Teleport
         self.animation_clone_teleport_vanish = AnimationManager(assetMgr.getAnim("CMoonTeleOut"), 24)
         self.animation_clone_teleport_appear = AnimationManager(assetMgr.getAnim("CMoonTeleIn"), 24)
+
+        # Swapping Teleport
+        self.swap_active = False
+        self.swap_state = None
 
     def move(self):
         if not self.moving:
@@ -162,7 +166,10 @@ class Boss:
             self.alive = False
 
     def update(self, player_rect):
-        if self.teleport_active:
+        if self.swap_active:
+            self.updateSwap()
+            return
+        elif self.teleport_active:
             self.updateTeleport(player_rect)
             return
         elif self.phase == 3:
@@ -210,7 +217,14 @@ class Boss:
     def draw(self, screen):
         frame = None
         frame2 = None
-        if self.teleport_active:
+        if self.swap_active:
+            if self.swap_state == "out":
+                frame = self.animation_teleport2_vanish.get_current_frame()
+                frame2 = self.animation_clone_teleport_vanish.get_current_frame()
+            elif self.swap_state == "in":
+                frame = self.animation_teleport2_appear.get_current_frame()
+                frame2 = self.animation_clone_teleport_appear.get_current_frame()
+        elif self.teleport_active:
             if self.teleport_state == "vanish":
                 if self.phase == 1:
                     frame = self.animation_teleport_vanish.get_current_frame()
@@ -316,17 +330,49 @@ class Boss:
             self.clone_move_dir = -1
 
     def swapWithClone(self, player_rect):
-        if not self.clone_active:
+        if not self.clone_active or self.swap_active or self.teleport_active:
             return
-        real_pos = self.rect.center
-        clone_pos = self.clone_rect.center
-        self.animation_clone_teleport_vanish.update()
-        self.animation_teleport2_vanish.update()
-        self.animation_clone_teleport_appear.update()
-        self.animation_teleport2_appear.update()
-        self.rect.center = clone_pos
-        self.clone_rect.center = real_pos
-        self.asteroidBarrage(player_rect)
+        self.swap_active = True
+        self.swap_state = "out"
+        self.moving = False
+        self.invincibility = True
+        self.player_rect = player_rect
+        soundMgr.play_sfx("teleport out")
+        self.animation_teleport2_vanish.index = 0
+        self.animation_clone_teleport_vanish.index = 0
+
+    def updateSwap(self):
+        if not self.swap_active:
+            return
+        if self.swap_state == "out":
+            self.animation_teleport2_vanish.update(loop=False)
+            self.animation_clone_teleport_vanish.update(loop=False)
+            real_done = self.animation_teleport2_vanish.index >= len(self.animation_teleport2_vanish.frames) - 1
+            clone_done = self.animation_clone_teleport_vanish.index >= len(self.animation_clone_teleport_vanish.frames) - 1
+            if real_done and clone_done:
+                real_pos = self.rect.center
+                clone_pos = self.clone_rect.center
+                self.rect.center = clone_pos
+                self.clone_rect.center = real_pos
+                self.swap_state = "in"
+                self.animation_teleport2_appear.index = 0
+                self.animation_clone_teleport_appear.index = 0
+                soundMgr.play_sfx("teleport in")
+
+        elif self.swap_state == "in":
+            self.animation_teleport2_appear.update(loop=False)
+            self.animation_clone_teleport_appear.update(loop=False)
+            real_done = self.animation_teleport2_appear.index >= len(self.animation_teleport2_appear.frames) - 1
+            clone_done = self.animation_clone_teleport_appear.index >= len(self.animation_clone_teleport_appear.frames) - 1
+            if real_done and clone_done:
+                self.asteroidBarrage(self.player_rect)
+                self.endSwap()
+
+    def endSwap(self):
+        self.swap_active = False
+        self.swap_state = None
+        self.moving = True
+        self.invincibility = False
 
     def massRelease(self):
         self.giant_state = True
