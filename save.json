@@ -27,19 +27,43 @@
       "is_highscore": false
     },
     {
-      "name": "YUMNU",
-      "score": 34700,
+      "name": "EASY",
+      "score": 55800,
       "difficulty": "Hard",
       "wave_reached": 5,
-      "date": "2026-05-31",
+      "date": "2026-05-30",
       "is_highscore": true
     },
     {
-      "name": "YUMNU",
-      "score": 11300,
+      "name": "EASY",
+      "score": 49900,
       "difficulty": "Hard",
-      "wave_reached": 2,
-      "date": "2026-05-31",
+      "wave_reached": 5,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "123",
+      "score": 47400,
+      "difficulty": "Hard",
+      "wave_reached": 5,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "123",
+      "score": 24700,
+      "difficulty": "Easy",
+      "wave_reached": 5,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "123",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
       "is_highscore": false
     }
   ],
