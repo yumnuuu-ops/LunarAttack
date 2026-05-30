@@ -29,7 +29,6 @@ class SoundManager:
         "BigGunProj explosion": "audio\\sfx\\BigGun fire.wav",
         "player hit": "audio\\sfx\\player hit.wav",
         "player dies": "audio\\sfx\\player dies.wav",
-
         "shield break": "audio\\sfx\\Enemy\\broken_shield.mp3",
         "enemy hit": "audio\\sfx\\Enemy\\enemy hit.wav",
         "spaceship died": "audio\\sfx\\Enemy\\died_spaceship.wav"

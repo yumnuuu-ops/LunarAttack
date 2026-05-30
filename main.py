@@ -217,12 +217,6 @@ while running:
         if not transition_active and not is_paused:
             player.update(events)
 
-            mouse_buttons = pygame.mouse.get_pressed()
-            if mouse_buttons[0]:
-                bullets = player.weapon.shootProjectile()
-                if bullets is not None:
-                    projectile_group.add(*bullets)
-
             projectile_group.update()
             particle_group.update()
 
