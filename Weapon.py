@@ -93,7 +93,7 @@ class Weapon:
                 elif event.key == pygame.K_2:
                     self.selectedWeapon = "Rockets"
                     self.fireRate = 6
-                    self.projectileSpeed = 11
+                    self.projectileSpeed = 14
                     self.damage = 25
                 elif event.key == pygame.K_3:
                     self.selectedWeapon = "Zapper"
@@ -104,7 +104,7 @@ class Weapon:
                     self.selectedWeapon = "BigGun"
                     self.fireRate = 0.5
                     self.projectileSpeed = 15
-                    self.damage = 40
+                    self.damage = 60
 
                     animation = assetMgr.getAnim(self.selectedWeapon)
                     self.anim_fps = len(animation) * self.fireRate
