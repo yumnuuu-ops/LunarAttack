@@ -524,19 +524,19 @@ class Mass:
         self.generatedMass = random.randint(1000, 1500)
         self.animation = AnimationManager(assetMgr.getAnim("Mass"))
         self.animation_spawn = AnimationManager(assetMgr.getAnim("MassSpawn"))
-        self.animation_despawn = AnimationManager(assetMgr.getAnim("MassE"))
+        self.animation_despawn = AnimationManager(assetMgr.getAnim("MassDespawn"))
         self.isCloneMass = isClone
         self.animation_spawn_loaded = False
         self.animation_despawn_loaded = False
         self.isDead = False
         if self.isCloneMass:
             self.animation = AnimationManager(assetMgr.getAnim("MassX"))
-            self.animation_spawn = AnimationManager(assetMgr.getAnim("MassSpawn"))
-            self.animation_despawn = AnimationManager(assetMgr.getAnim("MassE"))
+            self.animation_spawn = AnimationManager(assetMgr.getAnim("CloneMassSpawn"))
+            self.animation_despawn = AnimationManager(assetMgr.getAnim("CloneMassDespawn"))
         else:
             self.animation = AnimationManager(assetMgr.getAnim("Mass"))
             self.animation_spawn = AnimationManager(assetMgr.getAnim("MassSpawn"))
-            self.animation_despawn = AnimationManager(assetMgr.getAnim("MassE"))
+            self.animation_despawn = AnimationManager(assetMgr.getAnim("MassDespawn"))
 
     def update(self):
         if self.isDead:

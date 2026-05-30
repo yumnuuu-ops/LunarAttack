@@ -4,6 +4,22 @@
   "history": [
     {
       "name": "WDWD",
+      "score": 7700,
+      "difficulty": "Easy",
+      "wave_reached": 2,
+      "date": "2026-05-30",
+      "is_highscore": true
+    },
+    {
+      "name": "WDWD",
+      "score": 750,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WDWD",
       "score": 0,
       "difficulty": "Hard",
       "wave_reached": 1,
@@ -32,7 +48,7 @@
       "difficulty": "Medium",
       "wave_reached": 1,
       "date": "2026-05-30",
-      "is_highscore": true
+      "is_highscore": false
     },
     {
       "name": "WASFE",
@@ -65,26 +81,10 @@
       "wave_reached": 1,
       "date": "2026-05-30",
       "is_highscore": false
-    },
-    {
-      "name": "WASFE",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "SADFSDF",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
     }
   ],
   "stats": {
-    "total_runs": 52,
+    "total_runs": 54,
     "highest_score": 128800,
     "highest_wave": 5
   }
