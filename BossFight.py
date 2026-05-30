@@ -39,6 +39,25 @@ class BossFight:
         self.fly_in_target_y = self.screen_h - 100
         self.blackhole_spawned = False
 
+    def reset(self):
+        self.boss = Boss(self.screen_w, self.screen_h)
+        self.boss.rect.center = (self.screen_w // 2, 160)
+        self.beam = None
+        self.finished = False
+
+        self.mode = "intro"
+        self.intro_step = "fly_in"
+        self.intro_timer = 0
+        self.blackhole = None
+        self.fade_alpha = 0
+        self.intro_started = False
+
+        self.player.speed = self.player_speed_backup
+
+        self.animation_blackhole.index = 0
+        self.animation_blackhole_spawn.index = 0
+        self.animation_blackhole_despawn.index = 0
+
     def update(self, events):
         if self.mode == "intro":
             self.updateIntro()
@@ -48,7 +67,7 @@ class BossFight:
 
     def updateIntro(self):
         if not getattr(self, '_intro_started', False):
-            self._intro_started = True
+            self.intro_started = True
             self.player.pos.y = self.screen_h + 100
             self.player.rect.y = int(self.player.pos.y)
             self.player.pos.x = self.screen_w // 2
