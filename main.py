@@ -88,6 +88,9 @@ def game_over():
     game_over_screen.on_click = lambda: soundMgr.play_sfx("confirm")
     game_over_screen.open()
 
+    soundMgr.stop_music()
+    soundMgr.play_music("gameover")
+
     currState = DEATH_SCENE
 
 def quitGame():
@@ -228,6 +231,12 @@ while running:
                 else:
                     pygame.mixer.music.unpause()
 
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_n:
+            currState = BOSS
+            bg.set_layer("imgs/Background/PurpleNebula/pNebula4.png")
+            soundMgr.stop_music()
+            soundMgr.play_music("boss")
+
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
         if not transition_active and not is_paused:
@@ -270,6 +279,10 @@ while running:
                     hud.next_wave()
                     currState = target_state
                     enemy_manager.setup_stage_config(currState)
+                    if currState == BOSS:
+                        soundMgr.stop_music()
+                        soundMgr.play_music("boss")
+                        bg.set_layer("imgs/Background/PurpleNebula/pNebula4.png")
                     # Instantly spawn the first wave of enemies upon entering the new stage
                     enemy_manager.spawn_aliens(currState)
                     # Dynamically set faster spawn timer for Stage 2 & 3 (750ms) and default (1500ms) for other stages
@@ -318,17 +331,20 @@ while running:
             hud.update(g.dt)
 
         if bossFight.finished:
+            soundMgr.stop_music()
+            soundMgr.play_music("win")
+            bg.set_layer("imgs/Background/BlueNebula/bNebula4.png")
             currState = END_SCENE
             name = getattr(play_screen, "player_name", "") or "Cadet"
             end_cutscene = CutScene(screen_w, screen_h, player_name=name, scenes="ending")
             end_cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
 
+
     elif currState == END_SCENE:
         end_cutscene.update(events)
         if end_cutscene.action == "DONE":
-            currState = MENU
-            menu.reset()
-            soundMgr.play_music("menu")
+            credits_screen.open()
+            currState = CREDITS
     # Clear the intermediate drawing surface
 
     game_surface.fill((0, 0, 0))
@@ -401,7 +417,7 @@ while running:
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
             bossFight.hud = hud
-            soundMgr.stop_music()
+            soundMgr.play_music("game")
             enemy_manager.alien_group.empty()
             projectile_group.empty()
             enemy_manager.enemy_projectile_group.empty()
