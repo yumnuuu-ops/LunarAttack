@@ -3,7 +3,7 @@ import random
 import math
 from enemy.Alien import Alien
 from enemy.Formation import Formation
-from globals import projectile_group
+from globals import projectile_group, soundMgr
 
 STAGE_1 = "stage_1"
 STAGE_2 = "stage_2"
@@ -50,6 +50,13 @@ class EnemyManager:
             
         self.formation = Formation(screen_w, screen_h, self.grid_slots_stage4)
         self.alien_types = ["alien_drone", "tendril_alien", "eye_spawn"]
+
+    def _get_target_lock_sfx(self, stage, player_touching_edge):
+        if player_touching_edge:
+            return "target lock boosted"
+        if stage == STAGE_3:
+            return "target lock stage 3"
+        return "target lock stage 2"
 
     def setup_stage_config(self, stage):
         self.alien_group.empty()
@@ -147,24 +154,31 @@ class EnemyManager:
                 self.alien_group.add(new_alien)
                 self.enemies_spawned_so_far += 1
         elif stage in [STAGE_4, STAGE_5]:
-            # Spawn in a swarm! Request up to 6 slots (3 pairs) per tick
-            slots_to_spawn = []
-            for _ in range(3):
-                slots_to_spawn.extend(self.formation.get_spawn_slots())
+            # Spawn exactly 2 slots (1 symmetric pair) per tick for a clean, synchronized "two at once" portal emergence!
+            slots_to_spawn = self.formation.get_spawn_slots()
+            spawned_any = False
             for idx, slot in enumerate(slots_to_spawn):
                 if self.enemies_spawned_so_far < self.total_enemies_to_spawn:
-                    if slot[0] < 640:
-                        spawn_x = -50 - (idx * 80)
-                        spawn_y = 0
-                    else:
-                        spawn_x = self.screen_w + 50 + (idx * 80)
-                        spawn_y = 0
+                    # Spawn both aliens at the shared center portal coordinates (640, 150)
+                    spawn_x = 640
+                    spawn_y = 150
                     alien_type = self.alien_types[2] # Use eye_spawn for both STAGE_4 and STAGE_5
                     new_alien = Alien(alien_type, spawn_x, spawn_y, stage=4 if stage == STAGE_4 else 5,
                                       target_x=slot[0], target_y=slot[1])
+                    
+                    # Override initial phase to be spawning portal
+                    new_alien.phase = "spawning_portal"
+                    new_alien.portal_age = 0
+                    new_alien.enemy_alpha = 0
+                    new_alien.enemy_scale = 0.65
+                    
                     self.alien_group.add(new_alien)
                     self.formation.register_alien(new_alien, slot)
                     self.enemies_spawned_so_far += 1
+                    spawned_any = True
+            
+            if spawned_any:
+                soundMgr.play_sfx("portal warp")
 
     def handle_updates_and_collisions(self, stage, player_touching_edge=False):
         # Update enemies and collect enemy bullets
@@ -173,8 +187,53 @@ class EnemyManager:
             result = alien.update(player_pos=self.player.rect.center, player_touching_edge=player_touching_edge)
             if result is not None:
                 enemy_bullets.append(result)
+
+            if stage in [STAGE_2, STAGE_3] and getattr(alien, "phase", None) == "stationary":
+                warn_threshold = 40
+                if alien.shoot_cooldown <= warn_threshold and not getattr(alien, "target_lock_sfx_played", False):
+                    soundMgr.play_sfx(self._get_target_lock_sfx(stage, player_touching_edge))
+                    alien.target_lock_sfx_played = True
+                elif alien.shoot_cooldown > warn_threshold:
+                    alien.target_lock_sfx_played = False
         self.enemy_projectile_group.add(*enemy_bullets)
         self.enemy_projectile_group.update()
+
+        # Resolve collisions/overlaps between Stage 1 aliens to prevent them from colliding/overlapping
+        if stage == STAGE_1:
+            aliens = list(self.alien_group)
+            for i in range(len(aliens)):
+                for j in range(i + 1, len(aliens)):
+                    a1 = aliens[i]
+                    a2 = aliens[j]
+                    
+                    dx = a1.pos.x - a2.pos.x
+                    dy = a1.pos.y - a2.pos.y
+                    dist = math.hypot(dx, dy)
+                    min_dist = 90  # Keep them beautifully spaced
+                    
+                    if dist < min_dist:
+                        if dist == 0:
+                            dx = random.choice([-1, 1])
+                            dy = random.choice([-1, 1])
+                            dist = math.hypot(dx, dy)
+                        
+                        # Calculate push vector
+                        push_x = (dx / dist) * (min_dist - dist) * 0.5
+                        push_y = (dy / dist) * (min_dist - dist) * 0.5
+                        
+                        # Apply push
+                        a1.pos.x += push_x
+                        a1.pos.y += push_y
+                        a2.pos.x -= push_x
+                        a2.pos.y -= push_y
+                        
+                        # Update spawn_x so the lateral sine movement trajectory shift persists
+                        a1.spawn_x += push_x
+                        a2.spawn_x -= push_x
+                        
+                        # Sync rect immediately
+                        a1.rect.center = (int(a1.pos.x), int(a1.pos.y))
+                        a2.rect.center = (int(a2.pos.x), int(a2.pos.y))
 
         # Release dead aliens from formation in stages 4 and 5
         if stage in [STAGE_4, STAGE_5]:
@@ -211,7 +270,7 @@ class EnemyManager:
 
         # Player-Alien Collision Check (Kamikaze / Crashing into player!)
         if not self.player.invincible:
-            collided_aliens = [alien for alien in self.alien_group if self.player.rect.colliderect(alien.rect)]
+            collided_aliens = [alien for alien in self.alien_group if self.player.rect.colliderect(alien.rect) and getattr(alien, "phase", "") not in ["spawning_portal", "dissolving"]]
             for alien in collided_aliens:
                 alien.kill()
                 self.player.takeDamage(1)
@@ -233,6 +292,25 @@ class EnemyManager:
         self.enemy_projectile_group.draw(game_surface)
         self.alien_group.draw(game_surface)
         
+        # Render spawn portals and death dissolve effects
+        portal_positions = set()
+        for alien in self.alien_group:
+            p = getattr(alien, "phase", "")
+            if p == "spawning_portal":
+                portal_positions.add((alien.rect.centerx, alien.rect.centery, getattr(alien, "portal_age", 0)))
+                
+        for px, py, age in portal_positions:
+            progress = min(1.0, age / 45)
+            radius = int(18 + progress * 56)
+            alpha = int(220 * (1 - progress))
+
+            portal = pygame.Surface((150, 150), pygame.SRCALPHA)
+            center = (75, 75)
+            pygame.draw.circle(portal, (190, 40, 255, alpha), center, radius, 4)
+            pygame.draw.circle(portal, (255, 70, 120, int(alpha * 0.8)), center, max(4, radius - 12), 3)
+            pygame.draw.circle(portal, (80, 10, 130, int(alpha * 0.35)), center, max(1, radius - 22))
+            game_surface.blit(portal, portal.get_rect(center=(px, py)))
+            
         # Render lock-on visual sights (no red rect debug outlines!)
         for alien in self.alien_group:
             # Draw blinking red Lock-On laser sights only for stationary sentries

@@ -1,6 +1,5 @@
 import pygame
 import sys
-import os
 import random
 from MainMenu import MainMenu
 from Player import Player
@@ -17,8 +16,6 @@ from GameOver import GameOver
 from History import History
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
-
-import math
 
 pygame.init()
 
@@ -274,6 +271,13 @@ while running:
                     hud.next_wave()
                     currState = target_state
                     enemy_manager.setup_stage_config(currState)
+                    # Instantly spawn the first wave of enemies upon entering the new stage
+                    enemy_manager.spawn_aliens(currState)
+                    # Dynamically set faster spawn timer for Stage 2 & 3 (750ms) and default (1500ms) for other stages
+                    if currState in [STAGE_2, STAGE_3]:
+                        pygame.time.set_timer(SPAWN_ALIEN_EVENT, 750)
+                    else:
+                        pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
     elif currState == DEATH_SCENE:
         # Countdown the timer
@@ -398,6 +402,9 @@ while running:
             enemy_manager.formation.reset()
             enemy_manager.enemies_spawned_so_far = 0
             enemy_manager.total_enemies_to_spawn = 20
+            # Instantly spawn first wave of enemies and ensure default spawn rate
+            enemy_manager.spawn_aliens(currState)
+            pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
 
 
@@ -408,12 +415,6 @@ while running:
         player.draw(game_surface)
         projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
-        for proj in projectile_group:
-            pygame.draw.rect(game_surface, (0, 255, 0), proj.rect, 1)
-        for alien in enemy_manager.alien_group:
-            pygame.draw.rect(game_surface, (255, 0, 0), alien.rect, 1)
-        for e_proj in enemy_manager.enemy_projectile_group:
-            pygame.draw.rect(game_surface, (255, 128, 0), e_proj.rect, 1)
         enemy_manager.draw(game_surface, currState)
         # Only update/advance logic when not paused
 
@@ -496,6 +497,9 @@ while running:
             enemy_manager.formation.reset()
             enemy_manager.enemies_spawned_so_far = 0
             enemy_manager.total_enemies_to_spawn = 20
+            # Instantly spawn Stage 1 enemies on restart and reset spawn rate
+            enemy_manager.spawn_aliens(currState)
+            pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
             player.hp = 100
             pygame.mixer.music.unpause()
 
