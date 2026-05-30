@@ -4,6 +4,38 @@
   "history": [
     {
       "name": "YUMNU",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-31",
+      "is_highscore": false
+    },
+    {
+      "name": "YUMNU",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-31",
+      "is_highscore": false
+    },
+    {
+      "name": "YUMNU",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-31",
+      "is_highscore": false
+    },
+    {
+      "name": "YUMNU",
+      "score": 0,
+      "difficulty": "Hard",
+      "wave_reached": 1,
+      "date": "2026-05-31",
+      "is_highscore": false
+    },
+    {
+      "name": "YUMNU",
       "score": 16750,
       "difficulty": "Easy",
       "wave_reached": 5,
@@ -49,26 +81,10 @@
       "wave_reached": 5,
       "date": "2026-05-30",
       "is_highscore": false
-    },
-    {
-      "name": "123",
-      "score": 24700,
-      "difficulty": "Easy",
-      "wave_reached": 5,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "123",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
     }
   ],
   "stats": {
-    "total_runs": 5,
+    "total_runs": 9,
     "highest_score": 34700,
     "highest_wave": 5
   }

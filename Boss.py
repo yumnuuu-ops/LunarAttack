@@ -51,9 +51,9 @@ def loadAsteroidImages():
     return asteroidGroups
 
 class Boss:
-    max_hp = 100
-    phase2_hp = max_hp // 2 # Floor Division, phase 2 will start when HP is 50% or below
-    giant_hp = round(max_hp * 0.3)
+    max_hp = 780
+    phase2_hp = max_hp * 0.615 # Floor Division, phase 2 will start when HP is 50% or below
+    giant_hp = round(max_hp * 0.385)
 
     def __init__(self, screen_w, screen_h):
         # Initial State
@@ -70,6 +70,9 @@ class Boss:
         self.dying = False
         self.death_animation_done = False
         self.animation_death = AnimationManager(assetMgr.getAnim("ScarToNormal"), 6)
+        self.death_hold_timer = 0
+        self.death_hold_time = 100000
+        self.death_animation_lastFrame = False
 
         # Phase 2
         self.phase2_transition_animation = False
@@ -186,11 +189,17 @@ class Boss:
 
     def update(self, player_rect):
         if self.dying:
-            self.animation_death.update(loop=False)
-            last = len(self.animation_death.frames) - 1
-            if self.animation_death.index >= last:
-                self.death_animation_done = True
-                self.alive = False
+            if not self.death_animation_lastFrame:
+                self.animation_death.update(loop=False)
+                last = len(self.animation_death.frames) - 1
+                if self.animation_death.index >= last:
+                    self.death_animation_lastFrame = True
+                    self.death_hold_timer = self.death_hold_time
+            else:
+                self.death_hold_timer -= 1
+                if self.death_hold_timer <= 0:
+                    self.death_animation_done = True
+                    self.alive = False
             return
         elif self.swap_active:
             self.updateSwap()

@@ -11,7 +11,7 @@ class HUD:
     }
 
     DIFF_HEARTS = {
-        "Easy"  : 4,
+        "Easy"  : 100,
         "Medium" : 3,
         "Hard" : 2,
         "Impossible" : 1,
