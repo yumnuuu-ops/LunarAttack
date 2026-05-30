@@ -26,12 +26,35 @@ class SoundManager:
         "eclipse to scarred": "audio\\sfx\\eclipse to scarred.wav",
         "teleport in": "audio\\sfx\\teleport in.wav",
         "teleport out": "audio\\sfx\\teleport out.wav",
+        "portal warp": "audio\\sfx\\Enemy\\portal_warp.wav",
+        "target lock": "audio\\sfx\\Detector\\detector_panic_tit_tit_close.wav",
+        "target lock stage 2": "audio\\sfx\\Detector\\detector_panic_tit_tit_close.wav",
+        "target lock stage 3": "audio\\sfx\\Detector\\detector_panic_tit_tit_close_fast.wav",
+        "target lock boosted": "audio\\sfx\\Detector\\detector_panic_tit_tit_close_faster.wav",
         "BigGunProj explosion": "audio\\sfx\\BigGun fire.wav",
         "player hit": "audio\\sfx\\player hit.wav",
         "player dies": "audio\\sfx\\player dies.wav",
         "shield break": "audio\\sfx\\Enemy\\broken_shield.mp3",
         "enemy hit": "audio\\sfx\\Enemy\\enemy hit.wav",
-        "spaceship died": "audio\\sfx\\Enemy\\died_spaceship.wav"
+        "spaceship died": "audio\\sfx\\Enemy\\spaceship_explosion_video.wav"
+    }
+
+    SFX_VOLUMES = {
+        "AutoCannon fire": 0.035,
+        "Zapper fire": 0.06,
+        "Rockets fire": 0.07,
+        "BigGun fire": 0.08,
+        "BigGunProj explosion": 0.08,
+        "target lock": 0.16,
+        "target lock stage 2": 0.16,
+        "target lock stage 3": 0.17,
+        "target lock boosted": 0.18,
+        "spaceship died": 0.32,
+        "portal warp": 0.22,
+    }
+
+    SFX_CHANNELS = {
+        "spaceship died": 0,
     }
 
     def __init__(self):
@@ -43,10 +66,13 @@ class SoundManager:
         for name, path in self.SFX.items():
             try:
                 loaded_sound = pygame.mixer.Sound(path)
-                loaded_sound.set_volume(self.sfx_volume)
+                loaded_sound.set_volume(self._get_sfx_volume(name))
                 self.sounds[name] = loaded_sound
             except Exception as e:
                 print(f"SoundManager: Could not load sfx 'name': {e}")
+
+    def _get_sfx_volume(self, sfx_name):
+        return self.SFX_VOLUMES.get(sfx_name, self.sfx_volume)
 
     def play_music(self, track_name, loop=-1):
         path = self.TRACKS.get(track_name)
@@ -69,8 +95,12 @@ class SoundManager:
 
     def play_sfx(self, sfx_name):
         if sfx_name in self.sounds:
-            self.sounds[sfx_name].set_volume(self.sfx_volume)
-            self.sounds[sfx_name].play()
+            self.sounds[sfx_name].set_volume(self._get_sfx_volume(sfx_name))
+            if sfx_name in self.SFX_CHANNELS:
+                channel = pygame.mixer.Channel(self.SFX_CHANNELS[sfx_name])
+                channel.play(self.sounds[sfx_name])
+            else:
+                self.sounds[sfx_name].play()
         else:
             print(f"SoundManager: sfx '{sfx_name}' not found")
 

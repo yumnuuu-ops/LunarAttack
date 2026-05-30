@@ -1,6 +1,5 @@
 import pygame
 import sys
-import os
 import random
 from MainMenu import MainMenu
 from Player import Player
@@ -14,10 +13,9 @@ from enemy.EnemyManager import EnemyManager
 from ShatterEffect import ShatterEffect
 from PauseMenu import PauseMenu
 from GameOver import GameOver
+from History import History
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
-
-import math
 
 pygame.init()
 
@@ -41,8 +39,8 @@ alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
 SPAWN_ALIEN_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
-MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE, END_SCENE = \
-    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene","end_cutscene"
+MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE, END_SCENE, HISTORY = \
+    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene","end_cutscene", "history"
 currState = MENU
 selected_difficulty = None
 death_timer = 0.0
@@ -192,6 +190,10 @@ is_paused = False
 #game over screen
 game_over_screen = None
 
+history_screen = History(screen_w, screen_h, score_manager)
+history_screen.on_hover = lambda: soundMgr.play_sfx("select")
+history_screen.on_click = lambda: soundMgr.play_sfx("confirm")
+
 # main loop
 running = True
 
@@ -270,6 +272,13 @@ while running:
                     hud.next_wave()
                     currState = target_state
                     enemy_manager.setup_stage_config(currState)
+                    # Instantly spawn the first wave of enemies upon entering the new stage
+                    enemy_manager.spawn_aliens(currState)
+                    # Dynamically set faster spawn timer for Stage 2 & 3 (750ms) and default (1500ms) for other stages
+                    if currState in [STAGE_2, STAGE_3]:
+                        pygame.time.set_timer(SPAWN_ALIEN_EVENT, 750)
+                    else:
+                        pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
     elif currState == DEATH_SCENE:
         # Countdown the timer
@@ -290,13 +299,14 @@ while running:
         elif game_over_screen.action == "MENU":
             currState = MENU
             menu.reset()
-            menu.reset()
             player.hp = 100 #think of this as resetting player health to full health
             soundMgr.play_music("menu")
 
+    elif currState == HISTORY:
+        history_screen.update(events)
+        if history_screen.action == "BACK":
+            currState = MENU
     elif currState == BOSS:
-        bg.update(g.dt)
-
         if not is_paused:
             player.update(events)
             bg.update(g.dt)
@@ -343,6 +353,8 @@ while running:
             menu.slide_out()
         elif menu.action == "HISTORY":
             soundMgr.play_sfx("confirm")
+            history_screen._refresh()
+            currState = HISTORY
         elif menu.action == "CREDITS":
             soundMgr.play_sfx("confirm")
         elif menu.action == "SLIDEOUT_DONE":
@@ -391,6 +403,9 @@ while running:
             enemy_manager.formation.reset()
             enemy_manager.enemies_spawned_so_far = 0
             enemy_manager.total_enemies_to_spawn = 20
+            # Instantly spawn first wave of enemies and ensure default spawn rate
+            enemy_manager.spawn_aliens(currState)
+            pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
 
 
@@ -401,18 +416,13 @@ while running:
         player.draw(game_surface)
         projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
-        for proj in projectile_group:
-            pygame.draw.rect(game_surface, (0, 255, 0), proj.rect, 1)
-        for alien in enemy_manager.alien_group:
-            pygame.draw.rect(game_surface, (255, 0, 0), alien.rect, 1)
-        for e_proj in enemy_manager.enemy_projectile_group:
-            pygame.draw.rect(game_surface, (255, 128, 0), e_proj.rect, 1)
         enemy_manager.draw(game_surface, currState)
         # Only update/advance logic when not paused
 
         if not is_paused:
 
             hud.update(g.dt)
+            hud.set_weapon(player.weapon.selectedWeapon)
 
     elif currState == BOSS:
         bg.draw(game_surface)
@@ -427,6 +437,13 @@ while running:
         enemy_manager.draw(game_surface, currState)
         enemy_manager.enemy_projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
+
+
+    elif currState == HISTORY:
+        bg.update(g.dt)
+        bg.draw(game_surface, darkened=True)
+        history_screen.draw(game_surface)
+
 #PLEASE TIE THIS TO DEATH OF BOSS LATER
     elif currState == END_SCENE:
         bg.update(g.dt)
@@ -481,6 +498,9 @@ while running:
             enemy_manager.formation.reset()
             enemy_manager.enemies_spawned_so_far = 0
             enemy_manager.total_enemies_to_spawn = 20
+            # Instantly spawn Stage 1 enemies on restart and reset spawn rate
+            enemy_manager.spawn_aliens(currState)
+            pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
             player.hp = 100
             pygame.mixer.music.unpause()
 

@@ -1,6 +1,5 @@
 # Formation.py
 import pygame
-import random
 
 class Formation:
     def __init__(self, screen_w, screen_h, slot_coordinates):
@@ -14,6 +13,8 @@ class Formation:
         self.available_slots = []
         # Mapping of active Alien -> base slot coordinate (col, row)
         self.active_aliens = {}
+        # Cooldown pool for slots after an alien dies/is released
+        self.cooldown_slots = []
         
         # Group swaying state (like Galaga/Space Invaders)
         self.x_offset = 0
@@ -27,6 +28,7 @@ class Formation:
         """Clears all active assignments and rebuilds all slots."""
         self.available_slots.clear()
         self.active_aliens.clear()
+        self.cooldown_slots.clear()
         self.available_slots.extend(self.base_slots)
 
     def get_spawn_slots(self, boundary_x=640):
@@ -34,6 +36,13 @@ class Formation:
         Finds and returns up to two symmetric slots (one left, one right).
         Falls back to a single slot if symmetric slots aren't available.
         """
+        # Reclaim slots whose cooldown has expired
+        now = pygame.time.get_ticks()
+        expired = [item for item in self.cooldown_slots if now >= item[1]]
+        for item in expired:
+            self.available_slots.append(item[0])
+            self.cooldown_slots.remove(item)
+
         claimed = []
         
         # 1. Look for a left slot (x < boundary_x)
@@ -59,7 +68,9 @@ class Formation:
         self.active_aliens[alien] = slot
 
     def release_alien(self, alien):
-        """Returns the slot occupied by the alien back to the available pool."""
+        """Returns the slot occupied by the alien back to the pool after a cooldown delay."""
         if alien in self.active_aliens:
             slot = self.active_aliens.pop(alien)
-            self.available_slots.append(slot)
+            # Add slot to cooldown list with a 3-second (3000ms) delay before it can respawn
+            cooldown_until = pygame.time.get_ticks() + 3000
+            self.cooldown_slots.append((slot, cooldown_until))

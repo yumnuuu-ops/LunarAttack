@@ -3,8 +3,8 @@ import random
 import math
 import utils
 from AnimationManager import AnimationManager
-from Projectile import Projectile
-from faddingEffect import faddingEffect
+from SparksEffect import SparksEffect
+from ShatterEffect import ShatterEffect
 from globals import assetMgr, soundMgr
 from enemy.EnemyProjectile import EnemyProjectile
 
@@ -32,9 +32,19 @@ class Alien(pygame.sprite.Sprite):
         
         if target_x is not None and target_y is not None:
             self.phase = "entering"
-            self.shoot_cooldown = random.randint(60, 180) # Shoot every 1 to 3 seconds
+            if stage == 4:
+                self.shoot_cooldown = random.randint(240, 480)
+            elif stage == 5:
+                self.shoot_cooldown = random.randint(180, 360)
+            else:
+                self.shoot_cooldown = random.randint(60, 180) # Shoot every 1 to 3 seconds
         else:
-            self.shoot_cooldown = random.randint(60, 180)
+            if stage == 4:
+                self.shoot_cooldown = random.randint(240, 480)
+            elif stage == 5:
+                self.shoot_cooldown = random.randint(180, 360)
+            else:
+                self.shoot_cooldown = random.randint(60, 180)
             if stage in [2, 3]:
                 self.phase = "stage2_align"
                 self.target_y = y
@@ -70,7 +80,7 @@ class Alien(pygame.sprite.Sprite):
 
         # Dynamically scale shield HP based on original/max HP
         if self.alien_type == "tendril_alien":
-            self.shield_hp = max(1, int(self.hp * 0.50))
+            self.shield_hp = max(1, int(self.hp * 1.00))  # Increased shield strength to 100% of max HP
         else:
             self.shield_hp = 0
         
@@ -81,6 +91,12 @@ class Alien(pygame.sprite.Sprite):
         self.wave_speed = 0.05
         self.wave_amplitude = 100
 
+        # Special stage 4/5 effect state variables
+        self.enemy_alpha = 255
+        self.enemy_scale = 1.0
+        self.particles = []
+        self.spawned_particles = False
+
     def update(self, player_pos=None, player_touching_edge=False):
         # update animation
         self.animator.update()
@@ -88,8 +104,22 @@ class Alien(pygame.sprite.Sprite):
 
         fired_bullet = None
 
+        if self.phase == "spawning_portal":
+            self.portal_age += 1
+            progress = min(1.0, self.portal_age / 45)
+            self.enemy_alpha = min(255, self.portal_age * 7)
+            self.enemy_scale = 0.65 + progress * 0.35
+            
+            if self.portal_age >= 45:
+                self.phase = "entering"
+                self.enemy_alpha = 255
+                self.enemy_scale = 1.0
+                self.spawn_x = self.pos.x
+
         # Stage 2 Entry & Formation Logic
-        if self.phase == "stationary":
+        if self.phase == "spawning_portal":
+            pass  # Keep completely stationary during portal emergence!
+        elif self.phase == "stationary":
             # Hover slightly up/down for a lively visual effect
             self.wave_time += 0.2
             self.pos.y = self.target_y + math.sin(self.wave_time) * 1
@@ -129,7 +159,12 @@ class Alien(pygame.sprite.Sprite):
             # Shooting logic
             self.shoot_cooldown -= 1
             if self.shoot_cooldown <= 0:
-                self.shoot_cooldown = random.randint(60, 180) # Shoot every 1 to 3 seconds
+                if self.stage == 4:
+                    self.shoot_cooldown = random.randint(240, 480) # Stage 4: Shoot every 4 to 8 seconds
+                elif self.stage == 5:
+                    self.shoot_cooldown = random.randint(180, 360) # Stage 5: Shoot every 3 to 6 seconds
+                else:
+                    self.shoot_cooldown = random.randint(60, 180) # Default: Shoot every 1 to 3 seconds
                 # Sync rect before shooting
                 self.rect.x = int(self.pos.x)
                 self.rect.y = int(self.pos.y)
@@ -241,6 +276,17 @@ class Alien(pygame.sprite.Sprite):
                 tight_rotated_box = rotated_img.get_bounding_rect()
                 self.image = rotated_img.subsurface(tight_rotated_box)
                 
+            # Scale and set alpha for portal/dissolve effects
+            enemy_scale = getattr(self, "enemy_scale", 1.0)
+            enemy_alpha = getattr(self, "enemy_alpha", 255)
+            
+            if enemy_scale != 1.0 or enemy_alpha != 255:
+                w, h = self.image.get_size()
+                new_w = max(1, int(w * enemy_scale))
+                new_h = max(1, int(h * enemy_scale))
+                self.image = pygame.transform.smoothscale(self.image, (new_w, new_h))
+                self.image.set_alpha(max(0, min(255, int(enemy_alpha))))
+                
             self.rect = self.image.get_rect()
             self.rect.center = (int(self.pos.x), int(self.pos.y))
         
@@ -272,7 +318,10 @@ class Alien(pygame.sprite.Sprite):
         self.hp -= damage
         if self.hp <= 0:
             soundMgr.play_sfx("spaceship died")
-            faddingEffect.trigger(self)
+            if self.stage in [4, 5]:
+                # Shatter the eye alien into many glowing flying fragments!
+                ShatterEffect.trigger(self, rows=4, cols=4)
+            else:
+                death_effect = SparksEffect(self)
+                death_effect.start()
             self.kill()
-        # else:
-        #     soundMgr.play_sfx("enemy hit")
