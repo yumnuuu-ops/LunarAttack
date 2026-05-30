@@ -129,9 +129,12 @@ def load_all_assets(assetMgr):
     assetMgr.loadAnimScale("MoonTeleFastOut", "imgs\\moon_phase1_teleport out fast.png", 6)
     assetMgr.loadAnimScale("MoonTeleSlowIn", "imgs\\moon_phase1_teleport in slow.png", 6)
     assetMgr.loadAnimScale("MoonTeleFastIn", "imgs\\moon_phase1_teleport in fast.png", 6)
+    assetMgr.loadAnimScale("MoonPha2TeleSlowOut", "imgs\\moon_phase2_teleport out slow.png", 6)
+    assetMgr.loadAnimScale("MoonPha2TeleFastOut", "imgs\\moon_phase2_teleport out fast.png", 6)
+    assetMgr.loadAnimScale("MoonPha2TeleSlowIn", "imgs\\moon_phase2_teleport in slow.png", 6)
+    assetMgr.loadAnimScale("MoonPha2TeleFastIn", "imgs\\moon_phase2_teleport in fast.png", 6)
 
 # asset loading
-imageScale = 2
 load_all_assets(assetMgr)
 
 # ===================================== Initial Setting =====================================
@@ -328,7 +331,19 @@ while running:
         projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
 
-        # 3. Render the alien fleet, lasers, and target indicators
+        # PROJECTILE HIT BOX RENDERING, DO NOT REMOVE
+        for proj in projectile_group:
+            pygame.draw.rect(game_surface, (0, 255, 0), proj.rect, 1)
+
+        # HIT BOX RENDERING, DO NOT REMOVE
+        for alien in enemy_manager.alien_group:
+            pygame.draw.rect(game_surface, (255, 0, 0), alien.rect, 1)
+
+        # ENEMY PROJECTILE HIT BOX RENDERING, DO NOT REMOVE
+        for e_proj in enemy_manager.enemy_projectile_group:
+            pygame.draw.rect(game_surface, (255, 128, 0), e_proj.rect, 1)
+
+        # Render the alien fleet, lasers, and target indicators
         enemy_manager.draw(game_surface, currState)
 
 

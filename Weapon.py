@@ -19,9 +19,9 @@ class Weapon:
         self.cooldown = 0
         self.projectileCount = 1
         self.projectileSize = 1
-        self.projectileSpeed = 5
+        self.projectileSpeed = 10
 
-        self.damage = 10
+        self.damage = 20
 
         self.gun_map = {
             "AutoCannon": [(6, 7), (24, 7)],

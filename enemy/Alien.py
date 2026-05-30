@@ -220,7 +220,7 @@ class Alien(pygame.sprite.Sprite):
             if dist > 0:
                 vx = dx / dist
                 vy = dy / dist
-        bullet = EnemyProjectile(assetMgr, 5, self.rect.centerx, self.rect.bottom, vx, vy, 5)
+        bullet = EnemyProjectile(5, self.rect.centerx, self.rect.bottom, vx, vy, 5)
         return bullet
 
     def takeDamage(self, damage):

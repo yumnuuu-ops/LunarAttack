@@ -7,7 +7,7 @@ class Projectile(pygame.sprite.Sprite):
     def __init__(self, selectedWeapon, speed, x, y, vx, vy, damage):
         super().__init__()
         self.assetMgr = assetMgr
-        self.selectedProj = "MoonTeleFastIn"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
+        self.selectedProj = "MoonPha2TeleSlowOut"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
         animation = assetMgr.getAnim(self.selectedProj)
         self.animator = AnimationManager(animation, 24)
 

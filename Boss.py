@@ -17,6 +17,7 @@ import os
 from globals import assetMgr, soundMgr
 from AnimationManager import AnimationManager
 
+
 # I am gonna be an astrophysician after this
 # Am I a computer science student with specialization in Artificial Intelligence
 # Or am I a Physician? Hm, I don't know anymore
@@ -45,11 +46,12 @@ class Boss:
     max_hp = 60
     phase2_hp = max_hp // 2 # Floor Division, phase 2 will start when HP is 50% or below
 
-    def __init__(self, screen_w):
+    def __init__(self, screen_w, screen_h):
         # Initial State
         self.hp = self.max_hp
         self.phase = 1
         self.screen_w = screen_w
+        self.screen_h = screen_h
         self.alive = True
         self.invincibility = False
         self.radius = 90
@@ -99,6 +101,8 @@ class Boss:
         self.moving = True  # Off During Eclipse Phase (Invincible no need to move)
 
         # Teleportation
+        self.selected_vanish = None
+        self.selected_appear = None
         self.teleport_active = False
         self.teleport_state = None  # "vanish" / "appear" / "barrage" / "break" (what should I call this?)
         self.teleport_timer = 0
@@ -106,8 +110,12 @@ class Boss:
         self.teleportCount = 5
         self.teleportBreak = 0
 
+        # Phase 1 teleport
         self.animation_teleport_vanish = AnimationManager(assetMgr.getAnim("MoonTeleFastOut"), 24)
         self.animation_teleport_appear = AnimationManager(assetMgr.getAnim("MoonTeleFastIn"), 24)
+        # Phase 2 teleport
+        self.animation_teleport2_vanish = AnimationManager(assetMgr.getAnim("MoonPha2TeleFastOut"), 24)
+        self.animation_teleport2_appear = AnimationManager(assetMgr.getAnim("MoonPha2TeleFastIn"), 24)
 
     def move(self):
         if not self.moving:
@@ -128,9 +136,9 @@ class Boss:
             self.hp = 0
             self.alive = False
 
-    def update(self):
+    def update(self, player_rect):
         if self.teleport_active:
-            self.updateTeleport()
+            self.updateTeleport(player_rect)
             return
         elif self.phase == 3:
             if self.phase2_scarred_transition_animation:
@@ -172,9 +180,15 @@ class Boss:
         frame2 = None
         if self.teleport_active:
             if self.teleport_state == "vanish":
-                frame = self.animation_teleport_vanish.get_current_frame()
+                if self.phase == 1:
+                    frame = self.animation_teleport_vanish.get_current_frame()
+                elif self.phase == 2:
+                    frame = self.animation_teleport2_vanish.get_current_frame()
             elif self.teleport_state == "appear":
-                frame = self.animation_teleport_appear.get_current_frame()
+                if self.phase == 1:
+                    frame = self.animation_teleport_appear.get_current_frame()
+                elif self.phase == 2:
+                    frame = self.animation_teleport2_appear.get_current_frame()
             elif self.teleport_state == "pause":
                 if self.phase == 2:
                     frame = self.animation_phase2_idle.get_current_frame()
@@ -234,7 +248,7 @@ class Boss:
         self.giant_state = True
         self.invincibility = True
 
-    def teleportAttack(self, player_rect, screen_w):
+    def teleportAttack(self, player_rect, screen_w, screen_h):
         if self.teleport_active:
             return
         self.teleport_active = True
@@ -243,6 +257,7 @@ class Boss:
         self.invincibility = True
         self.player_rect = player_rect
         self.screen_w = screen_w
+        self.screen_h = screen_h
         self.beginTeleport()
 
     def beginTeleport(self):
@@ -251,22 +266,38 @@ class Boss:
         self.teleport_timer = len(self.animation_teleport_vanish.frames)
         self.animation_teleport_vanish.index = 0
 
-    def updateTeleport(self):
+    def updateTeleport(self, player_rect):
         if not self.teleport_active:
             return
 
+        if self.phase == 1:
+            self.selected_vanish = self.animation_teleport_vanish
+            self.selected_appear = self.animation_teleport_appear
+        else:
+            self.selected_vanish = self.animation_teleport2_vanish
+            self.selected_appear = self.animation_teleport2_appear
+
         if self.teleport_state == "vanish":
-            self.animation_teleport_vanish.update(loop=False)
-            if self.animation_teleport_vanish.index >= len(self.animation_teleport_vanish.frames) - 1:
+            self.selected_vanish.update(loop=False)
+            if self.selected_vanish.index >= len(self.selected_vanish.frames) - 1:
                 new_x = random.randint(self.move_left_bound, self.move_right_bound)
-                self.rect.centerx = new_x
+                new_y = random.randint(120, int(self.screen_h * 0.6))
+                self.rect.center = (new_x, new_y)
+                min_dist = 300
+                if math.hypot(new_x - player_rect.centerx, new_y - player_rect.centery) < min_dist:
+                    for i in range(100):
+                        new_x = random.randint(self.move_left_bound, self.move_right_bound)
+                        new_y = random.randint(120, int(self.screen_h * 0.6))
+                        distanceToPlayer = math.hypot(new_x - player_rect.centerx, new_y - player_rect.centery)
+                        if distanceToPlayer >= min_dist:
+                            self.rect.center = (new_x, new_y)
                 soundMgr.play_sfx("teleport in")
                 self.teleport_state = "appear"
-                self.animation_teleport_appear.index = 0
+                self.selected_appear.index = 0
 
         elif self.teleport_state == "appear":
-            self.animation_teleport_appear.update(loop=False)
-            if self.animation_teleport_appear.index >= len(self.animation_teleport_appear.frames) - 1:
+            self.selected_appear.update(loop=False)
+            if self.selected_appear.index >= len(self.selected_appear.frames) - 1:
                 soundMgr.play_sfx("asteroid")
                 self.asteroidBarrage(self.player_rect)
                 self.teleport_state = "break"
