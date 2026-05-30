@@ -114,8 +114,10 @@ def load_all_assets(assetMgr):
     # Loading Boss / Eclipse Animations
     assetMgr.loadAnimScale("Mass", "imgs\\Mass Attack Anim.png", 4)
     assetMgr.loadAnimScale("MassX", "imgs\\Mass Attack Anim X.png", 4)
-    assetMgr.loadAnimScale("MassE", "imgs\\mass_implosion_strip-sheet.png", 4)
-    assetMgr.loadAnimScale("MassSpawn", "Assets\\Mass\\mass_spawn_strip_new.png", 4)
+    assetMgr.loadAnimScale("MassSpawn", "Assets\\Mass\\mass_spawn_strip.png", 4)
+    assetMgr.loadAnimScale("MassDespawn", "Assets\\Mass\\mass_implosion_strip.png", 4)
+    assetMgr.loadAnimScale("CloneMassSpawn", "Assets\\Mass\\clone_mass_spawn_strip.png", 4)
+    assetMgr.loadAnimScale("CloneMassDespawn", "Assets\\Mass\\clone_mass_implosion_strip.png", 4)
     assetMgr.loadAnimScale("MoonP1", "Assets\\Moon\\moon_phase1_idle_strip.png", 6)
     assetMgr.loadAnimScale("MoonP1TP2", "Assets\\Moon\\moon_phase1_to_phase2_strip.png", 6)
     assetMgr.loadAnimScale("MoonP2", "Assets\\Moon\\moon_phase2_idle_strip.png", 6)
