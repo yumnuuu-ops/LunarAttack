@@ -14,6 +14,7 @@ class HUD:
         "Easy"  : 4,
         "Medium" : 3,
         "Hard" : 2,
+        "Impossible" : 1,
     }
 
     def __init__(self, screen_w, screen_h, player_name, difficulty):

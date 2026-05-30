@@ -12,6 +12,7 @@ class BossFight:
     def __init__(self, screen_w, screen_h, player):
         self.boss = Boss(screen_w, screen_h)
         self.player = player
+        self.hud = None
         self.screen_w = screen_w
         self.screen_h = screen_h
         self.boss.rect.center = (screen_w // 2, 160)
@@ -167,11 +168,13 @@ class BossFight:
         for asteroid in self.boss.asteroids[:]:
             if pygame.sprite.collide_mask(self.player, asteroid):
                 self.player.takeDamage(1)
+                self.hud.take_damage()
                 self.boss.asteroids.remove(asteroid)
         if self.beam is not None:
             for asteroid in self.beam.asteroids[:]:
                 if pygame.sprite.collide_mask(self.player, asteroid):
                     self.player.takeDamage(1)
+                    self.hud.take_damage()
                     self.beam.asteroids.remove(asteroid)
 
     def draw(self, screen):

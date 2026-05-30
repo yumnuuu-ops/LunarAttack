@@ -51,7 +51,7 @@ def loadAsteroidImages():
     return asteroidGroups
 
 class Boss:
-    max_hp = 60
+    max_hp = 10000
     phase2_hp = max_hp // 2 # Floor Division, phase 2 will start when HP is 50% or below
     giant_hp = round(max_hp * 0.3)
 
@@ -143,6 +143,9 @@ class Boss:
         # Swapping Teleport
         self.swap_active = False
         self.swap_state = None
+
+    # HP Bar Drawings
+        # def HPBar(self):
 
     def move(self):
         if not self.moving:
