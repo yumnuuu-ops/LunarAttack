@@ -240,7 +240,7 @@ while running:
         if death_timer <= 0:
             currState = MENU
             menu.reset()
-            player.hp = 100
+            player.hp = 4
             soundMgr.play_music("menu")
 
     # Clear the intermediate drawing surface

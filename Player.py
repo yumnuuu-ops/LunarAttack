@@ -1,6 +1,6 @@
 import pygame
 from Weapon import Weapon
-from globals import assetMgr
+from globals import assetMgr, soundMgr
 import globals as g
 from ShatterEffect import ShatterEffect
 
@@ -29,6 +29,11 @@ class Player:
         self.hp -= damage
         if hasattr(self, 'trigger_shake') and self.trigger_shake:
             self.trigger_shake(10, 15)
+
+        if self.hp > 0 :
+            soundMgr.play_sfx("player hit")
+        elif self.hp == 0:
+            soundMgr.play_sfx("player dies")
 
         self.invincible = True
         self.invincibility_timer = 2.0  # invincibility of 2 seconds
