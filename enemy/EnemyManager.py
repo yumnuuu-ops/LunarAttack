@@ -176,6 +176,43 @@ class EnemyManager:
         self.enemy_projectile_group.add(*enemy_bullets)
         self.enemy_projectile_group.update()
 
+        # Resolve collisions/overlaps between Stage 1 aliens to prevent them from colliding/overlapping
+        if stage == STAGE_1:
+            aliens = list(self.alien_group)
+            for i in range(len(aliens)):
+                for j in range(i + 1, len(aliens)):
+                    a1 = aliens[i]
+                    a2 = aliens[j]
+                    
+                    dx = a1.pos.x - a2.pos.x
+                    dy = a1.pos.y - a2.pos.y
+                    dist = math.hypot(dx, dy)
+                    min_dist = 90  # Keep them beautifully spaced
+                    
+                    if dist < min_dist:
+                        if dist == 0:
+                            dx = random.choice([-1, 1])
+                            dy = random.choice([-1, 1])
+                            dist = math.hypot(dx, dy)
+                        
+                        # Calculate push vector
+                        push_x = (dx / dist) * (min_dist - dist) * 0.5
+                        push_y = (dy / dist) * (min_dist - dist) * 0.5
+                        
+                        # Apply push
+                        a1.pos.x += push_x
+                        a1.pos.y += push_y
+                        a2.pos.x -= push_x
+                        a2.pos.y -= push_y
+                        
+                        # Update spawn_x so the lateral sine movement trajectory shift persists
+                        a1.spawn_x += push_x
+                        a2.spawn_x -= push_x
+                        
+                        # Sync rect immediately
+                        a1.rect.center = (int(a1.pos.x), int(a1.pos.y))
+                        a2.rect.center = (int(a2.pos.x), int(a2.pos.y))
+
         # Release dead aliens from formation in stages 4 and 5
         if stage in [STAGE_4, STAGE_5]:
             dead_aliens = [alien for alien in self.formation.active_aliens if not alien.alive()]

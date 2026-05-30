@@ -70,7 +70,7 @@ class Alien(pygame.sprite.Sprite):
 
         # Dynamically scale shield HP based on original/max HP
         if self.alien_type == "tendril_alien":
-            self.shield_hp = max(1, int(self.hp * 0.50))
+            self.shield_hp = max(1, int(self.hp * 1.00))  # Increased shield strength to 100% of max HP
         else:
             self.shield_hp = 0
         
