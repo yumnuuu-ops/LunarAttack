@@ -14,6 +14,7 @@ from enemy.EnemyManager import EnemyManager
 from ShatterEffect import ShatterEffect
 from PauseMenu import PauseMenu
 from GameOver import GameOver
+from History import History
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
 
@@ -41,8 +42,8 @@ alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
 SPAWN_ALIEN_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
-MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE, END_SCENE = \
-    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene","end_cutscene"
+MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE, END_SCENE, HISTORY = \
+    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene","end_cutscene", "history"
 currState = MENU
 selected_difficulty = None
 death_timer = 0.0
@@ -193,6 +194,10 @@ is_paused = False
 #game over screen
 game_over_screen = None
 
+history_screen = History(screen_w, screen_h, score_manager)
+history_screen.on_hover = lambda: soundMgr.play_sfx("select")
+history_screen.on_click = lambda: soundMgr.play_sfx("confirm")
+
 # main loop
 running = True
 
@@ -294,6 +299,11 @@ while running:
             player.hp = 100 #think of this as resetting player health to full health
             soundMgr.play_music("menu")
 
+    elif currState == HISTORY:
+        history_screen.update(events)
+        if history_screen.action == "BACK":
+            currState = MENU
+
     elif currState == END_SCENE:
         end_cutscene.update(events)
         if end_cutscene.action == "DONE":
@@ -327,6 +337,8 @@ while running:
             menu.slide_out()
         elif menu.action == "HISTORY":
             soundMgr.play_sfx("confirm")
+            history_screen._refresh()
+            currState = HISTORY
         elif menu.action == "CREDITS":
             soundMgr.play_sfx("confirm")
         elif menu.action == "SLIDEOUT_DONE":
@@ -396,6 +408,7 @@ while running:
         if not is_paused:
 
             hud.update(g.dt)
+            hud.set_weapon(player.weapon.selectedWeapon)
 
     elif currState == BOSS:
         bg.update(g.dt)
@@ -414,6 +427,13 @@ while running:
         enemy_manager.draw(game_surface, currState)
         enemy_manager.enemy_projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
+
+
+    elif currState == HISTORY:
+        bg.update(g.dt)
+        bg.draw(game_surface, darkened=True)
+        history_screen.draw(game_surface)
+
 #PLEASE TIE THIS TO DEATH OF BOSS LATER
     elif currState == END_SCENE:
         bg.update(g.dt)
