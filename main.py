@@ -14,6 +14,7 @@ from ShatterEffect import ShatterEffect
 from PauseMenu import PauseMenu
 from GameOver import GameOver
 from History import History
+from Credits import Credits
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
 
@@ -39,8 +40,8 @@ alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
 SPAWN_ALIEN_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
-MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE, END_SCENE, HISTORY = \
-    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene","end_cutscene", "history"
+MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE, END_SCENE, HISTORY, CREDITS = \
+    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene","end_cutscene", "history", "credits"
 currState = MENU
 selected_difficulty = None
 death_timer = 0.0
@@ -194,6 +195,8 @@ history_screen = History(screen_w, screen_h, score_manager)
 history_screen.on_hover = lambda: soundMgr.play_sfx("select")
 history_screen.on_click = lambda: soundMgr.play_sfx("confirm")
 
+credits_screen = Credits(screen_w, screen_h)
+
 # main loop
 running = True
 
@@ -306,6 +309,12 @@ while running:
         history_screen.update(events)
         if history_screen.action == "BACK":
             currState = MENU
+
+    elif currState == CREDITS:
+        credits_screen.update(g.dt, events)
+        if credits_screen.action == "DONE":
+            currState = MENU
+
     elif currState == BOSS:
         if not is_paused:
             bg.update(g.dt)
@@ -356,6 +365,8 @@ while running:
             currState = HISTORY
         elif menu.action == "CREDITS":
             soundMgr.play_sfx("confirm")
+            credits_screen.open()
+            currState = CREDITS
         elif menu.action == "SLIDEOUT_DONE":
             currState = PLAY_SCREEN
             play_screen = PlayScreen(screen_w, screen_h, score_manager)
@@ -442,6 +453,12 @@ while running:
         bg.update(g.dt)
         bg.draw(game_surface, darkened=True)
         history_screen.draw(game_surface)
+
+    elif currState == CREDITS:
+        bg.update(g.dt)
+        bg.draw(game_surface, darkened=True)
+        credits_screen.draw(game_surface)
+
 
 #PLEASE TIE THIS TO DEATH OF BOSS LATER
     elif currState == END_SCENE:
