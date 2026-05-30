@@ -163,8 +163,6 @@ load_all_assets(assetMgr)
 # ===================================== Initial Setting =====================================
 font = pygame.font.SysFont('freesansbold.ttf', 20)
 
-# ========================================== Get Size ======================================
-#removed for background
 
 # ====================================== Object Creation ======================================
 player = Player(608, 500)
