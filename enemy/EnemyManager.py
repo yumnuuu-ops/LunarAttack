@@ -172,20 +172,23 @@ class EnemyManager:
                         self.formation.release_alien(alien)
 
         # 4. Player-Alien Collision Check (Kamikaze / Crashing into player!)
-        collided_aliens = [alien for alien in self.alien_group if self.player.rect.colliderect(alien.rect)]
-        for alien in collided_aliens:
-            alien.kill()
-            self.player.takeDamage(1) # Deduct 1 HP on crash
-            self.hud.take_damage()
-            if stage in [STAGE_4, STAGE_5]:
-                self.formation.release_alien(alien)
+        if not self.player.invincible:
+            collided_aliens = [alien for alien in self.alien_group if self.player.rect.colliderect(alien.rect)]
+            for alien in collided_aliens:
+                alien.kill()
+                self.player.takeDamage(1)
+                self.hud.take_damage()
+                if stage in [STAGE_4, STAGE_5]:
+                    self.formation.release_alien(alien)
 
         # 5. Player-EnemyBullet Collision Check
         collided_bullets = [bullet for bullet in self.enemy_projectile_group if self.player.rect.colliderect(bullet.rect)]
         for bullet in collided_bullets:
             bullet.kill()
-            self.player.takeDamage(1) # Deduct 1 HP on bullet hit
-            self.hud.take_damage()
+
+            if not self.player.invincible:
+                self.player.takeDamage(1)
+                self.hud.take_damage()
 
     def draw(self, game_surface, stage):
         # Draw bullets and alien group sprites
