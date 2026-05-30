@@ -27,7 +27,8 @@ def loadAsteroidImages():
     folderPhase2 = os.path.join("Assets", "Asteroids", "phase 2")
     folderClone = os.path.join("Assets", "Asteroids", "quantum moon")
     folderEclipse = os.path.join("Assets", "Asteroids", "eclipse")
-    asteroidGroups = {"Eclipse": [], "Fiery": [], "Clone": [], "Neutral": [], "Small": []}
+    folderScarred = os.path.join("Assets", "Asteroids", "scarred")
+    asteroidGroups = {"Scarred": [], "Eclipse": [], "Fiery": [], "Clone": [], "Neutral": [], "Small": []}
     for filename in (os.listdir(folderPhase1)):
         img = pygame.image.load(os.path.join(folderPhase1, filename)).convert_alpha()
         name = filename.lower()
@@ -44,6 +45,9 @@ def loadAsteroidImages():
     for filename in (os.listdir(folderEclipse)):
         img = pygame.image.load(os.path.join(folderEclipse, filename)).convert_alpha()
         asteroidGroups["Eclipse"].append(img)
+    for filename in (os.listdir(folderScarred)):
+        img = pygame.image.load(os.path.join(folderScarred, filename)).convert_alpha()
+        asteroidGroups["Scarred"].append(img)
     return asteroidGroups
 
 class Boss:
@@ -266,8 +270,10 @@ class Boss:
         spread = math.radians(120)
         if self.phase == 1:
             asteroidType = "Neutral"
-        else:
+        elif self.phase == 2:
             asteroidType = "Fiery"
+        else:
+            asteroidType = "Scarred"
         for i in range(count):
             # t is made to even the spread of the asteroids
             t = i / (count - 1)
@@ -314,6 +320,10 @@ class Boss:
             return
         real_pos = self.rect.center
         clone_pos = self.clone_rect.center
+        self.animation_clone_teleport_vanish.update()
+        self.animation_teleport2_vanish.update()
+        self.animation_clone_teleport_appear.update()
+        self.animation_teleport2_appear.update()
         self.rect.center = clone_pos
         self.clone_rect.center = real_pos
         self.asteroidBarrage(player_rect)
