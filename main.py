@@ -228,14 +228,6 @@ while running:
                 else:
                     pygame.mixer.music.unpause()
 
-
-
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-            name = getattr(play_screen, "player_name", "") or "Cadet"
-            end_cutscene = CutScene(screen_w, screen_h, player_name=name, scenes="ending")
-            end_cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
-            currState = END_SCENE
-
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
         if not transition_active and not is_paused:
