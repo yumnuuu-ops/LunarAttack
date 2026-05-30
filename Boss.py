@@ -755,85 +755,115 @@ class Beam:
                 end = (px + vx * 2000, py + vy * 2000)
                 pygame.draw.line(screen, col, start, end, 3)
 
-class CircularBeam:
+class GammaBeam:
     def __init__(self, screen_w, screen_h):
         self.screen_w = screen_w
         self.screen_h = screen_h
         self.center = (screen_w // 2, screen_h // 2)
-        self.beamCount = 16
-        self.gap_size = 3
-        self.asteroids = []
+        self.beamCount = 12
+        self.gap_size = 2
+        self.beam_width = 22
         self.active = False
         self.state = None
         self.timer = 0
-        self.duration = 360
-        self.spawn_interval = 12
-        self.spawn_timer = 0
-        self.rings_left = 5
-        self.rotation = 0.0
-        self.rotation_speed = 0.3
+        self.charge_time = 12
+        self.fire_time = 8
+        self.rings_left = 10
         self.gap_start = 0
+        self.rotation = 0.0
+        self.rotation_speed = 0.5
+        self.asteroids = []
 
-    def start(self, asteroid_type):
+    def start(self, player_rect=None):
         self.active = True
-        self.asteroid_type = asteroid_type
-        self.state = "telegraph"
-        self.timer = 40
-        self.duration_timer = self.duration
+        self.rotation = 0.0
+        if player_rect is not None:
+            cx, cy = self.center
+            ang = math.atan2(player_rect.centery - cy, player_rect.centerx - cx)
+            idx = round(ang / (math.tau / self.beamCount)) % self.beamCount
+            self.gap_start = (idx - self.gap_size // 2) % self.beamCount
+        else:
+            self.gap_start = random.randint(0, self.beamCount - 1)
+        self.beginCharge()
 
-    def emitRing(self):
-        cx, cy = self.center
-        gap_start = random.randint(0, self.beamCount - 1)
+    def inGap(self, i):
+        for k in range(self.gap_size):
+            if (self.gap_start + k) % self.beamCount == i:
+                return True
+        return False
+
+    def beginCharge(self):
+        self.state = "charge"
+        self.timer = self.charge_time
+
+    def fire(self):
+        self.state = "fire"
+        self.timer = self.fire_time
+
+    def activeAngles(self):
+        angles = []
         for i in range(self.beamCount):
-            if gap_start <= i < gap_start + self.gap_size:
+            if self.inGap(i):
                 continue
-            ang = self.rotation + (math.tau / self.beamCount) * i
-            vx, vy = math.cos(ang), math.sin(ang)
-            self.asteroids.append(Asteroid(cx, cy, vx, vy, 30,
-                                  fixed_speed=14, asteroid_type=self.asteroid_type))
-        self.rotation += self.rotation_speed
+            angles.append(self.rotation + (math.tau / self.beamCount) * i)
+        return angles
 
     def update(self):
-        for asteroid in self.asteroids:
-            asteroid.move()
-        self.asteroids = [asteroid for asteroid in self.asteroids
-                          if not asteroid.removeAsteroid(self.screen_w, self.screen_h)]
         if not self.active:
             return
+        self.timer -= 1
+        if self.timer <= 0:
+            if self.state == "charge":
+                self.fire()
+            else:
+                self.rings_left -= 1
+                self.rotation += self.rotation_speed
+                if self.rings_left > 0:
+                    self.beginCharge()
+                else:
+                    self.active = False
 
-        if self.state == "telegraph":
-            self.timer -= 1
-            if self.timer <= 0:
-                self.state = "firing"
-        elif self.state == "firing":
-            self.duration_timer -= 1
-            self.spawn_timer -= 1
-            if self.spawn_timer <= 0:
-                self.emitRing()
-                self.spawn_timer = self.spawn_interval
-            if self.duration_timer <= 0:
-                self.state = "done"
-                self.active = False
-
-    def drawTelegraph(self, screen):
+    def checkPlayerHit(self, player_rect):
+        if self.state != "fire":
+            return False
         cx, cy = self.center
-        if self.state == "telegraph":
+        px, py = player_rect.center
+        for ang in self.activeAngles():
+            dx, dy = math.cos(ang), math.sin(ang)
+            t = (px - cx) * dx + (py - cy) * dy
+            if t < 0:
+                continue
+            nearest_x = cx + dx * t
+            nearest_y = cy + dy * t
+            dist = math.hypot(px - nearest_x, py - nearest_y)
+            if dist <= self.beam_width:
+                return True
+        return False
+
+    def draw(self, screen):
+        cx, cy = self.center
+        if self.state == "charge":
             pulse = abs(math.sin(self.timer * 0.4))
-            col = (255, int(50 + 130 * pulse), int(50 * pulse))
-            for i in range(self.beamCount):
-                if self.gap_start <= i < self.gap_start + self.gap_size:
-                    continue
-                ang = self.rotation + (math.tau / self.beamCount) * i
+            col = (255, int(60 + 120 * pulse), int(60 * pulse))
+            for ang in self.activeAngles():
                 ex = cx + math.cos(ang) * 2000
                 ey = cy + math.sin(ang) * 2000
                 pygame.draw.line(screen, col, (cx, cy), (ex, ey), 3)
-
-        if self.state in ("telegraph", "strike"):
-            for i in range(self.gap_start, self.gap_start + self.gap_size):
-                ang = self.rotation + (math.tau / self.beamCount) * (i % self.beamCount)
+        elif self.state == "fire":
+            for ang in self.activeAngles():
+                ex = cx + math.cos(ang) * 2000
+                ey = cy + math.sin(ang) * 2000
+                pygame.draw.line(screen, (40, 100, 255), (cx, cy), (ex, ey), self.beam_width * 2)
+                pygame.draw.line(screen, (180, 220, 255), (cx, cy), (ex, ey), self.beam_width)
+        if self.active:
+            for j in range(self.gap_start, self.gap_start + self.gap_size):
+                ang = self.rotation + (math.tau / self.beamCount) * (j % self.beamCount)
                 ex = cx + math.cos(ang) * 2000
                 ey = cy + math.sin(ang) * 2000
                 pygame.draw.line(screen, (80, 255, 80), (cx, cy), (ex, ey), 4)
+
+    def drawTelegraph(self, screen):
+        self.draw(screen)
 
 class Asteroid:
     asteroidImages = None

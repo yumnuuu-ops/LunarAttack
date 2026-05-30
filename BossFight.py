@@ -1,4 +1,4 @@
-from Boss import Boss, Beam, CircularBeam
+from Boss import Boss, Beam, GammaBeam
 from globals import projectile_group, assetMgr, soundMgr
 import os
 import pygame
@@ -163,6 +163,8 @@ class BossFight:
                         self.boss.hp = 0
 
         self.boss.update(self.player.rect)
+        if self.boss.dying and self.beam is not None:
+            self.beam = None
         self.boss.move()
         self.boss.moveClone()
         self.boss.chooseMove(self.player.rect)
@@ -186,8 +188,8 @@ class BossFight:
 
         if self.boss.request_circular_beam:
             self.boss.request_circular_beam = False
-            self.beam = CircularBeam(self.screen_w, self.screen_h)
-            self.beam.start("Scarred")
+            self.beam = GammaBeam(self.screen_w, self.screen_h)
+            self.beam.start(self.player.rect)
 
         if self.boss.request_normal_beam:
             self.boss.request_normal_beam = False
@@ -237,7 +239,12 @@ class BossFight:
 
         if self.beam is not None:
             self.beam.update()
-            self.checkAsteroidHits()
+            if isinstance(self.beam, GammaBeam):
+                if not self.player.invincible and self.beam.checkPlayerHit(self.player.rect):
+                    self.player.takeDamage(1)
+                    self.hud.take_damage()
+            else:
+                self.checkAsteroidHits()
 
         if not self.boss.alive:
             if self.hud and not self.finished:
