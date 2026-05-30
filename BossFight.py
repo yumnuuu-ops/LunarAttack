@@ -2,6 +2,8 @@ from Boss import Boss, Beam, Mass
 from globals import projectile_group, assetMgr, soundMgr
 import os
 import pygame
+from AnimationManager import AnimationManager
+from globals import assetMgr, soundMgr
 
 
 class BossFight:
@@ -10,6 +12,7 @@ class BossFight:
     def __init__(self, screen_w, screen_h, player):
         self.boss = Boss(screen_w, screen_h)
         self.player = player
+        self.hud = None
         self.screen_w = screen_w
         self.screen_h = screen_h
         self.boss.rect.center = (screen_w // 2, 160)
@@ -24,6 +27,10 @@ class BossFight:
         self.blackhole = None
         self.fade_alpha = 0
         self.player_speed_backup = player.speed
+        self.animation_blackhole = AnimationManager(assetMgr.getAnim("Blackhole"))
+        self.animation_blackhole_spawn = AnimationManager(assetMgr.getAnim("BlackholeSpawn"))
+        self.animation_blackhole_despawn = AnimationManager(assetMgr.getAnim("BlackholeDespawn"))
+        self.blackhole_pos = (self.screen_w // 2, self.screen_h // 2)
 
     def update(self, events):
         if self.mode == "intro":
@@ -43,15 +50,13 @@ class BossFight:
             else:
                 self.intro_step = "blackhole"
                 self.intro_timer = 120
-                self.blackhole = Mass()
-                self.blackhole.rect.center = self.boss.rect.center # Reposition to screen center later
-                self.blackhole.generatedMass = 5000
 
         elif self.intro_step == "blackhole":
             self.intro_timer -= 1
-            self.blackhole.update()
-            dx = self.blackhole.rect.centerx - self.player.rect.centerx
-            dy = self.blackhole.rect.centery - self.player.rect.centery
+            self.animation_blackhole.update()
+            bx, by = self.blackhole_pos
+            dx = bx - self.player.rect.centerx
+            dy = by - self.player.rect.centery
             dist = max(20.0, (dx * dx + dy * dy) ** 0.5)
             self.player.apply_push(dx / dist * 7, dy / dist * 7)
             self.player.rect.x = int(self.player.pos.x)
@@ -116,6 +121,7 @@ class BossFight:
         self.boss.update(self.player.rect)
         self.boss.move()
         self.boss.moveClone()
+        self.boss.chooseMove(self.player.rect)
 
         for projectile in projectile_group:
             if projectile.rect.colliderect(self.boss.rect):
@@ -162,11 +168,13 @@ class BossFight:
         for asteroid in self.boss.asteroids[:]:
             if pygame.sprite.collide_mask(self.player, asteroid):
                 self.player.takeDamage(1)
+                self.hud.take_damage()
                 self.boss.asteroids.remove(asteroid)
         if self.beam is not None:
             for asteroid in self.beam.asteroids[:]:
                 if pygame.sprite.collide_mask(self.player, asteroid):
                     self.player.takeDamage(1)
+                    self.hud.take_damage()
                     self.beam.asteroids.remove(asteroid)
 
     def draw(self, screen):
@@ -192,8 +200,7 @@ class BossFight:
             for asteroid in self.beam.asteroids:
                 asteroid.draw(screen)
 
-        if self.mode == "intro" and self.fade_alpha > 0:
-            overlay = pygame.Surface((self.screen_w, self.screen_h))
-            overlay.fill((0, 0, 0))
-            overlay.set_alpha(self.fade_alpha)
-            screen.blit(overlay, (0, 0))
+        if self.mode == "intro" and self.animation_blackhole is not None:
+            frame = self.animation_blackhole.get_current_frame()
+            if frame:
+                screen.blit(frame, frame.get_rect(center=self.blackhole_pos))

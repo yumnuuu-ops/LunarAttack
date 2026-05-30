@@ -13,6 +13,7 @@ from enemy.EnemyManager import EnemyManager
 from ShatterEffect import ShatterEffect
 from PauseMenu import PauseMenu
 from GameOver import GameOver
+from History import History
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
 
@@ -38,8 +39,8 @@ alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
 SPAWN_ALIEN_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
-MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE = \
-    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene"
+MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE, END_SCENE, HISTORY = \
+    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene","end_cutscene", "history"
 currState = MENU
 selected_difficulty = None
 death_timer = 0.0
@@ -49,6 +50,8 @@ transition_timer = 0.0
 TRANSITION_DURATION = 3.0
 transition_target_state = None
 transition_title = ""
+
+end_cutscene = None
 
 
 # Screen Shake System
@@ -140,10 +143,17 @@ def load_all_assets(assetMgr):
     assetMgr.loadAnimScale("MoonPha2TeleFastOut", "imgs\\moon_phase2_teleport out fast.png", 6)
     assetMgr.loadAnimScale("MoonPha2TeleSlowIn", "imgs\\moon_phase2_teleport in slow.png", 6)
     assetMgr.loadAnimScale("MoonPha2TeleFastIn", "imgs\\moon_phase2_teleport in fast.png", 6)
+    assetMgr.loadAnimScale("MoonScarTeleSlowIn", "imgs\\moon_scarred_teleport in slow.png", 6)
+    assetMgr.loadAnimScale("MoonScarTeleSlowOut", "imgs\\moon_scarred_teleport out slow.png", 6)
 
     # Clone Teleport Animations
     assetMgr.loadAnimScale("CMoonTeleIn", "imgs\\moon_clone_teleport in.png", 6)
     assetMgr.loadAnimScale("CMoonTeleOut", "imgs\\moon_clone_teleport out.png", 6)
+
+    # Cutscene Boss
+    assetMgr.loadAnimScale("BlackholeSpawn", "Assets\\Mass\\mass_spawn_strip.png", 12)
+    assetMgr.loadAnimScale("Blackhole", "imgs\\Mass Attack Anim.png", 12)
+    assetMgr.loadAnimScale("BlackholeDespawn", "Assets\\Mass\\mass_implosion_strip.png", 12)
 
 # asset loading
 load_all_assets(assetMgr)
@@ -151,8 +161,6 @@ load_all_assets(assetMgr)
 # ===================================== Initial Setting =====================================
 font = pygame.font.SysFont('freesansbold.ttf', 20)
 
-# ========================================== Get Size ======================================
-#removed for background
 
 # ====================================== Object Creation ======================================
 player = Player(608, 500)
@@ -181,6 +189,10 @@ is_paused = False
 #game over screen
 game_over_screen = None
 
+history_screen = History(screen_w, screen_h, score_manager)
+history_screen.on_hover = lambda: soundMgr.play_sfx("select")
+history_screen.on_click = lambda: soundMgr.play_sfx("confirm")
+
 # main loop
 running = True
 
@@ -190,7 +202,7 @@ while running:
     for event in events:
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == SPAWN_ALIEN_EVENT and currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
+        elif event.type == SPAWN_ALIEN_EVENT and currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS]:
             if not transition_active and not is_paused:
                 enemy_manager.spawn_aliens(currState)
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
@@ -208,6 +220,14 @@ while running:
                     pygame.mixer.music.pause()
                 else:
                     pygame.mixer.music.unpause()
+
+
+
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            name = getattr(play_screen, "player_name", "") or "Cadet"
+            end_cutscene = CutScene(screen_w, screen_h, player_name=name, scenes="ending")
+            end_cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
+            currState = END_SCENE
 
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
@@ -227,10 +247,10 @@ while running:
                 STAGE_2: (STAGE_3, "STAGE 2 CLEAR!", True),
                 STAGE_3: (STAGE_4, "STAGE 3 CLEAR!", True),
                 STAGE_4: (STAGE_5, "STAGE 4 CLEAR!", True),
-                STAGE_5: (MENU, "VICTORY!", True)
+                STAGE_5: (BOSS, "Why have thy summoned thee me, za moon?", True),
             }
 
-            if currState in stage_configs:
+            if currState in stage_configs and currState != BOSS:
                 target_state, title, require_empty = stage_configs[currState]
 
                 if currState in [STAGE_2, STAGE_3]:
@@ -281,6 +301,30 @@ while running:
             player.hp = 100 #think of this as resetting player health to full health
             soundMgr.play_music("menu")
 
+    elif currState == HISTORY:
+        history_screen.update(events)
+        if history_screen.action == "BACK":
+            currState = MENU
+    elif currState == BOSS:
+        if not is_paused:
+            player.update(events)
+            bg.update(g.dt)
+            bossFight.update(events)
+            projectile_group.update()
+            hud.update(g.dt)
+
+        if bossFight.finished:
+            currState = END_SCENE
+            name = getattr(play_screen, "player_name", "") or "Cadet"
+            end_cutscene = CutScene(screen_w, screen_h, player_name=name, scenes="ending")
+            end_cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
+
+    elif currState == END_SCENE:
+        end_cutscene.update(events)
+        if end_cutscene.action == "DONE":
+            currState = MENU
+            menu.reset()
+            soundMgr.play_music("menu")
     # Clear the intermediate drawing surface
 
     game_surface.fill((0, 0, 0))
@@ -308,6 +352,8 @@ while running:
             menu.slide_out()
         elif menu.action == "HISTORY":
             soundMgr.play_sfx("confirm")
+            history_screen._refresh()
+            currState = HISTORY
         elif menu.action == "CREDITS":
             soundMgr.play_sfx("confirm")
         elif menu.action == "SLIDEOUT_DONE":
@@ -348,6 +394,7 @@ while running:
             hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
+            bossFight.hud = hud
             soundMgr.stop_music()
             enemy_manager.alien_group.empty()
             projectile_group.empty()
@@ -374,13 +421,10 @@ while running:
         if not is_paused:
 
             hud.update(g.dt)
+            hud.set_weapon(player.weapon.selectedWeapon)
 
     elif currState == BOSS:
-        bg.update(g.dt)
-
         bg.draw(game_surface)
-        bossFight.update(events)
-        projectile_group.update()
         player.draw(game_surface)
         projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
@@ -392,6 +436,18 @@ while running:
         enemy_manager.draw(game_surface, currState)
         enemy_manager.enemy_projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
+
+
+    elif currState == HISTORY:
+        bg.update(g.dt)
+        bg.draw(game_surface, darkened=True)
+        history_screen.draw(game_surface)
+
+#PLEASE TIE THIS TO DEATH OF BOSS LATER
+    elif currState == END_SCENE:
+        bg.update(g.dt)
+        bg.draw(game_surface)
+        end_cutscene.draw(game_surface)
 
     # Process and Blit Screen Shake
     shake_offset_x = 0
@@ -408,7 +464,7 @@ while running:
     screen.blit(game_surface, (shake_offset_x, shake_offset_y))
 
     # Render HUD statically on top of the shook screen
-    if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
+    if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS]:
         hud.draw(screen)
 
     if currState == DEATH_SCENE and game_over_screen is not None:
@@ -434,6 +490,7 @@ while running:
             hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
+            bossFight.hud = hud
             enemy_manager.alien_group.empty()
             projectile_group.empty()
             enemy_manager.enemy_projectile_group.empty()

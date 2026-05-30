@@ -26,7 +26,9 @@ def loadAsteroidImages():
     folderPhase1 = os.path.join("Assets", "Asteroids", "phase 1")
     folderPhase2 = os.path.join("Assets", "Asteroids", "phase 2")
     folderClone = os.path.join("Assets", "Asteroids", "quantum moon")
-    asteroidGroups = {"Fiery": [], "Clone": [], "Neutral": [], "Small": []}
+    folderEclipse = os.path.join("Assets", "Asteroids", "eclipse")
+    folderScarred = os.path.join("Assets", "Asteroids", "scarred")
+    asteroidGroups = {"Scarred": [], "Eclipse": [], "Fiery": [], "Clone": [], "Neutral": [], "Small": []}
     for filename in (os.listdir(folderPhase1)):
         img = pygame.image.load(os.path.join(folderPhase1, filename)).convert_alpha()
         name = filename.lower()
@@ -40,11 +42,18 @@ def loadAsteroidImages():
     for filename in (os.listdir(folderClone)):
         img = pygame.image.load(os.path.join(folderClone, filename)).convert_alpha()
         asteroidGroups["Clone"].append(img)
+    for filename in (os.listdir(folderEclipse)):
+        img = pygame.image.load(os.path.join(folderEclipse, filename)).convert_alpha()
+        asteroidGroups["Eclipse"].append(img)
+    for filename in (os.listdir(folderScarred)):
+        img = pygame.image.load(os.path.join(folderScarred, filename)).convert_alpha()
+        asteroidGroups["Scarred"].append(img)
     return asteroidGroups
 
 class Boss:
-    max_hp = 60
+    max_hp = 10000
     phase2_hp = max_hp // 2 # Floor Division, phase 2 will start when HP is 50% or below
+    giant_hp = round(max_hp * 0.3)
 
     def __init__(self, screen_w, screen_h):
         # Initial State
@@ -81,6 +90,9 @@ class Boss:
         self.giant_state_transition_animation = False
         self.animation_giant_transition = AnimationManager(assetMgr.getAnim("MoonP2TG"))
         self.animation_giant_idle = AnimationManager(assetMgr.getAnim("MoonG"))
+        self.giant_triggered = False
+        self.giant_timer = 0
+        self.giant_duration = 480
 
         # Phase 2 Scarred
         self.phase2_scarred = False
@@ -116,15 +128,24 @@ class Boss:
         self.teleportCount = 5
         self.teleportBreak = 0
 
-        # Phase 1 teleport
+        # Phase 1 Teleport
         self.animation_teleport_vanish = AnimationManager(assetMgr.getAnim("MoonTeleFastOut"), 24)
         self.animation_teleport_appear = AnimationManager(assetMgr.getAnim("MoonTeleFastIn"), 24)
-        # Phase 2 teleport
+        # Phase 2 Teleport
         self.animation_teleport2_vanish = AnimationManager(assetMgr.getAnim("MoonPha2TeleFastOut"), 24)
         self.animation_teleport2_appear = AnimationManager(assetMgr.getAnim("MoonPha2TeleFastIn"), 24)
         # Clone Teleport
         self.animation_clone_teleport_vanish = AnimationManager(assetMgr.getAnim("CMoonTeleOut"), 24)
         self.animation_clone_teleport_appear = AnimationManager(assetMgr.getAnim("CMoonTeleIn"), 24)
+        # Phase 3 Teleport
+        self.animation_teleport3_vanish = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowOut"), 24)
+        self.animation_teleport3_appear = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowIn"), 24)
+        # Swapping Teleport
+        self.swap_active = False
+        self.swap_state = None
+
+    # HP Bar Drawings
+        # def HPBar(self):
 
     def move(self):
         if not self.moving:
@@ -135,18 +156,25 @@ class Boss:
         elif self.rect.right >= self.move_right_bound:
             self.move_dir = -1
 
-    def takeDamage(self, n):
+    def takeDamage(self, damage):
         if self.invincibility:
             return
-        self.hp -= n
+        self.hp -= damage
         if self.phase == 1 and self.hp <= self.phase2_hp:
             self.phase = 2  # Triggers phase 2 transition animation
+        elif self.phase == 2 and self.hp <= self.giant_hp:
+            self.giant_state = True
+            self.giant_triggered = True
+            self.massRelease()
         if self.hp <= 0:
             self.hp = 0
             self.alive = False
 
     def update(self, player_rect):
-        if self.teleport_active:
+        if self.swap_active:
+            self.updateSwap()
+            return
+        elif self.teleport_active:
             self.updateTeleport(player_rect)
             return
         elif self.phase == 3:
@@ -161,12 +189,19 @@ class Boss:
         elif self.giant_state:
             if self.giant_state_transition_animation:
                 self.animation_giant_idle.update()
+                self.giant_timer -= 1
+                self.updateGiantAttacks(player_rect)
+                if self.giant_timer <= 0:
+                    self.giant_state = False
+                    self.phase = 3
+                    self.invincibility = False
             else:
                 self.clone_active = False
                 self.animation_giant_transition.update(loop=False)
                 lastFrameTrans = len(self.animation_giant_transition.frames) - 1
                 if self.animation_giant_transition.index >= lastFrameTrans:
                     self.giant_state_transition_animation = True
+                    self.giant_timer = self.giant_duration
         elif self.phase == 1:
             self.animation_phase1_idle.update()
         elif self.phase == 2:
@@ -187,19 +222,30 @@ class Boss:
     def draw(self, screen):
         frame = None
         frame2 = None
-        if self.teleport_active:
+        if self.swap_active:
+            if self.swap_state == "out":
+                frame = self.animation_teleport2_vanish.get_current_frame()
+                frame2 = self.animation_clone_teleport_vanish.get_current_frame()
+            elif self.swap_state == "in":
+                frame = self.animation_teleport2_appear.get_current_frame()
+                frame2 = self.animation_clone_teleport_appear.get_current_frame()
+        elif self.teleport_active:
             if self.teleport_state == "vanish":
                 if self.phase == 1:
                     frame = self.animation_teleport_vanish.get_current_frame()
                 elif self.phase == 2:
                     frame = self.animation_teleport2_vanish.get_current_frame()
                     frame2 = self.animation_clone_teleport_vanish.get_current_frame()
+                elif self.phase == 3:
+                    frame = self.animation_teleport3_vanish.get_current_frame()
             elif self.teleport_state == "appear":
                 if self.phase == 1:
                     frame = self.animation_teleport_appear.get_current_frame()
                 elif self.phase == 2:
                     frame = self.animation_teleport2_appear.get_current_frame()
                     frame2 = self.animation_clone_teleport_appear.get_current_frame()
+                elif self.phase == 3:
+                    frame = self.animation_teleport3_appear.get_current_frame()
             elif self.teleport_state == "pause":
                 if self.phase == 2:
                     frame = self.animation_phase2_idle.get_current_frame()
@@ -247,8 +293,10 @@ class Boss:
         spread = math.radians(120)
         if self.phase == 1:
             asteroidType = "Neutral"
-        else:
+        elif self.phase == 2:
             asteroidType = "Fiery"
+        else:
+            asteroidType = "Scarred"
         for i in range(count):
             # t is made to even the spread of the asteroids
             t = i / (count - 1)
@@ -291,13 +339,49 @@ class Boss:
             self.clone_move_dir = -1
 
     def swapWithClone(self, player_rect):
-        if not self.clone_active:
+        if not self.clone_active or self.swap_active or self.teleport_active:
             return
-        real_pos = self.rect.center
-        clone_pos = self.clone_rect.center
-        self.rect.center = clone_pos
-        self.clone_rect.center = real_pos
-        self.asteroidBarrage(player_rect)
+        self.swap_active = True
+        self.swap_state = "out"
+        self.moving = False
+        self.invincibility = True
+        self.player_rect = player_rect
+        soundMgr.play_sfx("teleport out")
+        self.animation_teleport2_vanish.index = 0
+        self.animation_clone_teleport_vanish.index = 0
+
+    def updateSwap(self):
+        if not self.swap_active:
+            return
+        if self.swap_state == "out":
+            self.animation_teleport2_vanish.update(loop=False)
+            self.animation_clone_teleport_vanish.update(loop=False)
+            real_done = self.animation_teleport2_vanish.index >= len(self.animation_teleport2_vanish.frames) - 1
+            clone_done = self.animation_clone_teleport_vanish.index >= len(self.animation_clone_teleport_vanish.frames) - 1
+            if real_done and clone_done:
+                real_pos = self.rect.center
+                clone_pos = self.clone_rect.center
+                self.rect.center = clone_pos
+                self.clone_rect.center = real_pos
+                self.swap_state = "in"
+                self.animation_teleport2_appear.index = 0
+                self.animation_clone_teleport_appear.index = 0
+                soundMgr.play_sfx("teleport in")
+
+        elif self.swap_state == "in":
+            self.animation_teleport2_appear.update(loop=False)
+            self.animation_clone_teleport_appear.update(loop=False)
+            real_done = self.animation_teleport2_appear.index >= len(self.animation_teleport2_appear.frames) - 1
+            clone_done = self.animation_clone_teleport_appear.index >= len(self.animation_clone_teleport_appear.frames) - 1
+            if real_done and clone_done:
+                self.asteroidBarrage(self.player_rect)
+                self.endSwap()
+
+    def endSwap(self):
+        self.swap_active = False
+        self.swap_state = None
+        self.moving = True
+        self.invincibility = False
 
     def massRelease(self):
         self.giant_state = True
@@ -321,11 +405,14 @@ class Boss:
         if self.phase == 1:
             self.teleport_timer = len(self.animation_teleport_vanish.frames)
             self.animation_teleport_vanish.index = 0
-        else:
+        elif self.phase == 2:
             self.teleport_timer = len(self.animation_teleport2_vanish.frames)
             self.animation_teleport2_vanish.index = 0
             self.teleport_timer = len(self.animation_teleport2_vanish.frames)
             self.animation_clone_teleport_vanish.index = 0
+        else:
+            self.teleport_timer = len(self.animation_teleport2_vanish.frames)
+            self.animation_teleport2_vanish.index = 0
 
     def updateTeleport(self, player_rect):
         if not self.teleport_active:
@@ -334,9 +421,12 @@ class Boss:
         if self.phase == 1:
             self.selected_vanish = self.animation_teleport_vanish
             self.selected_appear = self.animation_teleport_appear
-        else:
+        elif self.phase == 2:
             self.selected_vanish = self.animation_teleport2_vanish
             self.selected_appear = self.animation_teleport2_appear
+        else:
+            self.selected_vanish = self.animation_teleport3_vanish
+            self.selected_appear = self.animation_teleport3_appear
 
         if self.teleport_state == "vanish":
             self.selected_vanish.update(loop=False)
@@ -399,6 +489,78 @@ class Boss:
                 self.clone_rect.center = (cx, cy)
                 return
         self.clone_rect.center = (self.screen_w - rx, ry)
+
+    def updateGiantAttacks(self, player_rect):
+        if not hasattr(self, 'giant_attack_timer'):
+            self.giant_attack_timer = 0
+        self.giant_attack_timer -= 1
+        if self.giant_attack_timer <= 0:
+            self.giantBarrage(player_rect)
+            self.giant_attack_timer = 40
+
+    def giantBarrage(self, player_rect):
+        cx, cy = self.rect.center
+        aim = math.atan2(player_rect.centery - cy, player_rect.centerx - cx)
+        count = 10
+        spread = math.radians(160)
+        for i in range(count):
+            t = i / (count - 1)
+            angle = aim - spread / 2 + spread * t
+            vx, vy = math.cos(angle), math.sin(angle)
+            size = random.randint(30, 50)
+            self.asteroids.append(Asteroid(cx, cy, vx, vy, size, asteroid_type="Eclipse"))
+
+    def chooseMove(self, player_rect):
+        if self.teleport_active or self.giant_state:
+            return
+        if not hasattr(self, 'move_cooldown'):
+            self.move_cooldown = 0
+        if self.move_cooldown > 0:
+            self.move_cooldown -= 1
+            return
+
+        dist = math.hypot(player_rect.centerx - self.rect.centerx,
+                          player_rect.centery - self.rect.centery)
+
+        # Decision Tree
+        if self.phase == 1:
+            if dist > self.screen_h * 0.5:
+                self.asteroidBarrage(player_rect)
+            else:
+                choice = random.choice(["barrage", "teleport", "gravity"])
+                if choice == "barrage":
+                    self.asteroidBarrage(player_rect)
+                elif choice == "teleport":
+                    self.teleportAttack(player_rect, self.screen_w, self.screen_h)
+                else:
+                    self.gravityPull(player_rect, self.screen_w, self.screen_h)
+            self.move_cooldown = random.randint(60, 120)
+
+        elif self.phase == 2:
+            if dist < self.radius + 150:
+                self.swapWithClone(player_rect)
+            else:
+                choice = random.choice(["barrage", "teleport", "gravity", "swap"])
+                if choice == "barrage":
+                    self.asteroidBarrage(player_rect)
+                elif choice == "teleport":
+                    self.teleportAttack(player_rect, self.screen_w, self.screen_h)
+                elif choice == "gravity":
+                    self.gravityPull(player_rect, self.screen_w, self.screen_h)
+                    self.cloneMass(player_rect)
+                else:
+                    self.swapWithClone(player_rect)
+            self.move_cooldown = random.randint(45, 90)
+
+        elif self.phase == 3:
+            choice = random.choice(["barrage", "teleport", "gravity", "beam"])
+            if choice == "barrage":
+                self.asteroidBarrage(player_rect)
+            elif choice == "teleport":
+                self.teleportAttack(player_rect, self.screen_w, self.screen_h)
+            elif choice == "gravity":
+                self.gravityPull(player_rect, self.screen_w, self.screen_h)
+            self.move_cooldown = random.randint(30, 70)
 
 class Beam:
     def __init__(self, screen_w, screen_h):

@@ -1,91 +1,43 @@
 {
-  "last_name": "WDWD",
+  "last_name": "LONGNAME",
   "achievements": [],
   "history": [
     {
-      "name": "WDWD",
-      "score": 7700,
-      "difficulty": "Easy",
-      "wave_reached": 2,
-      "date": "2026-05-30",
+      "name": "LONGNAME",
+      "score": 600,
+      "difficulty": "Hard",
+      "wave_reached": 1,
+      "date": "2026-05-31",
+      "is_highscore": false
+    },
+    {
+      "name": "SIMMI",
+      "score": 29400,
+      "difficulty": "Hard",
+      "wave_reached": 5,
+      "date": "2026-05-31",
+      "is_highscore": false
+    },
+    {
+      "name": "YUMNU",
+      "score": 34700,
+      "difficulty": "Hard",
+      "wave_reached": 5,
+      "date": "2026-05-31",
       "is_highscore": true
     },
     {
-      "name": "WDWD",
-      "score": 750,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "WDWD",
-      "score": 0,
+      "name": "YUMNU",
+      "score": 11300,
       "difficulty": "Hard",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "WQEWR",
-      "score": 0,
-      "difficulty": "Hard",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "WASFE",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "WASFE",
-      "score": 6300,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "WASFE",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "WASFE",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "WASFE",
-      "score": 0,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "WASFE",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-30",
+      "wave_reached": 2,
+      "date": "2026-05-31",
       "is_highscore": false
     }
   ],
   "stats": {
-    "total_runs": 54,
-    "highest_score": 128800,
+    "total_runs": 4,
+    "highest_score": 34700,
     "highest_wave": 5
   }
 }
