@@ -51,7 +51,7 @@ def loadAsteroidImages():
     return asteroidGroups
 
 class Boss:
-    max_hp = 2500
+    max_hp = 5000
     phase2_hp = max_hp * 0.75 # Floor Division, phase 2 will start when HP is 50% or below
     giant_hp = max_hp * 0.3
 
@@ -73,6 +73,7 @@ class Boss:
         self.death_hold_timer = 0
         self.death_hold_time = 300
         self.death_animation_lastFrame = False
+        self.request_beams = False
 
         # Phase 2
         self.phase2_transition_animation = False
@@ -149,9 +150,6 @@ class Boss:
         # Swapping Teleport
         self.swap_active = False
         self.swap_state = None
-
-    # HP Bar Drawings
-        # def HPBar(self):
 
     def move(self):
         if not self.moving:
@@ -470,17 +468,22 @@ class Boss:
             if self.clone_active:
                 self.animation_clone_teleport_vanish.update(loop=False)
             if self.selected_vanish.index >= len(self.selected_vanish.frames) - 1:
-                new_x = random.randint(self.move_left_bound, self.move_right_bound)
-                new_y = random.randint(120, int(self.screen_h * 0.6))
-                self.rect.center = (new_x, new_y)
-                min_dist = 300
-                if math.hypot(new_x - player_rect.centerx, new_y - player_rect.centery) < min_dist:
-                    for i in range(100):
-                        new_x = random.randint(self.move_left_bound, self.move_right_bound)
-                        new_y = random.randint(120, int(self.screen_h * 0.6))
-                        distanceToPlayer = math.hypot(new_x - player_rect.centerx, new_y - player_rect.centery)
-                        if distanceToPlayer >= min_dist:
-                            self.rect.center = (new_x, new_y)
+                if self.teleports_left <= 1:
+                    new_x = random.randint(self.move_left_bound, self.move_right_bound)
+                    new_y = 160  # Original spawn height
+                    self.rect.center = (new_x, new_y)
+                else:
+                    new_x = random.randint(self.move_left_bound, self.move_right_bound)
+                    new_y = random.randint(120, int(self.screen_h * 0.6))
+                    self.rect.center = (new_x, new_y)
+                    min_dist = 300
+                    if math.hypot(new_x - player_rect.centerx, new_y - player_rect.centery) < min_dist:
+                        for i in range(100):
+                            new_x = random.randint(self.move_left_bound, self.move_right_bound)
+                            new_y = random.randint(120, int(self.screen_h * 0.6))
+                            distanceToPlayer = math.hypot(new_x - player_rect.centerx, new_y - player_rect.centery)
+                            if distanceToPlayer >= min_dist:
+                                self.rect.center = (new_x, new_y)
                 if self.clone_active:
                     self.cloneTeleport(self.rect.center, player_rect)
                     self.animation_clone_teleport_appear.index = 0
@@ -563,7 +566,7 @@ class Boss:
 
         # Decision Tree
         if self.phase == 1:
-            if dist > self.screen_h * 0.5:
+            if dist > self.screen_h * 0.75:
                 self.asteroidBarrage(player_rect)
             else:
                 choice = random.choice(["barrage", "teleport", "gravity"])
@@ -579,7 +582,7 @@ class Boss:
             if dist < self.radius + 150:
                 self.swapWithClone(player_rect)
             else:
-                choice = random.choice(["barrage", "teleport", "gravity", "swap"])
+                choice = random.choice(["barrage", "teleport", "gravity", "beam", "swap"])
                 if choice == "barrage":
                     self.asteroidBarrage(player_rect)
                 elif choice == "teleport":
@@ -587,6 +590,8 @@ class Boss:
                 elif choice == "gravity":
                     self.gravityPull(player_rect, self.screen_w, self.screen_h)
                     self.cloneMass(player_rect)
+                elif choice == "beam":
+                    self.request_beams = True
                 else:
                     self.swapWithClone(player_rect)
             self.move_cooldown = random.randint(45, 90)
@@ -599,6 +604,8 @@ class Boss:
                 self.teleportAttack(player_rect, self.screen_w, self.screen_h)
             elif choice == "gravity":
                 self.gravityPull(player_rect, self.screen_w, self.screen_h)
+            elif choice == "beam":
+                self.request_beams = True
             self.move_cooldown = random.randint(30, 70)
 
     def inTransition(self):
@@ -793,7 +800,7 @@ class Mass:
             draw_rect = frame.get_rect(center=self.rect.center)
             screen.blit(frame, draw_rect)
 
-    def spawnLocation(self, player_rect, moon_rect, screen_w, screen_h, min_dist=200):
+    def spawnLocation(self, player_rect, moon_rect, screen_w, screen_h, min_dist=400):
         x = random.randint(50, screen_w)
         y = random.randint(50, screen_h)
         if math.hypot(x - player_rect.centerx, y - player_rect.centery) < min_dist and math.hypot(x - moon_rect.centerx, y - moon_rect.centery) < min_dist:

@@ -270,6 +270,9 @@ while running:
                     if require_empty:
                         condition = condition and len(enemy_manager.alien_group) == 0
 
+                # Wait for death explosion/shatter particles to completely vanish
+                condition = condition and len(particle_group) == 0
+
                 if condition:
                     enemy_manager.alien_group.empty()
                     projectile_group.empty()
@@ -299,7 +302,7 @@ while running:
 
         if game_over_screen.action == "PLAY_AGAIN":
             currState = PLAY_SCREEN
-            player.hp = 100
+            #player.hp = 100
 
             play_screen = PlayScreen(screen_w, screen_h, score_manager)
             play_screen.on_hover = lambda: soundMgr.play_sfx("select")
@@ -310,7 +313,7 @@ while running:
         elif game_over_screen.action == "MENU":
             currState = MENU
             menu.reset()
-            player.hp = 100 #think of this as resetting player health to full health
+            #player.hp = 100 #think of this as resetting player health to full health
             soundMgr.play_music("menu")
 
     elif currState == HISTORY:
@@ -335,6 +338,7 @@ while running:
             soundMgr.play_music("win")
             bg.set_layer("imgs/Background/BlueNebula/bNebula4.png")
             currState = END_SCENE
+            soundMgr.stop_sfx("mass active")
             name = getattr(play_screen, "player_name", "") or "Cadet"
             end_cutscene = CutScene(screen_w, screen_h, player_name=name, scenes="ending")
             end_cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
@@ -406,14 +410,13 @@ while running:
 
     elif currState == CUTSCENE:
         bg.update(g.dt)
-
         bg.draw(game_surface)
         cutscene.update(events)
         cutscene.draw(game_surface)
 
         if cutscene.action == "DONE":
             currState = STAGE_1
-            hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
+            hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty, player)
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
             bossFight.hud = hud
@@ -515,7 +518,8 @@ while running:
             transition_active = False
             transition_timer = 0.0
             currState = STAGE_1
-            hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
+            soundMgr.stop_sfx("mass active")
+            hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty, player)
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
             bossFight.hud = hud
@@ -528,7 +532,7 @@ while running:
             # Instantly spawn Stage 1 enemies on restart and reset spawn rate
             enemy_manager.spawn_aliens(currState)
             pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
-            player.hp = 100
+            #player.hp = 100
             pygame.mixer.music.unpause()
 
         elif pause_menu.action == "MENU":
@@ -536,7 +540,7 @@ while running:
             soundMgr.stop_music()
             currState = MENU
             menu.reset()
-            player.hp = 100
+            #player.hp = 100
             soundMgr.play_music("menu")
 
         elif  pause_menu.action == "QUIT":

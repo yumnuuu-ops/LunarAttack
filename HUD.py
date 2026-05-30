@@ -23,7 +23,7 @@ class HUD:
     CHARGES_PER_SLOT = 3
     FLASH_DURATION = 20  # frames
 
-    def __init__(self, screen_w, screen_h, player_name, difficulty):
+    def __init__(self, screen_w, screen_h, player_name, difficulty, player):
         self.sw = screen_w
         self.sh = screen_h
         self.player_name = player_name
@@ -44,6 +44,9 @@ class HUD:
         self.combo_active = False
         self.combo_flash = 0
 
+    
+        
+
         # heart images
         self.heart_imgs = {
             3: pygame.transform.scale(pygame.image.load("imgs/HUD/heart3.png").convert_alpha(), (28, 25)),
@@ -51,6 +54,7 @@ class HUD:
             1: pygame.transform.scale(pygame.image.load("imgs/HUD/heart1.png").convert_alpha(), (28, 25)),
             0: pygame.transform.scale(pygame.image.load("imgs/HUD/heart_dead.png").convert_alpha(), (28, 25)),
         }
+        player.hp = self.DIFF_HEARTS.get(difficulty, 3)
 
         # white flash overlay
         self.flash_overlay = pygame.Surface((28, 25), pygame.SRCALPHA)
