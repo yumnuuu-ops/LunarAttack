@@ -4,7 +4,7 @@ import math
 import utils
 from AnimationManager import AnimationManager
 from Projectile import Projectile
-from faddingEffect import faddingEffect
+from SparksEffect import SparksEffect
 from globals import assetMgr, soundMgr
 from enemy.EnemyProjectile import EnemyProjectile
 
@@ -272,7 +272,8 @@ class Alien(pygame.sprite.Sprite):
         self.hp -= damage
         if self.hp <= 0:
             soundMgr.play_sfx("spaceship died")
-            faddingEffect.trigger(self)
+            death_effect = SparksEffect(self)
+            death_effect.start()
             self.kill()
         # else:
         #     soundMgr.play_sfx("enemy hit")

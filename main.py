@@ -254,6 +254,13 @@ while running:
                     hud.next_wave()
                     currState = target_state
                     enemy_manager.setup_stage_config(currState)
+                    # Instantly spawn the first wave of enemies upon entering the new stage
+                    enemy_manager.spawn_aliens(currState)
+                    # Dynamically set faster spawn timer for Stage 2 & 3 (750ms) and default (1500ms) for other stages
+                    if currState in [STAGE_2, STAGE_3]:
+                        pygame.time.set_timer(SPAWN_ALIEN_EVENT, 750)
+                    else:
+                        pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
     elif currState == DEATH_SCENE:
         # Countdown the timer
@@ -351,6 +358,9 @@ while running:
             enemy_manager.formation.reset()
             enemy_manager.enemies_spawned_so_far = 0
             enemy_manager.total_enemies_to_spawn = 20
+            # Instantly spawn first wave of enemies and ensure default spawn rate
+            enemy_manager.spawn_aliens(currState)
+            pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
 
 
@@ -439,6 +449,9 @@ while running:
             enemy_manager.formation.reset()
             enemy_manager.enemies_spawned_so_far = 0
             enemy_manager.total_enemies_to_spawn = 20
+            # Instantly spawn Stage 1 enemies on restart and reset spawn rate
+            enemy_manager.spawn_aliens(currState)
+            pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
             player.hp = 100
             pygame.mixer.music.unpause()
 
