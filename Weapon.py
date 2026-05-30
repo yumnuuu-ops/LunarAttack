@@ -23,6 +23,13 @@ class Weapon:
         self.image = self.animator.get_current_frame()
         self.rect = self.image.get_rect()
 
+        self.cooldowns = {
+            "AutoCannon": 0.0,
+            "Rockets": 0.0,
+            "Zapper": 0.0,
+            "BigGun": 0.0
+        }
+
         self.gun_map = {
             "AutoCannon": [(6, 7), (24, 7)],
             "Rockets":[(6,9), (20,9), (2,13), (24,13), (-3,17), (28,17)],
@@ -116,11 +123,13 @@ class Weapon:
         # Grab whichever frame is active (either moving, or forced to 0)
         self.image = self.animator.get_current_frame()
 
-        if self.cooldown > 0:
-            self.cooldown -= g.dt
+        for gun in self.cooldowns:
+            if self.cooldowns[gun] > 0:
+                self.cooldowns[gun] -= g.dt
+
         mouse_buttons = pygame.mouse.get_pressed()
         if mouse_buttons[0]:
-            if is_firing and self.cooldown <= 0:
+            if is_firing and self.cooldowns[self.selectedWeapon] <= 0:
                 bullets = self.shootProjectile()
                 projectile_group.add(*bullets)
-                self.cooldown = 1.0 / self.fireRate
+                self.cooldowns[self.selectedWeapon] = 1.0 / self.fireRate
