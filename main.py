@@ -307,7 +307,6 @@ while running:
             currState = MENU
     elif currState == BOSS:
         if not is_paused:
-            player.update(events)
             bg.update(g.dt)
             bossFight.update(events)
             projectile_group.update()

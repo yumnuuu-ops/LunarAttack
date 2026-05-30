@@ -1,7 +1,15 @@
 {
-  "last_name": "LONGNAME",
+  "last_name": "YUMNU",
   "achievements": [],
   "history": [
+    {
+      "name": "YUMNU",
+      "score": 16750,
+      "difficulty": "Easy",
+      "wave_reached": 5,
+      "date": "2026-05-31",
+      "is_highscore": false
+    },
     {
       "name": "LONGNAME",
       "score": 600,
@@ -36,7 +44,7 @@
     }
   ],
   "stats": {
-    "total_runs": 4,
+    "total_runs": 5,
     "highest_score": 34700,
     "highest_wave": 5
   }
