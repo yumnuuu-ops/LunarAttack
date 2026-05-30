@@ -37,8 +37,8 @@ class SoundManager:
 
     def __init__(self):
         self.current_track = None
-        self.music_volume  = 0.5
-        self.sfx_volume = 0.3
+        self.music_volume  = 0.4
+        self.sfx_volume = 0.1
 
         self.sounds = {}
         for name, path in self.SFX.items():

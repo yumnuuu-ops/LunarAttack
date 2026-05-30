@@ -1,17 +1,73 @@
 {
-  "last_name": "TESTERMA",
+  "last_name": "WASFE",
   "achievements": [],
   "history": [
     {
-      "name": "TESTERMA",
-      "score": 4500,
+      "name": "WASFE",
+      "score": 6300,
       "difficulty": "Medium",
       "wave_reached": 1,
       "date": "2026-05-30",
       "is_highscore": true
     },
     {
-      "name": "TESTERMA",
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "SADFSDF",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "SADFSDF",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "SADFSDF",
       "score": 0,
       "difficulty": "Hard",
       "wave_reached": 1,
@@ -19,73 +75,17 @@
       "is_highscore": false
     },
     {
-      "name": "PENIDS",
-      "score": 1125,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "PENIDS",
+      "name": "FSADF",
       "score": 0,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "PENIDS",
-      "score": 75,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "PENIDS",
-      "score": 3900,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "YUMNU",
-      "score": 0,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "YUMNU",
-      "score": 0,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "ACE",
-      "score": 0,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "ACE",
-      "score": 0,
-      "difficulty": "Medium",
+      "difficulty": "Hard",
       "wave_reached": 1,
       "date": "2026-05-30",
       "is_highscore": false
     }
   ],
   "stats": {
-    "total_runs": 19,
-    "highest_score": 12400,
-    "highest_wave": 3
+    "total_runs": 49,
+    "highest_score": 128800,
+    "highest_wave": 5
   }
 }

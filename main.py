@@ -271,6 +271,8 @@ while running:
 
         if game_over_screen.action == "PLAY_AGAIN":
             currState = PLAY_SCREEN
+            player.hp = 100
+
             play_screen = PlayScreen(screen_w, screen_h, score_manager)
             play_screen.on_hover = lambda: soundMgr.play_sfx("select")
             play_screen.on_error = lambda: soundMgr.play_sfx("error")
