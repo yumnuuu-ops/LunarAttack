@@ -99,7 +99,7 @@ class Weapon:
                     self.selectedWeapon = "Zapper"
                     self.fireRate = 12
                     self.projectileSpeed = 15
-                    self.damage = 5
+                    self.damage = 7
                 elif event.key == pygame.K_4:
                     self.selectedWeapon = "BigGun"
                     self.fireRate = 0.5
