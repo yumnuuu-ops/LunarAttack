@@ -148,6 +148,11 @@ def load_all_assets(assetMgr):
     assetMgr.loadAnimScale("CMoonTeleIn", "imgs\\moon_clone_teleport in.png", 6)
     assetMgr.loadAnimScale("CMoonTeleOut", "imgs\\moon_clone_teleport out.png", 6)
 
+    # Cutscene Boss
+    assetMgr.loadAnimScale("BlackholeSpawn", "Assets\\Mass\\mass_spawn_strip.png", 12)
+    assetMgr.loadAnimScale("Blackhole", "imgs\\Mass Attack Anim.png", 12)
+    assetMgr.loadAnimScale("BlackholeDespawn", "Assets\\Mass\\mass_implosion_strip.png", 12)
+
 # asset loading
 load_all_assets(assetMgr)
 
