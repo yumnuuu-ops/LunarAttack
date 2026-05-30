@@ -43,9 +43,9 @@ class HUD:
 
         #heart images
         raw = pygame.image.load("imgs/HUD/heart.png").convert_alpha()
-        self.heart_img = pygame.transform.scale(raw, (28, 28))
-        self.heart_img_dead = pygame.transform.scale(raw, (28, 28))
-        dark = pygame.Surface((28, 28), pygame.SRCALPHA)
+        self.heart_img = pygame.transform.scale(raw, (28, 25))
+        self.heart_img_dead = pygame.transform.scale(raw, (28, 25))
+        dark = pygame.Surface((28, 25), pygame.SRCALPHA)
         dark.fill((0, 0, 0,180))
         self.heart_img_dead.blit(dark,(0,0))
 
