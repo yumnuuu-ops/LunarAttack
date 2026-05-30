@@ -566,7 +566,7 @@ class Boss:
 
         # Decision Tree
         if self.phase == 1:
-            if dist > self.screen_h * 0.5:
+            if dist > self.screen_h * 0.75:
                 self.asteroidBarrage(player_rect)
             else:
                 choice = random.choice(["barrage", "teleport", "gravity"])
