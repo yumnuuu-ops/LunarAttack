@@ -5,7 +5,7 @@ import utils
 from AnimationManager import AnimationManager
 from Projectile import Projectile
 from faddingEffect import faddingEffect
-from globals import assetMgr
+from globals import assetMgr, soundMgr
 from enemy.EnemyProjectile import EnemyProjectile
 
 class Alien(pygame.sprite.Sprite):
@@ -27,6 +27,7 @@ class Alien(pygame.sprite.Sprite):
         # Target position coordinates for Stage 2 Formation entry
         self.target_x = target_x
         self.target_y = target_y
+        self.time_alive = 0.0
         self.stage = stage
         
         if target_x is not None and target_y is not None:
@@ -45,27 +46,33 @@ class Alien(pygame.sprite.Sprite):
         
         # Configure base stats based on current Stage
         if stage == 1:
-            self.hp = 10
+            self.hp = 50
             self.speed = 2
             self.movement_pattern = "pattern1"
         elif stage == 2:
-            self.hp = 15
+            self.hp = 60
             self.speed = 3
             self.movement_pattern = "sine"
         elif stage == 3:
-            self.hp = 20
+            self.hp = 60
             self.speed = 4
             self.movement_pattern = "sine"
         elif stage == 4:
-            self.hp = 25
+            self.hp = 55
             self.speed = 3
             self.movement_pattern = "straight"
         elif stage == 5:
-            self.hp = 35
+            self.hp = 55
             self.speed = 4
             self.movement_pattern = "straight"
         
         self.max_hp = self.hp
+
+        # Dynamically scale shield HP based on original/max HP
+        if self.alien_type == "tendril_alien":
+            self.shield_hp = max(1, int(self.hp * 0.50))
+        else:
+            self.shield_hp = 0
         
         # variables for (zig-zag movement/sine wave pattern)
         # Spawning & swaying offsets
@@ -194,13 +201,45 @@ class Alien(pygame.sprite.Sprite):
         else:
             # Crop to the actual boundaries of the plane first
             tight_box = raw_image.get_bounding_rect()
-            self.image = raw_image.subsurface(tight_box)
+            base_image = raw_image.subsurface(tight_box)
+            
+            if getattr(self, 'shield_hp', 0) > 0:
+                self.time_alive += 1/60.0
+                pulse = (math.sin(self.time_alive * 8) + 1) / 2
+                alpha = int(100 + 155 * pulse)
+                color = (255, 50, 150) # Neon Pink/Purple
+                
+                mask = pygame.mask.from_surface(base_image)
+                sil = mask.to_surface(setcolor=(*color, alpha), unsetcolor=(0, 0, 0, 0))
+                
+                thickness = 4 + int(pulse * 3)
+                w, h = base_image.get_size()
+                
+                shielded_image = pygame.Surface((w + thickness*2, h + thickness*2), pygame.SRCALPHA)
+                
+                shielded_image.blit(sil, (0, thickness))
+                shielded_image.blit(sil, (thickness*2, thickness))
+                shielded_image.blit(sil, (thickness, 0))
+                shielded_image.blit(sil, (thickness, thickness*2))
+                
+                shielded_image.blit(sil, (0, 0))
+                shielded_image.blit(sil, (thickness*2, thickness*2))
+                shielded_image.blit(sil, (0, thickness*2))
+                shielded_image.blit(sil, (thickness*2, 0))
+                
+                shielded_image.blit(base_image, (thickness, thickness))
+                self.image = shielded_image
+            else:
+                self.image = base_image
             
             if self.phase == "stage2_dive":
                 # Rotate the plane and the flame to face the movement/dive vector perfectly
                 deg = math.degrees(math.atan2(self.dive_vy, self.dive_vx))
                 rotation_angle = 90.0 - deg
-                self.image = pygame.transform.rotate(self.image, rotation_angle)
+                rotated_img = pygame.transform.rotate(self.image, rotation_angle)
+                # Crop transparent padding to keep the hit-box as tight as possible
+                tight_rotated_box = rotated_img.get_bounding_rect()
+                self.image = rotated_img.subsurface(tight_rotated_box)
                 
             self.rect = self.image.get_rect()
             self.rect.center = (int(self.pos.x), int(self.pos.y))
@@ -224,7 +263,16 @@ class Alien(pygame.sprite.Sprite):
         return bullet
 
     def takeDamage(self, damage):
+        if getattr(self, 'shield_hp', 0) > 0:
+            self.shield_hp -= damage
+            if self.shield_hp <= 0:
+                soundMgr.play_sfx("shield break")  # Play the newly generated, glorious sci-fi shield shatter SFX!
+            else:
+                soundMgr.play_sfx("error")         # Shield absorbed damage SFX!
+            return
+            
         self.hp -= damage
         if self.hp <= 0:
+            soundMgr.play_sfx("teleport in")   # Play futuristic alien explosion SFX!
             faddingEffect.trigger(self)
             self.kill()
