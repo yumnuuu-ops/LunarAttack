@@ -800,7 +800,7 @@ class Mass:
             draw_rect = frame.get_rect(center=self.rect.center)
             screen.blit(frame, draw_rect)
 
-    def spawnLocation(self, player_rect, moon_rect, screen_w, screen_h, min_dist=200):
+    def spawnLocation(self, player_rect, moon_rect, screen_w, screen_h, min_dist=400):
         x = random.randint(50, screen_w)
         y = random.randint(50, screen_h)
         if math.hypot(x - player_rect.centerx, y - player_rect.centery) < min_dist and math.hypot(x - moon_rect.centerx, y - moon_rect.centery) < min_dist:
