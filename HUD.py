@@ -12,10 +12,10 @@ class HUD:
     }
 
     DIFF_HEARTS = {
-        "Easy"  : 100,
-        "Medium" : 3,
-        "Hard" : 2,
-        "Eclipse": 1,
+        "Easy"  : 12,
+        "Medium" : 8,
+        "Hard" : 5,
+        "Eclipse": 2,
     }
 
     def __init__(self, screen_w, screen_h, player_name, difficulty):
