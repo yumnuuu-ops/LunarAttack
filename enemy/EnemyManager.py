@@ -154,24 +154,31 @@ class EnemyManager:
                 self.alien_group.add(new_alien)
                 self.enemies_spawned_so_far += 1
         elif stage in [STAGE_4, STAGE_5]:
-            # Spawn in a swarm! Request up to 6 slots (3 pairs) per tick
-            slots_to_spawn = []
-            for _ in range(3):
-                slots_to_spawn.extend(self.formation.get_spawn_slots())
+            # Spawn exactly 2 slots (1 symmetric pair) per tick for a clean, synchronized "two at once" portal emergence!
+            slots_to_spawn = self.formation.get_spawn_slots()
+            spawned_any = False
             for idx, slot in enumerate(slots_to_spawn):
                 if self.enemies_spawned_so_far < self.total_enemies_to_spawn:
-                    if slot[0] < 640:
-                        spawn_x = -50 - (idx * 80)
-                        spawn_y = 0
-                    else:
-                        spawn_x = self.screen_w + 50 + (idx * 80)
-                        spawn_y = 0
+                    # Spawn both aliens at the shared center portal coordinates (640, 150)
+                    spawn_x = 640
+                    spawn_y = 150
                     alien_type = self.alien_types[2] # Use eye_spawn for both STAGE_4 and STAGE_5
                     new_alien = Alien(alien_type, spawn_x, spawn_y, stage=4 if stage == STAGE_4 else 5,
                                       target_x=slot[0], target_y=slot[1])
+                    
+                    # Override initial phase to be spawning portal
+                    new_alien.phase = "spawning_portal"
+                    new_alien.portal_age = 0
+                    new_alien.enemy_alpha = 0
+                    new_alien.enemy_scale = 0.65
+                    
                     self.alien_group.add(new_alien)
                     self.formation.register_alien(new_alien, slot)
                     self.enemies_spawned_so_far += 1
+                    spawned_any = True
+            
+            if spawned_any:
+                soundMgr.play_sfx("portal warp")
 
     def handle_updates_and_collisions(self, stage, player_touching_edge=False):
         # Update enemies and collect enemy bullets
@@ -263,7 +270,7 @@ class EnemyManager:
 
         # Player-Alien Collision Check (Kamikaze / Crashing into player!)
         if not self.player.invincible:
-            collided_aliens = [alien for alien in self.alien_group if self.player.rect.colliderect(alien.rect)]
+            collided_aliens = [alien for alien in self.alien_group if self.player.rect.colliderect(alien.rect) and getattr(alien, "phase", "") not in ["spawning_portal", "dissolving"]]
             for alien in collided_aliens:
                 alien.kill()
                 self.player.takeDamage(1)
@@ -285,6 +292,25 @@ class EnemyManager:
         self.enemy_projectile_group.draw(game_surface)
         self.alien_group.draw(game_surface)
         
+        # Render spawn portals and death dissolve effects
+        portal_positions = set()
+        for alien in self.alien_group:
+            p = getattr(alien, "phase", "")
+            if p == "spawning_portal":
+                portal_positions.add((alien.rect.centerx, alien.rect.centery, getattr(alien, "portal_age", 0)))
+                
+        for px, py, age in portal_positions:
+            progress = min(1.0, age / 45)
+            radius = int(18 + progress * 56)
+            alpha = int(220 * (1 - progress))
+
+            portal = pygame.Surface((150, 150), pygame.SRCALPHA)
+            center = (75, 75)
+            pygame.draw.circle(portal, (190, 40, 255, alpha), center, radius, 4)
+            pygame.draw.circle(portal, (255, 70, 120, int(alpha * 0.8)), center, max(4, radius - 12), 3)
+            pygame.draw.circle(portal, (80, 10, 130, int(alpha * 0.35)), center, max(1, radius - 22))
+            game_surface.blit(portal, portal.get_rect(center=(px, py)))
+            
         # Render lock-on visual sights (no red rect debug outlines!)
         for alien in self.alien_group:
             # Draw blinking red Lock-On laser sights only for stationary sentries

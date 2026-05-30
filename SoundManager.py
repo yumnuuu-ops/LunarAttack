@@ -26,6 +26,7 @@ class SoundManager:
         "eclipse to scarred": "audio\\sfx\\eclipse to scarred.wav",
         "teleport in": "audio\\sfx\\teleport in.wav",
         "teleport out": "audio\\sfx\\teleport out.wav",
+        "portal warp": "audio\\sfx\\Enemy\\portal_warp.wav",
         "target lock": "audio\\sfx\\Detector\\detector_panic_tit_tit_close.wav",
         "target lock stage 2": "audio\\sfx\\Detector\\detector_panic_tit_tit_close.wav",
         "target lock stage 3": "audio\\sfx\\Detector\\detector_panic_tit_tit_close_fast.wav",
@@ -49,6 +50,7 @@ class SoundManager:
         "target lock stage 3": 0.17,
         "target lock boosted": 0.18,
         "spaceship died": 0.32,
+        "portal warp": 0.22,
     }
 
     SFX_CHANNELS = {

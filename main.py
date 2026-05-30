@@ -1,6 +1,5 @@
 import pygame
 import sys
-import os
 import random
 from MainMenu import MainMenu
 from Player import Player
@@ -16,8 +15,6 @@ from PauseMenu import PauseMenu
 from GameOver import GameOver
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
-
-import math
 
 pygame.init()
 
@@ -371,12 +368,6 @@ while running:
         player.draw(game_surface)
         projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
-        for proj in projectile_group:
-            pygame.draw.rect(game_surface, (0, 255, 0), proj.rect, 1)
-        for alien in enemy_manager.alien_group:
-            pygame.draw.rect(game_surface, (255, 0, 0), alien.rect, 1)
-        for e_proj in enemy_manager.enemy_projectile_group:
-            pygame.draw.rect(game_surface, (255, 128, 0), e_proj.rect, 1)
         enemy_manager.draw(game_surface, currState)
         # Only update/advance logic when not paused
 
