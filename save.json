@@ -1,91 +1,43 @@
 {
-  "last_name": "123",
+  "last_name": "LONGNAME",
   "achievements": [],
   "history": [
     {
-      "name": "123",
-      "score": 0,
-      "difficulty": "Easy",
+      "name": "LONGNAME",
+      "score": 600,
+      "difficulty": "Hard",
       "wave_reached": 1,
       "date": "2026-05-31",
       "is_highscore": false
     },
     {
-      "name": "123",
-      "score": 26950,
-      "difficulty": "Easy",
-      "wave_reached": 6,
-      "date": "2026-05-31",
-      "is_highscore": false
-    },
-    {
-      "name": "2",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-31",
-      "is_highscore": false
-    },
-    {
-      "name": "123",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-31",
-      "is_highscore": false
-    },
-    {
-      "name": "123",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-31",
-      "is_highscore": false
-    },
-    {
-      "name": "EASY",
-      "score": 55800,
+      "name": "SIMMI",
+      "score": 29400,
       "difficulty": "Hard",
       "wave_reached": 5,
-      "date": "2026-05-30",
+      "date": "2026-05-31",
+      "is_highscore": false
+    },
+    {
+      "name": "YUMNU",
+      "score": 34700,
+      "difficulty": "Hard",
+      "wave_reached": 5,
+      "date": "2026-05-31",
       "is_highscore": true
     },
     {
-      "name": "EASY",
-      "score": 49900,
+      "name": "YUMNU",
+      "score": 11300,
       "difficulty": "Hard",
-      "wave_reached": 5,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "123",
-      "score": 47400,
-      "difficulty": "Hard",
-      "wave_reached": 5,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "123",
-      "score": 24700,
-      "difficulty": "Easy",
-      "wave_reached": 5,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "123",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-30",
+      "wave_reached": 2,
+      "date": "2026-05-31",
       "is_highscore": false
     }
   ],
   "stats": {
-    "total_runs": 66,
-    "highest_score": 128800,
-    "highest_wave": 6
+    "total_runs": 4,
+    "highest_score": 34700,
+    "highest_wave": 5
   }
 }

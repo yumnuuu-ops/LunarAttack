@@ -24,9 +24,9 @@ class HUD:
         self.difficulty  = difficulty
         self.multiplier  = self.DIFF_MULTIPLIER.get(difficulty, 1.0)
 
-        self.font_large  = pygame.font.Font("PressStart2P-Regular.ttf", 10)
-        self.font_medium = pygame.font.Font("PressStart2P-Regular.ttf", 7)
-        self.font_small  = pygame.font.Font("PressStart2P-Regular.ttf", 6)
+        self.font_large  = pygame.font.Font("PressStart2P-Regular.ttf", 11)
+        self.font_medium = pygame.font.Font("PressStart2P-Regular.ttf", 8)
+        self.font_small  = pygame.font.Font("PressStart2P-Regular.ttf", 7)
 
         # score
         self.score        = 0
@@ -43,7 +43,7 @@ class HUD:
         self.hearts     = self.max_hearts
 
         #heart images
-        raw = pygame.image.load("imgs/HUD/heart.png").convert_alpha()
+        raw = pygame.image.load("imgs/HUD/heart2.png").convert_alpha()
         self.heart_img = pygame.transform.scale(raw, (28, 25))
         self.heart_img_dead = pygame.transform.scale(raw, (28, 25))
         dark = pygame.Surface((28, 25), pygame.SRCALPHA)
@@ -60,13 +60,22 @@ class HUD:
         self.wave_time = 0.0
 
         # weapon name
-        self.weapon_name = "ZAPPER"
 
         # no damage bonus tracking
         self.took_damage_this_wave = False
 
         self.on_game_over = lambda: None
 
+        self.weapon_name = "AUTO CANNON"
+
+    def set_weapon(self, weapon_key):
+        name_map = {
+            "AutoCannon": "AUTO CANNON",
+            "Rockets": "ROCKETS",
+            "Zapper": "ZAPPER",
+            "BigGun": "BIG GUN",
+        }
+        self.weapon_name = name_map.get(weapon_key, weapon_key)
     # called every frame
     def update(self, dt):
         # tick combo timer
@@ -150,9 +159,6 @@ class HUD:
     def add_boss_kill(self):
         self.score = int(5000 * self.multiplier)
 
-    def set_weapon(self, name):
-        self.weapon_name = name
-
     def _format_time(self, seconds):
         m = int(seconds) // 60
         s = int(seconds) % 60
@@ -160,7 +166,7 @@ class HUD:
 
     def _draw_panel(self, screen, x, y, w, h):
         panel = pygame.Surface((w, h))
-        panel.set_alpha(160)
+        panel.set_alpha(140)
         panel.fill((0, 0, 0))
         screen.blit(panel, (x, y))
         pygame.draw.rect(screen, (80, 80, 120), (x, y, w, h), 1)
@@ -185,7 +191,7 @@ class HUD:
         pad = 16
 
         # dark panel top left
-        self._draw_panel(screen, 0, 0, 220, 100)
+        self._draw_panel(screen, 0, 0, 150, 90)
 
         # score
         score_surf = self.font_medium.render(f"SCORE  {self.display_score:07}", True, (255, 255, 255))
@@ -205,9 +211,9 @@ class HUD:
         screen.blit(time_surf, (pad, pad + 48))
 
         # dark panel top right
-        panel_w = 240
+        panel_w = 200
         panel_x = self.sw - panel_w
-        self._draw_panel(screen, panel_x, 0, panel_w, 110)
+        self._draw_panel(screen, panel_x, 0, panel_w, 100)
 
         # player name
         name_surf = self.font_medium.render(f"CADET  {self.player_name[:8]}", True, (50, 220, 100))
@@ -227,11 +233,19 @@ class HUD:
         }
         diff_color = diff_colors.get(self.difficulty, (255, 255, 255))
         diff_surf  = self.font_small.render(self.difficulty.upper(), True, diff_color)
-        screen.blit(diff_surf, (panel_x + pad, pad + 88))
+        screen.blit(diff_surf, (panel_x + pad + stage_surf.get_width() + 60, pad + 63))
 
         # weapon bottom center
-        weapon_label = self.font_small.render("WEAPON", True, (120, 120, 180))
-        weapon_name  = self.font_medium.render(self.weapon_name, True, (255, 255, 255))
+        weapon_colors = {
+            "AUTO CANNON": (255, 140, 0),
+            "ROCKETS": (220, 50, 50),
+            "ZAPPER": (50, 150, 255),
+            "BIG GUN": (50, 220, 100),
+        }
+        weapon_color = weapon_colors.get(self.weapon_name, (255, 255, 255))
+
+        weapon_label = self.font_small.render("WEAPON", True, (255,255,255))
+        weapon_name  = self.font_medium.render(self.weapon_name, True, weapon_color)
 
         label_rect  = weapon_label.get_rect(centerx=self.sw // 2, bottom=self.sh - 28)
         name_rect   = weapon_name.get_rect(centerx=self.sw // 2,  bottom=self.sh - 10)
