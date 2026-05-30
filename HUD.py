@@ -18,7 +18,7 @@ class HUD:
         "Eclipse": 2,
     }
 
-    def __init__(self, screen_w, screen_h, player_name, difficulty):
+    def __init__(self, screen_w, screen_h, player_name, difficulty, player):
         self.sw          = screen_w
         self.sh          = screen_h
         self.player_name = player_name
@@ -42,6 +42,7 @@ class HUD:
         #hearts
         self.max_hearts = self.DIFF_HEARTS.get(difficulty, 3)
         self.hearts     = self.max_hearts
+        player.hp = self.max_hearts
 
         #heart images
         raw = pygame.image.load("imgs/HUD/heart2.png").convert_alpha()

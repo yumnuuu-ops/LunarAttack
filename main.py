@@ -213,7 +213,6 @@ while running:
             if not transition_active and not is_paused:
                 enemy_manager.spawn_aliens(currState)
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
-            bossFight.reset()
             currState = BOSS
 
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_z:
@@ -271,9 +270,6 @@ while running:
                     hud.next_wave()
                     currState = target_state
                     enemy_manager.setup_stage_config(currState)
-                    if currState == BOSS:
-                        bossFight.reset()
-                        bossFight.hud = hud
                     # Instantly spawn the first wave of enemies upon entering the new stage
                     enemy_manager.spawn_aliens(currState)
                     # Dynamically set faster spawn timer for Stage 2 & 3 (750ms) and default (1500ms) for other stages
@@ -402,7 +398,7 @@ while running:
 
         if cutscene.action == "DONE":
             currState = STAGE_1
-            hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
+            hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty, player)
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
             bossFight.hud = hud
@@ -504,7 +500,7 @@ while running:
             transition_active = False
             transition_timer = 0.0
             currState = STAGE_1
-            hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
+            hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty, player)
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
             bossFight.hud = hud
