@@ -26,6 +26,7 @@ class SoundManager:
         "eclipse to scarred": "audio\\sfx\\eclipse to scarred.wav",
         "teleport in": "audio\\sfx\\teleport in.wav",
         "teleport out": "audio\\sfx\\teleport out.wav",
+        "BigGunProj explosion": "audio\\sfx\\BigGun fire.wav"
     }
 
     def __init__(self):

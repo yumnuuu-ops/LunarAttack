@@ -164,7 +164,7 @@ class EnemyManager:
                     self.enemies_spawned_so_far += 1
 
     def handle_updates_and_collisions(self, stage, player_touching_edge=False):
-        # 1. Update enemies and collect enemy bullets
+        # Update enemies and collect enemy bullets
         enemy_bullets = []
         for alien in self.alien_group:
             result = alien.update(player_pos=self.player.rect.center, player_touching_edge=player_touching_edge)
@@ -173,16 +173,32 @@ class EnemyManager:
         self.enemy_projectile_group.add(*enemy_bullets)
         self.enemy_projectile_group.update()
 
-        # 2. Release dead aliens from formation in stages 4 and 5
+        # Release dead aliens from formation in stages 4 and 5
         if stage in [STAGE_4, STAGE_5]:
             dead_aliens = [alien for alien in self.formation.active_aliens if not alien.alive()]
             for alien in dead_aliens:
                 self.formation.release_alien(alien)
 
-        # 3. Bullet hits checking (projectile hits alien)
+        # Bullet hits checking (projectile hits alien)
         ALIEN_POINTS = {"alien_drone": 50, "tendril_alien": 150}
-        hits = pygame.sprite.groupcollide(projectile_group, self.alien_group, True, False)
+        hits = pygame.sprite.groupcollide(projectile_group, self.alien_group, False, False)
         for bullet, hit_aliens in hits.items():
+            if getattr(bullet, "is_explosion", False):      # Explosion
+                for alien in hit_aliens:
+                    if alien not in bullet.damaged_enemies: # Can only be damaged once by explosion splash damage
+                        alien.takeDamage(bullet.damage)
+                        bullet.damaged_enemies.add(alien)
+
+                        if alien.hp <= 0:
+                            self.hud.register_kill(ALIEN_POINTS.get(alien.alien_type, 50))
+                            if stage in [STAGE_4, STAGE_5]:
+                                self.formation.release_alien(alien)
+                continue
+            if hasattr(bullet, "ExplosiveProjectile") and bullet.selectedProj in bullet.ExplosiveProjectile:    # Detonating the explosive bullet
+                bullet.detonate()
+            else:
+                bullet.kill()   # Normaling projectile
+
             for alien in hit_aliens:
                 alien.takeDamage(bullet.damage)
                 if alien.hp <= 0:
@@ -190,7 +206,7 @@ class EnemyManager:
                     if stage in [STAGE_4, STAGE_5]:
                         self.formation.release_alien(alien)
 
-        # 4. Player-Alien Collision Check (Kamikaze / Crashing into player!)
+        # Player-Alien Collision Check (Kamikaze / Crashing into player!)
         if not self.player.invincible:
             collided_aliens = [alien for alien in self.alien_group if self.player.rect.colliderect(alien.rect)]
             for alien in collided_aliens:
@@ -200,7 +216,7 @@ class EnemyManager:
                 if stage in [STAGE_4, STAGE_5]:
                     self.formation.release_alien(alien)
 
-        # 5. Player-EnemyBullet Collision Check
+        # Player-EnemyBullet Collision Check
         collided_bullets = [bullet for bullet in self.enemy_projectile_group if self.player.rect.colliderect(bullet.rect)]
         for bullet in collided_bullets:
             bullet.kill()

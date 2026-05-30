@@ -98,10 +98,10 @@ def load_all_assets(assetMgr):
 
     # Loading Projectile Animations
     assetMgr.loadAnim("AutoCannonProj", "imgs\\Main ship weapon - Projectile - Auto cannon bullet.png")
-    assetMgr.loadAnim("BigProj",        "imgs\\Main ship weapon - Projectile - Big Space Gun.png")
-    assetMgr.loadAnim("BigProjEx",      "imgs\\Main ship weapon - Projectile - Big Space Gun Ex.png")
+    assetMgr.loadAnim("BigGunProj",        "imgs\\Main ship weapon - Projectile - Big Space Gun.png")
+    assetMgr.loadAnimScale("BigGunProjE",      "imgs\\Main ship weapon - Projectile - Big Space Gun Ex.png", 8)
     assetMgr.loadAnim("ZapperProj",     "imgs\\Main ship weapon - Projectile - Zapper.png")
-    assetMgr.loadAnim("RocketProj",     "imgs\\Main ship weapon - Projectile - Rocket.png")
+    assetMgr.loadAnim("RocketsProj",     "imgs\\Main ship weapon - Projectile - Rocket.png")
 
     # Loading Boss / Eclipse Animations
     assetMgr.loadAnimScale("Mass", "imgs\\Mass Attack Anim.png", 4)
@@ -184,14 +184,7 @@ while running:
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
         if not transition_active:
-            player.update()
-
-            mouse_buttons = pygame.mouse.get_pressed()
-            if mouse_buttons[0]:
-                bullets = player.weapon.shootProjectile()
-                if bullets is not None:
-                    projectile_group.add(*bullets)
-
+            player.update(events)
             projectile_group.update()
             particle_group.update()
 
@@ -353,11 +346,6 @@ while running:
         bg.update(g.dt)
         bg.draw(game_surface)
         bossFight.update(events)
-        mouse_buttons = pygame.mouse.get_pressed()
-        if mouse_buttons[0]:
-            bullets = player.weapon.shootProjectile()
-            if bullets is not None:
-                projectile_group.add(*bullets)
         projectile_group.update()
         player.draw(game_surface)
         projectile_group.draw(game_surface)
