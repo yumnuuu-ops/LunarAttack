@@ -5,6 +5,10 @@ from pygame.mixer_music import set_volume
 class SoundManager:
     TRACKS = {
         "menu" : "audio/music/mmm.mp3",
+        "game": "audio/music/igm.mp3",
+        "gameover": "audio/music/gom.mp3",
+        "boss": "audio/music/bfm.mp3",
+        "win": "audio/music/win.mp3",
     }
 
     SFX = {
@@ -59,7 +63,7 @@ class SoundManager:
 
     def __init__(self):
         self.current_track = None
-        self.music_volume  = 0.4
+        self.music_volume  = 0.14
         self.sfx_volume = 0.1
 
         self.sounds = {}

@@ -204,13 +204,19 @@ class BossFight:
                     if self.boss not in projectile.damaged_enemies:
                         self.boss.takeDamage(projectile.damage)
                         projectile.damaged_enemies.add(self.boss)
+                        if self.hud and self.boss.alive:
+                            self.hud.add_boss_hit()
                     continue
                 if hasattr(projectile, "ExplosiveProjectile") and projectile.selectedProj in projectile.ExplosiveProjectile:
                     self.boss.takeDamage(projectile.damage)
                     projectile.detonate()
+                    if self.hud and self.boss.alive:
+                        self.hud.add_boss_hit()
                 else:
                     self.boss.takeDamage(projectile.damage)
                     projectile.kill()
+                    if self.hud and self.boss.alive:
+                        self.hud.add_boss_hit()
 
         for asteroid in self.boss.asteroids:
             asteroid.move()
@@ -234,6 +240,8 @@ class BossFight:
             self.checkAsteroidHits()
 
         if not self.boss.alive:
+            if self.hud and not self.finished:
+                self.hud.add_boss_kill()
             self.finished = True
 
     def checkAsteroidHits(self):
