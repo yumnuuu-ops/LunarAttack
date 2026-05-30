@@ -7,23 +7,19 @@ from globals import particle_group
 
 
 class SparksEffect(pygame.sprite.Sprite):
-    def __init__(self, destroyed_entity, amount=42):
+    def __init__(self, destroyed_entity, amount=46):
         super().__init__()
         self.x = destroyed_entity.rect.centerx
         self.y = destroyed_entity.rect.centery
         self.amount = amount
 
-        self.age = 0
-        self.spark_delay = 5
-        self.spark_spawned = False
-        self.explosion_alpha = 230
-        self.explosion_radius = 10
         self.sparks = []
 
         self.canvas_size = 240
         self.center = pygame.math.Vector2(self.canvas_size // 2, self.canvas_size // 2)
         self.image = pygame.Surface((self.canvas_size, self.canvas_size), pygame.SRCALPHA)
         self.rect = self.image.get_rect(center=(self.x, self.y))
+        self._create_sparks()
         self._draw_effect()
 
     def start(self):
@@ -60,15 +56,6 @@ class SparksEffect(pygame.sprite.Sprite):
 
         self.sparks = [spark for spark in self.sparks if spark["alpha"] > 0]
 
-    def _draw_explosion(self):
-        if self.explosion_alpha <= 0:
-            return
-
-        color = (255, 165, 45, max(0, min(255, int(self.explosion_alpha))))
-        inner_color = (255, 245, 210, max(0, min(255, int(self.explosion_alpha * 0.9))))
-        pygame.draw.circle(self.image, color, self.center, max(1, int(self.explosion_radius)))
-        pygame.draw.circle(self.image, inner_color, self.center, max(1, int(self.explosion_radius * 0.45)))
-
     def _draw_sparks(self):
         for spark in self.sparks:
             velocity = spark["velocity"]
@@ -82,21 +69,11 @@ class SparksEffect(pygame.sprite.Sprite):
 
     def _draw_effect(self):
         self.image.fill((0, 0, 0, 0))
-        self._draw_explosion()
         self._draw_sparks()
 
     def update(self):
-        self.age += 1
-
-        self.explosion_radius += 3
-        self.explosion_alpha -= 22
-
-        if self.age >= self.spark_delay and not self.spark_spawned:
-            self._create_sparks()
-            self.spark_spawned = True
-
         self._update_sparks()
         self._draw_effect()
 
-        if self.explosion_alpha <= 0 and self.spark_spawned and not self.sparks:
+        if not self.sparks:
             self.kill()
