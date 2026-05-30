@@ -135,25 +135,16 @@ class BossFight:
         if self.testKeys:
             for event in events:
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_1:
-                        soundMgr.play_sfx("asteroid")
-                        self.boss.asteroidBarrage(self.player.rect)
-                    elif event.key == pygame.K_2:
-                        self.boss.gravityPull(self.player.rect,
-                                              self.screen_w, self.screen_h)
-                    elif event.key == pygame.K_3:
+                    if event.key == pygame.K_p:
                         if self.beam is None or not self.beam.active:
                             self.beam = Beam(self.screen_w, self.screen_h)
                             asteroid_type = "Neutral" if self.boss.phase == 1 else "Fiery"
                             self.beam.BeamStorm(asteroid_type)
-                    elif event.key == pygame.K_p:
-                        self.boss.phase = 2 if self.boss.phase == 1 else 1
-                        if self.boss.phase == 1:
-                            self.boss.phase2_transition_animation = False
                     elif event.key == pygame.K_g:
-                        self.boss.massRelease()
+                        self.boss.gravityPull(self.player.rect, self.screen_w, self.screen_h)
                     elif event.key == pygame.K_u:
-                        self.boss.phase = 3
+                        soundMgr.play_sfx("asteroid")
+                        self.boss.asteroidBarrage(self.player.rect)
                     elif event.key == pygame.K_4:
                         self.boss.teleportAttack(self.player.rect, self.screen_w, self.screen_h)
                     elif event.key == pygame.K_5:
@@ -167,6 +158,15 @@ class BossFight:
         self.boss.move()
         self.boss.moveClone()
         self.boss.chooseMove(self.player.rect)
+        if self.boss.request_beams:
+            self.boss.request_beams = False
+            if self.beam is None or not self.beam.active:
+                self.beam = Beam(self.screen_w, self.screen_h)
+                if self.boss.phase == 2:
+                    asteroid_type = "Fiery"
+                else:
+                    asteroid_type = "Scarred"
+                self.beam.BeamStorm(asteroid_type)
 
         for projectile in projectile_group:
             if projectile.rect.colliderect(self.boss.rect):
@@ -222,8 +222,28 @@ class BossFight:
                     self.hud.take_damage()
                     self.beam.asteroids.remove(asteroid)
 
+    def drawHPBar(self, screen):
+        if self.mode != "fight" or self.boss.dying:
+            return
+        bar_w = 800
+        bar_h = 20
+        x = (self.screen_w - bar_w) // 2
+        y = 60  # A bit above the boss
+
+        pygame.draw.rect(screen, (40, 40, 40), (x, y, bar_w, bar_h))
+        hp_frac = max(0, self.boss.hp / self.boss.max_hp)
+        pygame.draw.rect(screen, (200, 40, 40), (x, y, int(bar_w * hp_frac), bar_h))
+        pygame.draw.rect(screen, (255, 255, 255), (x, y, bar_w, bar_h), 2)
+
+        phase2_frac = self.boss.phase2_hp / self.boss.max_hp
+        giant_frac = self.boss.giant_hp / self.boss.max_hp
+        for frac in (phase2_frac, giant_frac):
+            lx = x + int(bar_w * frac)
+            pygame.draw.line(screen, (255, 255, 0), (lx, y - 4), (lx, y + bar_h + 4), 2)
+
     def draw(self, screen):
         self.boss.draw(screen)
+        self.drawHPBar(screen)
 
         if self.blackhole is not None:
             self.blackhole.draw(screen)
@@ -248,9 +268,15 @@ class BossFight:
         if self.mode == "intro":
             if self.intro_step == "blackhole_spawn":
                 frame = self.animation_blackhole_spawn.get_current_frame()
-            elif self.intro_step in ("blackhole", "descend"):
+            elif self.intro_step in ("blackhole", "descend", "blackout"):
                 frame = self.animation_blackhole.get_current_frame()
             else:
                 frame = None
             if frame:
                 screen.blit(frame, frame.get_rect(center=self.blackhole_pos))
+
+        if self.mode == "intro" and self.intro_step == "blackout":
+            overlay = pygame.Surface((self.screen_w, self.screen_h))
+            overlay.fill((0, 0, 0))
+            overlay.set_alpha(self.fade_alpha)
+            screen.blit(overlay, (0, 0))
