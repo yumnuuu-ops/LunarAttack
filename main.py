@@ -12,8 +12,11 @@ from HUD import HUD
 from BossFight import BossFight
 from enemy.EnemyManager import EnemyManager
 from ShatterEffect import ShatterEffect
+from PauseMenu import PauseMenu
+from GameOver import GameOver
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
+
 import math
 
 pygame.init()
@@ -71,12 +74,17 @@ def setDifficulty(selected_diff):
     enemy_manager.total_enemies_to_spawn = 20
 
 def game_over():
-    global currState, player, death_timer
+    global currState, player, game_over_screen
 
     ShatterEffect.trigger(player, rows=6, cols=6)
+    score_manager.save_run(hud.player_name, hud.score, hud.difficulty, hud.current_stage)
+
+    game_over_screen = GameOver(screen_w, screen_h, hud.player_name, hud.score)
+    game_over_screen.on_hover = lambda: soundMgr.play_sfx("select")
+    game_over_screen.on_click = lambda: soundMgr.play_sfx("confirm")
+    game_over_screen.open()
 
     currState = DEATH_SCENE
-    death_timer = 2.0
 
 def quitGame():
     global running
@@ -162,6 +170,13 @@ cutscene = CutScene(screen_w, screen_h)
 cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
 bossFight = BossFight(screen_w, screen_h, player)
 
+pause_menu = PauseMenu(screen_w, screen_h)
+pause_menu.on_hover = lambda: soundMgr.play_sfx("select")
+pause_menu.on_click = lambda: soundMgr.play_sfx("confirm")
+is_paused = False
+#game over screen
+game_over_screen = None
+
 # main loop
 running = True
 
@@ -172,7 +187,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == SPAWN_ALIEN_EVENT and currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
-            if not transition_active:
+            if not transition_active and not is_paused:
                 enemy_manager.spawn_aliens(currState)
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
             currState = BOSS
@@ -180,9 +195,19 @@ while running:
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_z:
             soundMgr.play_sfx("phase 1 to 2") # phase 2 to eclipse     phase 1 to 2      eclipse to scarred
 
+
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
+                is_paused = not is_paused
+                if is_paused:
+                    pause_menu.open()
+                    pygame.mixer.music.pause()
+                else:
+                    pygame.mixer.music.unpause()
+
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
-        if not transition_active:
+        if not transition_active and not is_paused:
             player.update()
 
             mouse_buttons = pygame.mouse.get_pressed()
@@ -216,7 +241,7 @@ while running:
                 condition = enemy_manager.enemies_spawned_so_far >= enemy_manager.total_enemies_to_spawn
                 if require_empty:
                     condition = condition and len(enemy_manager.alien_group) == 0
-                
+
                 if condition:
                     transition_active = True
                     transition_timer = TRANSITION_DURATION
@@ -228,33 +253,42 @@ while running:
                     enemy_manager.formation.reset()
         else:
             # Transition active: tick timer
-            transition_timer -= g.dt
-            if transition_timer <= 0:
-                transition_active = False
-                hud.next_wave()
-                currState = transition_target_state
+            if not is_paused:
+                transition_timer -= g.dt
+                if transition_timer <= 0:
+                    transition_active = False
+                    hud.next_wave()
+                    currState = transition_target_state
 
                 # Set up the new stage config
-                enemy_manager.setup_stage_config(currState)
+                    enemy_manager.setup_stage_config(currState)
 
     elif currState == DEATH_SCENE:
         # Countdown the timer
-        death_timer -= g.dt
-
         particle_group.update()
         enemy_manager.enemy_projectile_group.update()
+        game_over_screen.update(g.dt, events)
 
-        # Once time runs out, clean up and head to the menu
-        if death_timer <= 0:
+        if game_over_screen.action == "PLAY_AGAIN":
+            currState = PLAY_SCREEN
+            play_screen = PlayScreen(screen_w, screen_h, score_manager)
+            play_screen.on_hover = lambda: soundMgr.play_sfx("select")
+            play_screen.on_error = lambda: soundMgr.play_sfx("error")
+            play_screen.on_confirm = lambda: soundMgr.play_sfx("confirm")
+            soundMgr.play_music("menu")
+
+        elif game_over_screen.action == "MENU":
             currState = MENU
             menu.reset()
             player.hp = 100
             soundMgr.play_music("menu")
 
     # Clear the intermediate drawing surface
+
     game_surface.fill((0, 0, 0))
 
     # draw
+
     if currState == MENU:
         if not soundMgr.is_playing():
             soundMgr.play_music("menu")
@@ -306,6 +340,7 @@ while running:
 
     elif currState == CUTSCENE:
         bg.update(g.dt)
+
         bg.draw(game_surface)
         cutscene.update(events)
         cutscene.draw(game_surface)
@@ -323,33 +358,31 @@ while running:
             enemy_manager.enemies_spawned_so_far = 0
             enemy_manager.total_enemies_to_spawn = 20
 
+
+
     elif currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
         bg.update(g.dt)
+        # Always draw (so pause menu has a frozen game behind it)
         bg.draw(game_surface)
         player.draw(game_surface)
         projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
-
-        # PROJECTILE HIT BOX RENDERING, DO NOT REMOVE
         for proj in projectile_group:
             pygame.draw.rect(game_surface, (0, 255, 0), proj.rect, 1)
-
-        # HIT BOX RENDERING, DO NOT REMOVE
         for alien in enemy_manager.alien_group:
             pygame.draw.rect(game_surface, (255, 0, 0), alien.rect, 1)
-
-        # ENEMY PROJECTILE HIT BOX RENDERING, DO NOT REMOVE
         for e_proj in enemy_manager.enemy_projectile_group:
             pygame.draw.rect(game_surface, (255, 128, 0), e_proj.rect, 1)
-
-        # Render the alien fleet, lasers, and target indicators
         enemy_manager.draw(game_surface, currState)
+        # Only update/advance logic when not paused
 
+        if not is_paused:
 
-        hud.update(g.dt)
+            hud.update(g.dt)
 
     elif currState == BOSS:
         bg.update(g.dt)
+
         bg.draw(game_surface)
         bossFight.update(events)
         mouse_buttons = pygame.mouse.get_pressed()
@@ -366,16 +399,9 @@ while running:
     elif currState == DEATH_SCENE:
         bg.update(g.dt)
         bg.draw(game_surface)
-
         enemy_manager.draw(game_surface, currState)
         enemy_manager.enemy_projectile_group.draw(game_surface)
-
         particle_group.draw(game_surface)
-
-        # Draw GAME OVER at center of the screen
-        text_surf = press_start_large.render("GAME OVER", True, (255, 0, 0))
-        text_rect = text_surf.get_rect(center=(screen_w // 2, screen_h // 2))
-        game_surface.blit(text_surf, text_rect)
 
     # Process and Blit Screen Shake
     shake_offset_x = 0
@@ -388,16 +414,55 @@ while running:
             shake_intensity = 0
 
     screen.fill((0, 0, 0))
+    #print(f"game_surface color at center: {game_surface.get_at((640, 360))}")
     screen.blit(game_surface, (shake_offset_x, shake_offset_y))
 
     # Render HUD statically on top of the shook screen
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
         hud.draw(screen)
 
+    if currState == DEATH_SCENE and game_over_screen is not None:
+        game_over_screen.draw(screen)
+
     # Transition to the next stage
     if transition_active:
         print("preparing for: " + transition_target_state)
 
+    if is_paused:
+        pause_menu.update(events)
+        pause_menu.draw(screen)
+
+
+        if pause_menu.action == "RESUME":
+            is_paused = False
+            pygame.mixer.music.unpause()
+        elif pause_menu.action == "RESTART":
+            is_paused = False
+            transition_active = False
+            transition_timer = 0.0
+            currState = STAGE_1
+            hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
+            hud.on_game_over = lambda: game_over()
+            enemy_manager.hud = hud
+            enemy_manager.alien_group.empty()
+            projectile_group.empty()
+            enemy_manager.enemy_projectile_group.empty()
+            enemy_manager.formation.reset()
+            enemy_manager.enemies_spawned_so_far = 0
+            enemy_manager.total_enemies_to_spawn = 20
+            player.hp = 100
+            pygame.mixer.music.unpause()
+
+        elif pause_menu.action == "MENU":
+            is_paused = False
+            soundMgr.stop_music()
+            currState = MENU
+            menu.reset()
+            player.hp = 100
+            soundMgr.play_music("menu")
+
+        elif  pause_menu.action == "QUIT":
+            running = False
 
     pygame.display.flip()
 

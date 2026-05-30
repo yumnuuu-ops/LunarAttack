@@ -1,19 +1,91 @@
 {
-    "last_name": "ACE",
-    "achievements": [],
-    "history": [
-        {
-            "name": "ACE",
-            "score": 12400,
-            "difficulty": "Hard",
-            "wave_reached": 3,
-            "date": "2026-05-27",
-            "is_highscore": true
-        }
-    ],
-    "stats": {
-        "total_runs": 5,
-        "highest_score": 12400,
-        "highest_wave": 3
+  "last_name": "TESTERMA",
+  "achievements": [],
+  "history": [
+    {
+      "name": "TESTERMA",
+      "score": 4500,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": true
+    },
+    {
+      "name": "TESTERMA",
+      "score": 0,
+      "difficulty": "Hard",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "PENIDS",
+      "score": 1125,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "PENIDS",
+      "score": 0,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "PENIDS",
+      "score": 75,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "PENIDS",
+      "score": 3900,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "YUMNU",
+      "score": 0,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "YUMNU",
+      "score": 0,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "ACE",
+      "score": 0,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "ACE",
+      "score": 0,
+      "difficulty": "Medium",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
     }
+  ],
+  "stats": {
+    "total_runs": 19,
+    "highest_score": 12400,
+    "highest_wave": 3
+  }
 }
