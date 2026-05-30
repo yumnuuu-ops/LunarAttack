@@ -202,7 +202,7 @@ while running:
     for event in events:
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == SPAWN_ALIEN_EVENT and currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
+        elif event.type == SPAWN_ALIEN_EVENT and currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS]:
             if not transition_active and not is_paused:
                 enemy_manager.spawn_aliens(currState)
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
@@ -247,10 +247,10 @@ while running:
                 STAGE_2: (STAGE_3, "STAGE 2 CLEAR!", True),
                 STAGE_3: (STAGE_4, "STAGE 3 CLEAR!", True),
                 STAGE_4: (STAGE_5, "STAGE 4 CLEAR!", True),
-                STAGE_5: (MENU, "VICTORY!", True)
+                STAGE_5: (BOSS, "Why have thy summoned thee me, za moon?", True),
             }
 
-            if currState in stage_configs:
+            if currState in stage_configs and currState != BOSS:
                 target_state, title, require_empty = stage_configs[currState]
 
                 if currState in [STAGE_2, STAGE_3]:
@@ -291,8 +291,19 @@ while running:
         elif game_over_screen.action == "MENU":
             currState = MENU
             menu.reset()
+            menu.reset()
             player.hp = 100 #think of this as resetting player health to full health
             soundMgr.play_music("menu")
+
+    elif currState == BOSS:
+        bg.update(g.dt)
+        bossFight.update(events)
+        projectile_group.update()
+        if bossFight.finished:
+            currState = END_SCENE
+            name = getattr(play_screen, "player_name", "") or "Cadet"
+            end_cutscene = CutScene(screen_w, screen_h, player_name=name, scenes="ending")
+            end_cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
 
     elif currState == END_SCENE:
         end_cutscene.update(events)
@@ -367,6 +378,7 @@ while running:
             hud = HUD(screen_w, screen_h, play_screen.player_name, selected_difficulty)
             hud.on_game_over = lambda: game_over()
             enemy_manager.hud = hud
+            BossFight.hud = hud
             soundMgr.stop_music()
             enemy_manager.alien_group.empty()
             projectile_group.empty()
@@ -398,11 +410,7 @@ while running:
             hud.update(g.dt)
 
     elif currState == BOSS:
-        bg.update(g.dt)
-
         bg.draw(game_surface)
-        bossFight.update(events)
-        projectile_group.update()
         player.draw(game_surface)
         projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
@@ -435,7 +443,7 @@ while running:
     screen.blit(game_surface, (shake_offset_x, shake_offset_y))
 
     # Render HUD statically on top of the shook screen
-    if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
+    if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS]:
         hud.draw(screen)
 
     if currState == DEATH_SCENE and game_over_screen is not None:
