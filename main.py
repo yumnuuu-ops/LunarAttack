@@ -119,8 +119,9 @@ def load_all_assets(assetMgr):
     assetMgr.loadAnimScale("MoonP2Scarred", "Assets\\Moon\\moon_phase2_scarred_idle_strip.png", 6)
 
     # Loading Enemy Animations & Bullets
-    assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
+    assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_spaceship.png")
     assetMgr.loadAnim("tendril_alien", "Assets\\Aliens\\enemy_tendril_strip.png")
+    assetMgr.loadAnim("eye_spawn", "Assets\\Aliens\\eye_spawn.png")
     assetMgr.loadTexture("enemy_bullet", "Assets\\Aliens\\enemy_bullets.png")
 
     # Loading Teleport Animations
