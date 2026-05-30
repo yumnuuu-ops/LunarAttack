@@ -63,7 +63,7 @@ class Projectile(pygame.sprite.Sprite):
         self.animator.reset()
 
     def detonate(self):
-        splash_damage = self.damage + 20
+        splash_damage = 20
 
         explosion = Explosion(self.pos.x, self.pos.y, self.selectedProj + "E", splash_damage)
         projectile_group.add(explosion)
