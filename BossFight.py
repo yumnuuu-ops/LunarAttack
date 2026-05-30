@@ -141,6 +141,8 @@ class BossFight:
                         self.boss.swapWithClone(self.player.rect)
                     elif event.key == pygame.K_6:
                         self.boss.cloneMass(self.player.rect)
+                    elif event.key == pygame.K_h:
+                        self.boss.hp = 0
 
         self.boss.update(self.player.rect)
         self.boss.move()
