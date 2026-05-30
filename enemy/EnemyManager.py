@@ -31,6 +31,10 @@ class EnemyManager:
         self.last_y = 80
         self.y_spacing = 20
         
+        # Sentry tracking for stage 2 and 3
+        self.sentry_left = None
+        self.sentry_right = None
+        
         # Setup Grid Slots
         cols_s4 = [((screen_w - 5 * 150) // 2) + i * 150 for i in range(6)]
         self.grid_slots_stage4 = [(col, self.last_y + ((5 - i if i > 2 else i) * self.y_spacing)) for i, col in enumerate(cols_s4)]
@@ -45,31 +49,37 @@ class EnemyManager:
             self.grid_slots_stage5.append((col, self.last_y + ((6 - i if i > 2 else i) * self.y_spacing)))
             
         self.formation = Formation(screen_w, screen_h, self.grid_slots_stage4)
-        self.alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
+        self.alien_types = ["alien_drone", "tendril_alien", "eye_spawn"]
 
     def setup_stage_config(self, stage):
         self.alien_group.empty()
         self.enemy_projectile_group.empty()
         self.formation.reset()
+        self.sentry_left = None
+        self.sentry_right = None
         
         if stage == STAGE_2:
             self.enemies_spawned_so_far = 2
-            self.total_enemies_to_spawn = 20
+            self.total_enemies_to_spawn = 40  # Set higher so it relies on killing sentries
             p1 = Alien("tendril_alien", 480, 150, stage=2)
             p1.phase = "stationary"
             self.alien_group.add(p1)
             p2 = Alien("tendril_alien", 800, 150, stage=2)
             p2.phase = "stationary"
             self.alien_group.add(p2)
+            self.sentry_left = p1
+            self.sentry_right = p2
         elif stage == STAGE_3:
             self.enemies_spawned_so_far = 2
-            self.total_enemies_to_spawn = 30
+            self.total_enemies_to_spawn = 60  # Set higher so it relies on killing sentries
             p1 = Alien("tendril_alien", 480, 150, stage=3)
             p1.phase = "stationary"
             self.alien_group.add(p1)
             p2 = Alien("tendril_alien", 800, 150, stage=3)
             p2.phase = "stationary"
             self.alien_group.add(p2)
+            self.sentry_left = p1
+            self.sentry_right = p2
         elif stage == STAGE_4:
             self.formation = Formation(self.screen_w, self.screen_h, self.grid_slots_stage4)
             self.enemies_spawned_so_far = 0
@@ -80,7 +90,8 @@ class EnemyManager:
             self.total_enemies_to_spawn = 36
 
     def spawn_aliens(self, stage):
-        if self.enemies_spawned_so_far >= self.total_enemies_to_spawn:
+        # Stage 2 and 3 spawn drones infinitely until the stationary sentries are destroyed
+        if stage not in [STAGE_2, STAGE_3] and self.enemies_spawned_so_far >= self.total_enemies_to_spawn:
             return
 
         if stage == STAGE_1:
@@ -111,17 +122,30 @@ class EnemyManager:
                     self.alien_group.add(new_alien)
                     self.enemies_spawned_so_far += 1
         elif stage in [STAGE_2, STAGE_3]:
-            num_to_spawn = random.choice([3, 4])
+            left_alive = self.sentry_left and self.sentry_left.alive()
+            right_alive = self.sentry_right and self.sentry_right.alive()
+            
+            valid_sides = []
+            if left_alive: valid_sides.append("left")
+            if right_alive: valid_sides.append("right")
+            
+            if not valid_sides:
+                # Both front sentries are killed! Skip spawning and jump to the end of the stage.
+                self.enemies_spawned_so_far = self.total_enemies_to_spawn
+                return
+                
+            num_to_spawn = random.choice([2, 3])
             for idx in range(num_to_spawn):
-                if self.enemies_spawned_so_far < self.total_enemies_to_spawn:
-                    if idx % 2 == 0:
-                        spawn_x = -100 # Off-screen left
-                    else:
-                        spawn_x = 1380 # Off-screen right
-                    spawn_y = 60 + (idx * 110)
-                    new_alien = Alien("alien_drone", spawn_x, spawn_y, stage=2 if stage == STAGE_2 else 3)
-                    self.alien_group.add(new_alien)
-                    self.enemies_spawned_so_far += 1
+                # Unlimited spawning while sentries are active
+                side = random.choice(valid_sides)
+                if side == "left":
+                    spawn_x = -100 # Off-screen left
+                else:
+                    spawn_x = 1380 # Off-screen right
+                spawn_y = 60 + (idx * 110)
+                new_alien = Alien("alien_drone", spawn_x, spawn_y, stage=2 if stage == STAGE_2 else 3)
+                self.alien_group.add(new_alien)
+                self.enemies_spawned_so_far += 1
         elif stage in [STAGE_4, STAGE_5]:
             # Spawn in a swarm! Request up to 6 slots (3 pairs) per tick
             slots_to_spawn = []
@@ -135,7 +159,7 @@ class EnemyManager:
                     else:
                         spawn_x = self.screen_w + 50 + (idx * 80)
                         spawn_y = 0
-                    alien_type = self.alien_types[1] if stage == STAGE_4 else self.alien_types[2]
+                    alien_type = self.alien_types[2] # Use eye_spawn for both STAGE_4 and STAGE_5
                     new_alien = Alien(alien_type, spawn_x, spawn_y, stage=4 if stage == STAGE_4 else 5,
                                       target_x=slot[0], target_y=slot[1])
                     self.alien_group.add(new_alien)
@@ -143,27 +167,41 @@ class EnemyManager:
                     self.enemies_spawned_so_far += 1
 
     def handle_updates_and_collisions(self, stage, player_touching_edge=False):
-        # 1. Update enemies and collect enemy bullets
+        # Update enemies and collect enemy bullets
         enemy_bullets = []
         for alien in self.alien_group:
             result = alien.update(player_pos=self.player.rect.center, player_touching_edge=player_touching_edge)
             if result is not None:
                 enemy_bullets.append(result)
-                # Satisfying micro-shake when enemy shoots
-                self.trigger_shake(2, 4)
         self.enemy_projectile_group.add(*enemy_bullets)
         self.enemy_projectile_group.update()
 
-        # 2. Release dead aliens from formation in stages 4 and 5
+        # Release dead aliens from formation in stages 4 and 5
         if stage in [STAGE_4, STAGE_5]:
             dead_aliens = [alien for alien in self.formation.active_aliens if not alien.alive()]
             for alien in dead_aliens:
                 self.formation.release_alien(alien)
 
-        # 3. Bullet hits checking (projectile hits alien)
+        # Bullet hits checking (projectile hits alien)
         ALIEN_POINTS = {"alien_drone": 50, "tendril_alien": 150}
-        hits = pygame.sprite.groupcollide(projectile_group, self.alien_group, True, False)
+        hits = pygame.sprite.groupcollide(projectile_group, self.alien_group, False, False)
         for bullet, hit_aliens in hits.items():
+            if getattr(bullet, "is_explosion", False):      # Explosion
+                for alien in hit_aliens:
+                    if alien not in bullet.damaged_enemies: # Can only be damaged once by explosion splash damage
+                        alien.takeDamage(bullet.damage)
+                        bullet.damaged_enemies.add(alien)
+
+                        if alien.hp <= 0:
+                            self.hud.register_kill(ALIEN_POINTS.get(alien.alien_type, 50))
+                            if stage in [STAGE_4, STAGE_5]:
+                                self.formation.release_alien(alien)
+                continue
+            if hasattr(bullet, "ExplosiveProjectile") and bullet.selectedProj in bullet.ExplosiveProjectile:    # Detonating the explosive bullet
+                bullet.detonate()
+            else:
+                bullet.kill()   # Normaling projectile
+
             for alien in hit_aliens:
                 alien.takeDamage(bullet.damage)
                 if alien.hp <= 0:
@@ -171,21 +209,24 @@ class EnemyManager:
                     if stage in [STAGE_4, STAGE_5]:
                         self.formation.release_alien(alien)
 
-        # 4. Player-Alien Collision Check (Kamikaze / Crashing into player!)
-        collided_aliens = [alien for alien in self.alien_group if self.player.rect.colliderect(alien.rect)]
-        for alien in collided_aliens:
-            alien.kill()
-            self.player.takeDamage(1) # Deduct 1 HP on crash
-            self.hud.take_damage()
-            if stage in [STAGE_4, STAGE_5]:
-                self.formation.release_alien(alien)
+        # Player-Alien Collision Check (Kamikaze / Crashing into player!)
+        if not self.player.invincible:
+            collided_aliens = [alien for alien in self.alien_group if self.player.rect.colliderect(alien.rect)]
+            for alien in collided_aliens:
+                alien.kill()
+                self.player.takeDamage(1)
+                self.hud.take_damage()
+                if stage in [STAGE_4, STAGE_5]:
+                    self.formation.release_alien(alien)
 
-        # 5. Player-EnemyBullet Collision Check
+        # Player-EnemyBullet Collision Check
         collided_bullets = [bullet for bullet in self.enemy_projectile_group if self.player.rect.colliderect(bullet.rect)]
         for bullet in collided_bullets:
             bullet.kill()
-            self.player.takeDamage(1) # Deduct 1 HP on bullet hit
-            self.hud.take_damage()
+
+            if not self.player.invincible:
+                self.player.takeDamage(1)
+                self.hud.take_damage()
 
     def draw(self, game_surface, stage):
         # Draw bullets and alien group sprites

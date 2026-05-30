@@ -1,13 +1,13 @@
 import pygame
 import utils
 from AnimationManager import AnimationManager
-from globals import soundMgr, assetMgr
+from globals import soundMgr, assetMgr, projectile_group
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, selectedWeapon, speed, x, y, vx, vy, damage):
         super().__init__()
         self.assetMgr = assetMgr
-        self.selectedProj = "MoonPha2TeleSlowOut"        # AutoCannonProj    BigProj     ZapperProj    RocketProj
+        self.selectedProj = selectedWeapon + "Proj"        # AutoCannonProj    BigProj     ZapperProj    RocketsProj
         animation = assetMgr.getAnim(self.selectedProj)
         self.animator = AnimationManager(animation, 24)
 
@@ -25,12 +25,9 @@ class Projectile(pygame.sprite.Sprite):
         self.vx = vx
         self.vy = vy
         self.speed = speed
-
-        self.selectedWeapon = selectedWeapon
         self.damage = damage
 
-        self.ExplosiveProjectile = ["Mass"]
-        self.AfterEffect = ["MassE", "MoonTeleSlowIn", "MoonTeleSlowOut", "MoonTeleFastIn", "MoonTeleFastOut"]
+        self.ExplosiveProjectile = ["BigGunProj"]
 
     def moveProjectile(self):
         self.pos.x += self.vx * self.speed
@@ -39,16 +36,11 @@ class Projectile(pygame.sprite.Sprite):
         self.rect.center = (int(self.pos.x), int(self.pos.y))
 
     def update(self):
-        if self.selectedProj in self.ExplosiveProjectile:
-            if self.animator.checkEndOfAnimation():
-                newProj = self.selectedProj + "E"
-                self.changeAnim(newProj)
-                soundMgr.play_sfx("mass despawn")
-            self.animator.update(False)
-        elif self.selectedProj in self.AfterEffect:
-            self.animator.update(False)
-        else:
-            self.animator.update()
+        self.animator.update()
+
+        if self.selectedProj in self.ExplosiveProjectile and self.animator.checkEndOfAnimation():
+            self.detonate()
+            return
 
         raw_image = self.animator.get_current_frame()
         tight_box = raw_image.get_bounding_rect()
@@ -60,10 +52,6 @@ class Projectile(pygame.sprite.Sprite):
 
         self.moveProjectile()
 
-        if self.selectedProj in self.AfterEffect and self.animator.checkEndOfAnimation():
-            #self.kill()
-            return
-
         # Check if it went off screen
         if utils.is_off_screen(self.pos.x, self.pos.y):
             self.kill()
@@ -74,5 +62,42 @@ class Projectile(pygame.sprite.Sprite):
         self.animator.frames = new_frames
         self.animator.reset()
 
+    def detonate(self):
+        splash_damage = self.damage + 20
+
+        explosion = Explosion(self.pos.x, self.pos.y, self.selectedProj + "E", splash_damage)
+        projectile_group.add(explosion)
+
+        soundMgr.play_sfx("BigGunProj explosion")
+        self.kill()
 
 
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, x, y, anim_name, damage):
+        super().__init__()
+        self.is_explosion = True
+        self.damage = damage
+        self.damaged_enemies = set()  # Prevents damaging the same alien every single frame
+
+        self.animator = AnimationManager(assetMgr.getAnim(anim_name), 24)
+
+        raw_image = self.animator.get_current_frame()
+        tight_box = raw_image.get_bounding_rect()
+        self.image = raw_image.subsurface(tight_box)
+
+        self.rect = self.image.get_rect()
+        self.rect.center = (int(x), int(y))
+
+    def update(self):
+        self.animator.update()
+
+        raw_image = self.animator.get_current_frame()
+        tight_box = raw_image.get_bounding_rect()
+        self.image = raw_image.subsurface(tight_box)
+
+        old_center = self.rect.center
+        self.rect = self.image.get_rect()
+        self.rect.center = old_center
+
+        if self.animator.checkEndOfAnimation():
+            self.kill()

@@ -106,10 +106,10 @@ def load_all_assets(assetMgr):
 
     # Loading Projectile Animations
     assetMgr.loadAnim("AutoCannonProj", "imgs\\Main ship weapon - Projectile - Auto cannon bullet.png")
-    assetMgr.loadAnim("BigProj",        "imgs\\Main ship weapon - Projectile - Big Space Gun.png")
-    assetMgr.loadAnim("BigProjEx",      "imgs\\Main ship weapon - Projectile - Big Space Gun Ex.png")
+    assetMgr.loadAnim("BigGunProj",        "imgs\\Main ship weapon - Projectile - Big Space Gun.png")
+    assetMgr.loadAnimScale("BigGunProjE",      "imgs\\Main ship weapon - Projectile - Big Space Gun Ex.png", 8)
     assetMgr.loadAnim("ZapperProj",     "imgs\\Main ship weapon - Projectile - Zapper.png")
-    assetMgr.loadAnim("RocketProj",     "imgs\\Main ship weapon - Projectile - Rocket.png")
+    assetMgr.loadAnim("RocketsProj",     "imgs\\Main ship weapon - Projectile - Rocket.png")
 
     # Loading Boss / Eclipse Animations
     assetMgr.loadAnimScale("Mass", "imgs\\Mass Attack Anim.png", 4)
@@ -127,8 +127,9 @@ def load_all_assets(assetMgr):
     assetMgr.loadAnimScale("MoonP2Scarred", "Assets\\Moon\\moon_phase2_scarred_idle_strip.png", 6)
 
     # Loading Enemy Animations & Bullets
-    assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_drone_strip.png")
+    assetMgr.loadAnim("alien_drone", "Assets\\Aliens\\enemy_spaceship.png")
     assetMgr.loadAnim("tendril_alien", "Assets\\Aliens\\enemy_tendril_strip.png")
+    assetMgr.loadAnim("eye_spawn", "Assets\\Aliens\\eye_spawn.png")
     assetMgr.loadTexture("enemy_bullet", "Assets\\Aliens\\enemy_bullets.png")
 
     # Loading Teleport Animations
@@ -151,7 +152,7 @@ font = pygame.font.SysFont('freesansbold.ttf', 20)
 #removed for background
 
 # ====================================== Object Creation ======================================
-player = Player(608, 948)
+player = Player(608, 500)
 player.trigger_shake = trigger_shake
 font = pygame.font.SysFont('freesansbold.ttf', 20)
 
@@ -208,7 +209,7 @@ while running:
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
         if not transition_active and not is_paused:
-            player.update()
+            player.update(events)
 
             mouse_buttons = pygame.mouse.get_pressed()
             if mouse_buttons[0]:
@@ -216,6 +217,8 @@ while running:
                 if bullets is not None:
                     projectile_group.add(*bullets)
 
+        if not transition_active:
+            player.update(events)
             projectile_group.update()
             particle_group.update()
 
@@ -230,37 +233,34 @@ while running:
             # Check Stage Clear Conditions
             stage_configs = {
                 STAGE_1: (STAGE_2, "STAGE 1 CLEAR!", True),
-                STAGE_2: (STAGE_3, "STAGE 2 CLEAR!", False),
-                STAGE_3: (STAGE_4, "STAGE 3 CLEAR!", False),
+                STAGE_2: (STAGE_3, "STAGE 2 CLEAR!", True),
+                STAGE_3: (STAGE_4, "STAGE 3 CLEAR!", True),
                 STAGE_4: (STAGE_5, "STAGE 4 CLEAR!", True),
                 STAGE_5: (MENU, "VICTORY!", True)
             }
 
             if currState in stage_configs:
                 target_state, title, require_empty = stage_configs[currState]
-                condition = enemy_manager.enemies_spawned_so_far >= enemy_manager.total_enemies_to_spawn
-                if require_empty:
-                    condition = condition and len(enemy_manager.alien_group) == 0
-
+                
+                if currState in [STAGE_2, STAGE_3]:
+                    # Clear Stage 2 & 3 immediately once both sentries are killed
+                    left_alive = enemy_manager.sentry_left and enemy_manager.sentry_left.alive()
+                    right_alive = enemy_manager.sentry_right and enemy_manager.sentry_right.alive()
+                    condition = not left_alive and not right_alive
+                else:
+                    condition = enemy_manager.enemies_spawned_so_far >= enemy_manager.total_enemies_to_spawn
+                    if require_empty:
+                        condition = condition and len(enemy_manager.alien_group) == 0
+                
                 if condition:
-                    transition_active = True
-                    transition_timer = TRANSITION_DURATION
-                    transition_target_state = target_state
-                    transition_title = title
+                    # Execute instant, seamless stage transition
                     enemy_manager.alien_group.empty()
                     projectile_group.empty()
                     enemy_manager.enemy_projectile_group.empty()
                     enemy_manager.formation.reset()
-        else:
-            # Transition active: tick timer
-            if not is_paused:
-                transition_timer -= g.dt
-                if transition_timer <= 0:
-                    transition_active = False
+                    
                     hud.next_wave()
-                    currState = transition_target_state
-
-                # Set up the new stage config
+                    currState = target_state
                     enemy_manager.setup_stage_config(currState)
 
     elif currState == DEATH_SCENE:
@@ -280,7 +280,7 @@ while running:
         elif game_over_screen.action == "MENU":
             currState = MENU
             menu.reset()
-            player.hp = 100
+            player.hp = 4
             soundMgr.play_music("menu")
 
     # Clear the intermediate drawing surface
@@ -385,11 +385,6 @@ while running:
 
         bg.draw(game_surface)
         bossFight.update(events)
-        mouse_buttons = pygame.mouse.get_pressed()
-        if mouse_buttons[0]:
-            bullets = player.weapon.shootProjectile()
-            if bullets is not None:
-                projectile_group.add(*bullets)
         projectile_group.update()
         player.draw(game_surface)
         projectile_group.draw(game_surface)

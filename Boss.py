@@ -17,6 +17,7 @@ import os
 from globals import assetMgr, soundMgr
 from AnimationManager import AnimationManager
 
+
 # I am gonna be an astrophysician after this
 # Am I a computer science student with specialization in Artificial Intelligence
 # Or am I a Physician? Hm, I don't know anymore
@@ -45,11 +46,12 @@ class Boss:
     max_hp = 60
     phase2_hp = max_hp // 2 # Floor Division, phase 2 will start when HP is 50% or below
 
-    def __init__(self, screen_w):
+    def __init__(self, screen_w, screen_h):
         # Initial State
         self.hp = self.max_hp
         self.phase = 1
         self.screen_w = screen_w
+        self.screen_h = screen_h
         self.alive = True
         self.invincibility = False
         self.radius = 90
@@ -67,6 +69,12 @@ class Boss:
         self.clone_active = False
         self.animation_clone_spawn = AnimationManager(assetMgr.getAnim("MoonCSpawn"))
         self.animation_clone_idle = AnimationManager(assetMgr.getAnim("MoonC"))
+        self.clone_asteroids = []
+        self.clone_move_dir = -1
+        self.clone_teleport_active = False
+        self.clone_teleport_state = None
+        self.clone_teleport_timer = 0
+        self.clone_teleports_left = 0
 
         # Giant State
         self.giant_state = False
@@ -134,9 +142,9 @@ class Boss:
             self.hp = 0
             self.alive = False
 
-    def update(self):
+    def update(self, player_rect):
         if self.teleport_active:
-            self.updateTeleport()
+            self.updateTeleport(player_rect)
             return
         elif self.phase == 3:
             if self.phase2_scarred_transition_animation:
@@ -232,7 +240,7 @@ class Boss:
         if self.phase == 1:
             asteroidType = "Neutral"
         else:
-            asteroidType = "Clone"
+            asteroidType = "Fiery"
         for i in range(count):
             # t is made to even the spread of the asteroids
             t = i / (count - 1)
@@ -241,12 +249,53 @@ class Boss:
             vy = math.sin(angle)
             size = random.randint(26, 46)
             self.asteroids.append(Asteroid(cx, cy, vx, vy, size, asteroid_type=asteroidType))
+        if self.clone_active:
+            self.cloneBarrage(player_rect)
+
+    def cloneBarrage(self, player_rect):
+        cx, cy = self.clone_rect.center
+        aim = math.atan2(player_rect.centery - cy, player_rect.centerx - cx)
+        count = random.randint(5, 8)
+        spread = math.radians(120)
+        for i in range(count):
+            t = i / (count - 1)
+            angle = aim - spread / 2 + spread * t
+            vx = math.cos(angle)
+            vy = math.sin(angle)
+            size = random.randint(26, 46)
+            self.clone_asteroids.append(
+                Asteroid(cx, cy, vx, vy, size, asteroid_type="Clone"))
+
+    def cloneMass(self, player_rect):
+        mass = Mass()
+        mass.spawnLocation(player_rect, self.clone_rect, self.screen_w, self.screen_h)
+        mass.generatedMass = random.randint(400, 700)  # significantly weaker
+        mass.isCloneMass = True
+        self.active_masses.append(mass)
+
+    def moveClone(self):
+        if not self.clone_active or self.teleport_active:
+            return
+        self.clone_rect.x += self.clone_move_dir * self.move_speed
+        if self.clone_rect.left <= self.move_left_bound:
+            self.clone_move_dir = 1
+        elif self.clone_rect.right >= self.move_right_bound:
+            self.clone_move_dir = -1
+
+    def swapWithClone(self, player_rect):
+        if not self.clone_active:
+            return
+        real_pos = self.rect.center
+        clone_pos = self.clone_rect.center
+        self.rect.center = clone_pos
+        self.clone_rect.center = real_pos
+        self.asteroidBarrage(player_rect)
 
     def massRelease(self):
         self.giant_state = True
         self.invincibility = True
 
-    def teleportAttack(self, player_rect, screen_w):
+    def teleportAttack(self, player_rect, screen_w, screen_h):
         if self.teleport_active:
             return
         self.teleport_active = True
@@ -255,6 +304,7 @@ class Boss:
         self.invincibility = True
         self.player_rect = player_rect
         self.screen_w = screen_w
+        self.screen_h = screen_h
         self.beginTeleport()
 
     def beginTeleport(self):
@@ -263,15 +313,31 @@ class Boss:
         self.teleport_timer = len(self.animation_teleport_vanish.frames)
         self.animation_teleport_vanish.index = 0
 
-    def updateTeleport(self):
+    def updateTeleport(self, player_rect):
         if not self.teleport_active:
             return
+
+        if self.phase == 1:
+            self.selected_vanish = self.animation_teleport_vanish
+            self.selected_appear = self.animation_teleport_appear
+        else:
+            self.selected_vanish = self.animation_teleport2_vanish
+            self.selected_appear = self.animation_teleport2_appear
 
         if self.teleport_state == "vanish":
             self.selected_vanish.update(loop=False)
             if self.selected_vanish.index >= len(self.selected_vanish.frames) - 1:
                 new_x = random.randint(self.move_left_bound, self.move_right_bound)
-                self.rect.centerx = new_x
+                new_y = random.randint(120, int(self.screen_h * 0.6))
+                self.rect.center = (new_x, new_y)
+                min_dist = 300
+                if math.hypot(new_x - player_rect.centerx, new_y - player_rect.centery) < min_dist:
+                    for i in range(100):
+                        new_x = random.randint(self.move_left_bound, self.move_right_bound)
+                        new_y = random.randint(120, int(self.screen_h * 0.6))
+                        distanceToPlayer = math.hypot(new_x - player_rect.centerx, new_y - player_rect.centery)
+                        if distanceToPlayer >= min_dist:
+                            self.rect.center = (new_x, new_y)
                 soundMgr.play_sfx("teleport in")
                 self.teleport_state = "appear"
                 self.selected_appear.index = 0
@@ -387,6 +453,9 @@ class Asteroid:
         self.vx = vx
         self.vy = vy
 
+        self.rotated_image = self.image
+        self.mask = pygame.mask.from_surface(self.image)
+
     def move(self):
         if self.fixed_speed is None:
             self.speed += 0.2
@@ -394,14 +463,21 @@ class Asteroid:
                 self.speed = 15
         self.fx += self.vx * self.speed
         self.fy += self.vy * self.speed
-        self.rect.x = int(self.fx)
-        self.rect.y = int(self.fy)
+        self.rect.center = (int(self.fx), int(self.fy))
         self.angle += (self.speed * 2) % 360
 
+        # Perform rotation here during the physics update
+        self.rotated_image = pygame.transform.rotate(self.image, self.angle)
+        # Update self.rect to match the expanded rotated boundaries, keeping center locked
+        self.rect = self.rotated_image.get_rect(center=(int(self.fx), int(self.fy)))
+        # Generate a pixel-perfect mask from this frame's rotated image
+        self.mask = pygame.mask.from_surface(self.rotated_image)
+
     def draw(self, screen):
-        rotatedImage = pygame.transform.rotate(self.image, self.angle)
-        drawAsteroid = rotatedImage.get_rect(center=self.rect.center)
-        screen.blit(rotatedImage, drawAsteroid)
+        screen.blit(self.rotated_image, self.rect)
+
+        for point in self.mask.outline():
+            screen.set_at((self.rect.x + point[0], self.rect.y + point[1]), (255, 255, 0))
 
     def removeAsteroid(self, w, h):
         return(self.rect.right < -200 or self.rect.left > w + 200 or
@@ -417,6 +493,7 @@ class Mass:
         self.animation = AnimationManager(assetMgr.getAnim("Mass"))
         self.animation_spawn = AnimationManager(assetMgr.getAnim("MassSpawn"))
         self.animation_despawn = AnimationManager(assetMgr.getAnim("MassE"))
+        self.isCloneMass = False
         self.animation_spawn_loaded = False
         self.animation_despawn_loaded = False
         self.isDead = False
@@ -489,7 +566,8 @@ class Mass:
         # Fall off will be used to control how fast the force dies the further it moves out
         force = self.G * ((player_mass * self.generatedMass) // (dist ** falloff))
         # Ensures force is felt across the screen
-        force = max(1.5, force)
+        if (not self.isCloneMass):
+            force = max(1.5, force)
         # Ensures force is not overly strong when near
         force = min(6.0, force)
         nx, ny = dx / dist, dy / dist
