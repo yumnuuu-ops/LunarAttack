@@ -79,22 +79,28 @@ class PlayScreen:
                                 COLOR_BTN, COLOR_BTN_HOVER)
 
         # Difficulty buttons  (y = 360)
-        diff_y   = 360
-        diff_gap = 180
-        self.btn_easy   = Button("EASY",   self.font_medium,
-                                  cx - diff_gap - diff_w//2, diff_y,
-                                  diff_w, btn_h, COLOR_BTN, COLOR_BTN_HOVER)
-        self.btn_medium = Button("MEDIUM", self.font_medium,
-                                  cx - diff_w//2,            diff_y,
-                                  diff_w, btn_h, COLOR_BTN, COLOR_BTN_HOVER)
-        self.btn_hard   = Button("HARD",   self.font_medium,
-                                  cx + diff_gap - diff_w//2, diff_y,
-                                  diff_w, btn_h, COLOR_BTN, COLOR_BTN_HOVER)
+        diff_y = 360
+        diff_gap = 140
+        diff_w = 130
+
+        self.btn_easy = Button("EASY", self.font_small,
+                               cx - diff_gap * 2 - diff_w // 2 + 20, diff_y,
+                               diff_w, btn_h, COLOR_BTN, COLOR_BTN_HOVER)
+        self.btn_medium = Button("MEDIUM", self.font_small,
+                                 cx - diff_gap // 2 - diff_w // 2 - 20, diff_y,
+                                 diff_w, btn_h, COLOR_BTN, COLOR_BTN_HOVER)
+        self.btn_hard = Button("HARD", self.font_small,
+                               cx + diff_gap // 2 - diff_w // 2 + 20, diff_y,
+                               diff_w, btn_h, COLOR_BTN, COLOR_BTN_HOVER)
+        self.btn_eclipse = Button("ECLIPSE", self.font_small,
+                                  cx + diff_gap * 2 - diff_w // 2 - 20, diff_y,
+                                  diff_w, btn_h, (60, 0, 100), (130, 0, 220))
 
         self.diff_buttons = [
-            (self.btn_easy,   "Easy"),
+            (self.btn_easy, "Easy"),
             (self.btn_medium, "Medium"),
-            (self.btn_hard,   "Hard"),
+            (self.btn_hard, "Hard"),
+            (self.btn_eclipse, "Eclipse"),
         ]
 
         # Confirm / Back
@@ -107,7 +113,7 @@ class PlayScreen:
 
         self.all_buttons = [
             self.btn_last,
-            self.btn_easy, self.btn_medium, self.btn_hard,
+            self.btn_easy, self.btn_medium, self.btn_hard, self.btn_eclipse,
             self.btn_confirm, self.btn_back,
         ]
 

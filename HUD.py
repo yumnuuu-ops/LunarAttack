@@ -8,13 +8,14 @@ class HUD:
         "Easy"  : 1.0,
         "Medium": 1.5,
         "Hard"  : 2.0,
+        "Eclipse": 4.0,
     }
 
     DIFF_HEARTS = {
         "Easy"  : 4,
         "Medium" : 3,
         "Hard" : 2,
-        "Impossible" : 1,
+        "Eclipse": 1,
     }
 
     def __init__(self, screen_w, screen_h, player_name, difficulty):
@@ -230,6 +231,7 @@ class HUD:
             "Easy"  : (50, 220, 80),
             "Medium": (220, 180, 50),
             "Hard"  : (220, 50, 50),
+            "Eclipse": (160, 0, 220),
         }
         diff_color = diff_colors.get(self.difficulty, (255, 255, 255))
         diff_surf  = self.font_small.render(self.difficulty.upper(), True, diff_color)
