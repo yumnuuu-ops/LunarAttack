@@ -69,6 +69,12 @@ class Boss:
         self.clone_active = False
         self.animation_clone_spawn = AnimationManager(assetMgr.getAnim("MoonCSpawn"))
         self.animation_clone_idle = AnimationManager(assetMgr.getAnim("MoonC"))
+        self.clone_asteroids = []
+        self.clone_move_dir = -1
+        self.clone_teleport_active = False
+        self.clone_teleport_state = None
+        self.clone_teleport_timer = 0
+        self.clone_teleports_left = 0
 
         # Giant State
         self.giant_state = False
@@ -234,7 +240,7 @@ class Boss:
         if self.phase == 1:
             asteroidType = "Neutral"
         else:
-            asteroidType = "Clone"
+            asteroidType = "Fiery"
         for i in range(count):
             # t is made to even the spread of the asteroids
             t = i / (count - 1)
@@ -243,6 +249,47 @@ class Boss:
             vy = math.sin(angle)
             size = random.randint(26, 46)
             self.asteroids.append(Asteroid(cx, cy, vx, vy, size, asteroid_type=asteroidType))
+        if self.clone_active:
+            self.cloneBarrage(player_rect)
+
+    def cloneBarrage(self, player_rect):
+        cx, cy = self.clone_rect.center
+        aim = math.atan2(player_rect.centery - cy, player_rect.centerx - cx)
+        count = random.randint(5, 8)
+        spread = math.radians(120)
+        for i in range(count):
+            t = i / (count - 1)
+            angle = aim - spread / 2 + spread * t
+            vx = math.cos(angle)
+            vy = math.sin(angle)
+            size = random.randint(26, 46)
+            self.clone_asteroids.append(
+                Asteroid(cx, cy, vx, vy, size, asteroid_type="Clone"))
+
+    def cloneMass(self, player_rect):
+        mass = Mass()
+        mass.spawnLocation(player_rect, self.clone_rect, self.screen_w, self.screen_h)
+        mass.generatedMass = random.randint(400, 700)  # significantly weaker
+        mass.isCloneMass = True
+        self.active_masses.append(mass)
+
+    def moveClone(self):
+        if not self.clone_active or self.teleport_active:
+            return
+        self.clone_rect.x += self.clone_move_dir * self.move_speed
+        if self.clone_rect.left <= self.move_left_bound:
+            self.clone_move_dir = 1
+        elif self.clone_rect.right >= self.move_right_bound:
+            self.clone_move_dir = -1
+
+    def swapWithClone(self, player_rect):
+        if not self.clone_active:
+            return
+        real_pos = self.rect.center
+        clone_pos = self.clone_rect.center
+        self.rect.center = clone_pos
+        self.clone_rect.center = real_pos
+        self.asteroidBarrage(player_rect)
 
     def massRelease(self):
         self.giant_state = True
@@ -446,6 +493,7 @@ class Mass:
         self.animation = AnimationManager(assetMgr.getAnim("Mass"))
         self.animation_spawn = AnimationManager(assetMgr.getAnim("MassSpawn"))
         self.animation_despawn = AnimationManager(assetMgr.getAnim("MassE"))
+        self.isCloneMass = False
         self.animation_spawn_loaded = False
         self.animation_despawn_loaded = False
         self.isDead = False
@@ -518,7 +566,8 @@ class Mass:
         # Fall off will be used to control how fast the force dies the further it moves out
         force = self.G * ((player_mass * self.generatedMass) // (dist ** falloff))
         # Ensures force is felt across the screen
-        force = max(1.5, force)
+        if (not self.isCloneMass):
+            force = max(1.5, force)
         # Ensures force is not overly strong when near
         force = min(6.0, force)
         nx, ny = dx / dist, dy / dist
