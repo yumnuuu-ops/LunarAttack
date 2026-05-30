@@ -4,6 +4,14 @@
   "history": [
     {
       "name": "YUMNU",
+      "score": 25400,
+      "difficulty": "Eclipse",
+      "wave_reached": 2,
+      "date": "2026-05-31",
+      "is_highscore": false
+    },
+    {
+      "name": "YUMNU",
       "score": 0,
       "difficulty": "Easy",
       "wave_reached": 1,
@@ -73,18 +81,10 @@
       "wave_reached": 5,
       "date": "2026-05-30",
       "is_highscore": false
-    },
-    {
-      "name": "123",
-      "score": 47400,
-      "difficulty": "Hard",
-      "wave_reached": 5,
-      "date": "2026-05-30",
-      "is_highscore": false
     }
   ],
   "stats": {
-    "total_runs": 9,
+    "total_runs": 10,
     "highest_score": 34700,
     "highest_wave": 5
   }

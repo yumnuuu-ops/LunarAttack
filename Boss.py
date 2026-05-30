@@ -51,9 +51,9 @@ def loadAsteroidImages():
     return asteroidGroups
 
 class Boss:
-    max_hp = 780
-    phase2_hp = max_hp * 0.615 # Floor Division, phase 2 will start when HP is 50% or below
-    giant_hp = round(max_hp * 0.385)
+    max_hp = 2000
+    phase2_hp = max_hp * 0.75 # Floor Division, phase 2 will start when HP is 50% or below
+    giant_hp = max_hp * 0.3
 
     def __init__(self, screen_w, screen_h):
         # Initial State
@@ -71,7 +71,7 @@ class Boss:
         self.death_animation_done = False
         self.animation_death = AnimationManager(assetMgr.getAnim("ScarToNormal"), 6)
         self.death_hold_timer = 0
-        self.death_hold_time = 100000
+        self.death_hold_time = 300
         self.death_animation_lastFrame = False
 
         # Phase 2
@@ -164,6 +164,8 @@ class Boss:
 
     def takeDamage(self, damage):
         if self.invincibility:
+            return
+        if self.inTransition():
             return
         self.hp -= damage
         if self.phase == 1 and self.hp <= self.phase2_hp:
@@ -548,6 +550,8 @@ class Boss:
     def chooseMove(self, player_rect):
         if self.teleport_active or self.giant_state or self.dying:
             return
+        if self.inTransition():
+            return
         if not hasattr(self, 'move_cooldown'):
             self.move_cooldown = 0
         if self.move_cooldown > 0:
@@ -596,6 +600,15 @@ class Boss:
             elif choice == "gravity":
                 self.gravityPull(player_rect, self.screen_w, self.screen_h)
             self.move_cooldown = random.randint(30, 70)
+
+    def inTransition(self):
+        if self.phase == 2 and not self.phase2_transition_animation:
+            return True
+        if self.giant_state and not self.giant_state_transition_animation:
+            return True
+        if self.phase == 3 and not self.phase2_scarred_transition_animation:
+            return True
+        return False
 
 class Beam:
     def __init__(self, screen_w, screen_h):
