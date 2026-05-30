@@ -106,7 +106,6 @@ def load_all_assets(assetMgr):
     # Loading Boss / Eclipse Animations
     assetMgr.loadAnimScale("Mass", "imgs\\Mass Attack Anim.png", 4)
     assetMgr.loadAnimScale("MassX", "imgs\\Mass Attack Anim X.png", 4)
-    assetMgr.loadAnimScale("MassE", "imgs\\mass_implosion_strip-sheet.png", 4)
     assetMgr.loadAnimScale("MassSpawn", "Assets\\Mass\\mass_spawn_strip.png", 4)
     assetMgr.loadAnimScale("MassDespawn", "Assets\\Mass\\mass_implosion_strip.png", 4)
     assetMgr.loadAnimScale("CloneMassSpawn", "Assets\\Mass\\clone_mass_spawn_strip.png", 4)
