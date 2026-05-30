@@ -58,6 +58,13 @@ class BossFight:
         self.animation_blackhole_spawn.index = 0
         self.animation_blackhole_despawn.index = 0
 
+    # Weapons now follow the ship during cutscene, yay!
+    def syncPlayerWeapon(self):
+        self.player.weapon.pos.x = self.player.rect.centerx - (self.player.weapon.rect.width / 2)
+        self.player.weapon.pos.y = self.player.rect.centery - (self.player.weapon.rect.height / 2)
+        self.player.weapon.rect.x = int(self.player.weapon.pos.x)
+        self.player.weapon.rect.y = int(self.player.weapon.pos.y)
+
     def update(self, events):
         if self.mode == "intro":
             self.updateIntro()
@@ -79,6 +86,7 @@ class BossFight:
                 self.player.apply_push(0, -4)
                 self.player.rect.x = int(self.player.pos.x)
                 self.player.rect.y = int(self.player.pos.y)
+                self.syncPlayerWeapon()
             else:
                 self.intro_step = "blackhole_spawn"
                 self.animation_blackhole_spawn.index = 0
@@ -102,6 +110,7 @@ class BossFight:
             self.player.apply_push(dx / dist * 7, dy / dist * 7)
             self.player.rect.x = int(self.player.pos.x)
             self.player.rect.y = int(self.player.pos.y)
+            self.syncPlayerWeapon()
             if self.intro_timer <= 0:
                 self.intro_step = "descend"
                 self.intro_timer = 50
