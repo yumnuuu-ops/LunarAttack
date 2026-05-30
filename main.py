@@ -199,37 +199,35 @@ while running:
             # Check Stage Clear Conditions
             stage_configs = {
                 STAGE_1: (STAGE_2, "STAGE 1 CLEAR!", True),
-                STAGE_2: (STAGE_3, "STAGE 2 CLEAR!", False),
-                STAGE_3: (STAGE_4, "STAGE 3 CLEAR!", False),
+                STAGE_2: (STAGE_3, "STAGE 2 CLEAR!", True),
+                STAGE_3: (STAGE_4, "STAGE 3 CLEAR!", True),
                 STAGE_4: (STAGE_5, "STAGE 4 CLEAR!", True),
                 STAGE_5: (MENU, "VICTORY!", True)
             }
 
             if currState in stage_configs:
                 target_state, title, require_empty = stage_configs[currState]
-                condition = enemy_manager.enemies_spawned_so_far >= enemy_manager.total_enemies_to_spawn
-                if require_empty:
-                    condition = condition and len(enemy_manager.alien_group) == 0
+                
+                if currState in [STAGE_2, STAGE_3]:
+                    # Clear Stage 2 & 3 immediately once both sentries are killed
+                    left_alive = enemy_manager.sentry_left and enemy_manager.sentry_left.alive()
+                    right_alive = enemy_manager.sentry_right and enemy_manager.sentry_right.alive()
+                    condition = not left_alive and not right_alive
+                else:
+                    condition = enemy_manager.enemies_spawned_so_far >= enemy_manager.total_enemies_to_spawn
+                    if require_empty:
+                        condition = condition and len(enemy_manager.alien_group) == 0
                 
                 if condition:
-                    transition_active = True
-                    transition_timer = TRANSITION_DURATION
-                    transition_target_state = target_state
-                    transition_title = title
+                    # Execute instant, seamless stage transition
                     enemy_manager.alien_group.empty()
                     projectile_group.empty()
                     enemy_manager.enemy_projectile_group.empty()
                     enemy_manager.formation.reset()
-        else:
-            # Transition active: tick timer
-            transition_timer -= g.dt
-            if transition_timer <= 0:
-                transition_active = False
-                hud.next_wave()
-                currState = transition_target_state
-
-                # Set up the new stage config
-                enemy_manager.setup_stage_config(currState)
+                    
+                    hud.next_wave()
+                    currState = target_state
+                    enemy_manager.setup_stage_config(currState)
 
     elif currState == DEATH_SCENE:
         # Countdown the timer

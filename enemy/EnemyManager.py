@@ -55,6 +55,8 @@ class EnemyManager:
         self.alien_group.empty()
         self.enemy_projectile_group.empty()
         self.formation.reset()
+        self.sentry_left = None
+        self.sentry_right = None
         
         if stage == STAGE_2:
             self.enemies_spawned_so_far = 2
@@ -88,7 +90,8 @@ class EnemyManager:
             self.total_enemies_to_spawn = 36
 
     def spawn_aliens(self, stage):
-        if self.enemies_spawned_so_far >= self.total_enemies_to_spawn:
+        # Stage 2 and 3 spawn drones infinitely until the stationary sentries are destroyed
+        if stage not in [STAGE_2, STAGE_3] and self.enemies_spawned_so_far >= self.total_enemies_to_spawn:
             return
 
         if stage == STAGE_1:
@@ -133,16 +136,16 @@ class EnemyManager:
                 
             num_to_spawn = random.choice([2, 3])
             for idx in range(num_to_spawn):
-                if self.enemies_spawned_so_far < self.total_enemies_to_spawn:
-                    side = random.choice(valid_sides)
-                    if side == "left":
-                        spawn_x = -100 # Off-screen left
-                    else:
-                        spawn_x = 1380 # Off-screen right
-                    spawn_y = 60 + (idx * 110)
-                    new_alien = Alien("alien_drone", spawn_x, spawn_y, stage=2 if stage == STAGE_2 else 3)
-                    self.alien_group.add(new_alien)
-                    self.enemies_spawned_so_far += 1
+                # Unlimited spawning while sentries are active
+                side = random.choice(valid_sides)
+                if side == "left":
+                    spawn_x = -100 # Off-screen left
+                else:
+                    spawn_x = 1380 # Off-screen right
+                spawn_y = 60 + (idx * 110)
+                new_alien = Alien("alien_drone", spawn_x, spawn_y, stage=2 if stage == STAGE_2 else 3)
+                self.alien_group.add(new_alien)
+                self.enemies_spawned_so_far += 1
         elif stage in [STAGE_4, STAGE_5]:
             # Spawn in a swarm! Request up to 6 slots (3 pairs) per tick
             slots_to_spawn = []
