@@ -8,7 +8,7 @@ class BossFight:
     moonFolder = os.path.join("Assets", "Moon")
 
     def __init__(self, screen_w, screen_h, player):
-        self.boss = Boss(screen_w)
+        self.boss = Boss(screen_w, screen_h)
         self.player = player
         self.screen_w = screen_w
         self.screen_h = screen_h
@@ -70,9 +70,9 @@ class BossFight:
             self.fade_alpha += 8
             if self.fade_alpha >= 255:
                 self.fade_alpha = 255
-                self._startFight()
+                self.startFight()
 
-    def _startFight(self):
+    def startFight(self):
         soundMgr.stop_sfx("mass active")
         self.mode = "fight"
         self.player.speed = self.player_speed_backup
@@ -107,9 +107,9 @@ class BossFight:
                     elif event.key == pygame.K_u:
                         self.boss.phase = 3
                     elif event.key == pygame.K_4:
-                        self.boss.teleportAttack(self.player.rect, self.screen_w)
+                        self.boss.teleportAttack(self.player.rect, self.screen_w, self.screen_h)
 
-        self.boss.update()
+        self.boss.update(self.player.rect)
         self.boss.move()
 
         for projectile in projectile_group:
@@ -119,6 +119,7 @@ class BossFight:
 
         for asteroid in self.boss.asteroids:
             asteroid.move()
+            self.checkAsteroidHits()
         self.boss.asteroids = [asteroid for asteroid in self.boss.asteroids
                                if not asteroid.removeAsteroid(self.screen_w, self.screen_h)]
 
@@ -130,9 +131,21 @@ class BossFight:
 
         if self.beam is not None:
             self.beam.update()
+            self.checkAsteroidHits()
 
         if not self.boss.alive:
             self.finished = True
+
+    def checkAsteroidHits(self):
+        for asteroid in self.boss.asteroids[:]:
+            if asteroid.rect.colliderect(self.player.rect):
+                self.player.takeDamage(1)
+                self.boss.asteroids.remove(asteroid)
+        if self.beam is not None:
+            for asteroid in self.beam.asteroids[:]:
+                if asteroid.rect.colliderect(self.player.rect):
+                    self.player.takeDamage(1)
+                    self.beam.asteroids.remove(asteroid)
 
     def draw(self, screen):
         self.boss.draw(screen)
