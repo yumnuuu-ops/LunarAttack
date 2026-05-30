@@ -183,9 +183,8 @@ class Alien(pygame.sprite.Sprite):
             else:  # "straight" movement
                 self.pos.y += current_speed
 
-        # Update the rect
+        # Update the rect and dynamic thruster fire tail
         raw_image = self.animator.get_current_frame()
-        tight_box = raw_image.get_bounding_rect()
         
         if self.phase == "stage2_align":
             # Completely invisible off-screen targeting phase!
@@ -193,12 +192,16 @@ class Alien(pygame.sprite.Sprite):
             self.rect = self.image.get_rect()
             self.rect.center = (int(self.pos.x), int(self.pos.y))
         else:
+            # Crop to the actual boundaries of the plane first
+            tight_box = raw_image.get_bounding_rect()
             self.image = raw_image.subsurface(tight_box)
+            
             if self.phase == "stage2_dive":
-                # Rotate the plane to face the movement/dive vector
+                # Rotate the plane and the flame to face the movement/dive vector perfectly
                 deg = math.degrees(math.atan2(self.dive_vy, self.dive_vx))
                 rotation_angle = 90.0 - deg
                 self.image = pygame.transform.rotate(self.image, rotation_angle)
+                
             self.rect = self.image.get_rect()
             self.rect.center = (int(self.pos.x), int(self.pos.y))
         
