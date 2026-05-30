@@ -41,8 +41,8 @@ alien_types = ["alien_drone", "tendril_alien", "tendril_alien"]
 SPAWN_ALIEN_EVENT = pygame.USEREVENT + 2
 pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
-MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE = \
-    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene"
+MENU, PLAY_SCREEN, CUTSCENE, STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS, DEATH_SCENE, END_SCENE = \
+    "menu", "play_screen", "cutscene", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "boss", "death_scene","end_cutscene"
 currState = MENU
 selected_difficulty = None
 death_timer = 0.0
@@ -52,6 +52,8 @@ transition_timer = 0.0
 TRANSITION_DURATION = 3.0
 transition_target_state = None
 transition_title = ""
+
+end_cutscene = None
 
 
 # Screen Shake System
@@ -217,6 +219,14 @@ while running:
                 else:
                     pygame.mixer.music.unpause()
 
+
+
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            name = getattr(play_screen, "player_name", "") or "Cadet"
+            end_cutscene = CutScene(screen_w, screen_h, player_name=name, scenes="ending")
+            end_cutscene.on_advance = lambda: soundMgr.play_sfx("save_load")
+            currState = END_SCENE
+
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
         if not transition_active and not is_paused:
@@ -282,6 +292,12 @@ while running:
             player.hp = 100 #think of this as resetting player health to full health
             soundMgr.play_music("menu")
 
+    elif currState == END_SCENE:
+        end_cutscene.update(events)
+        if end_cutscene.action == "DONE":
+            currState = MENU
+            menu.reset()
+            soundMgr.play_music("menu")
     # Clear the intermediate drawing surface
 
     game_surface.fill((0, 0, 0))
@@ -396,6 +412,11 @@ while running:
         enemy_manager.draw(game_surface, currState)
         enemy_manager.enemy_projectile_group.draw(game_surface)
         particle_group.draw(game_surface)
+#PLEASE TIE THIS TO DEATH OF BOSS LATER
+    elif currState == END_SCENE:
+        bg.update(g.dt)
+        bg.draw(game_surface)
+        end_cutscene.draw(game_surface)
 
     # Process and Blit Screen Shake
     shake_offset_x = 0
