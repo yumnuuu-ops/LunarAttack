@@ -1,7 +1,31 @@
 {
-  "last_name": "WASFE",
+  "last_name": "WDWD",
   "achievements": [],
   "history": [
+    {
+      "name": "WDWD",
+      "score": 0,
+      "difficulty": "Hard",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WQEWR",
+      "score": 0,
+      "difficulty": "Hard",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
+    {
+      "name": "WASFE",
+      "score": 0,
+      "difficulty": "Easy",
+      "wave_reached": 1,
+      "date": "2026-05-30",
+      "is_highscore": false
+    },
     {
       "name": "WASFE",
       "score": 6300,
@@ -57,34 +81,10 @@
       "wave_reached": 1,
       "date": "2026-05-30",
       "is_highscore": false
-    },
-    {
-      "name": "SADFSDF",
-      "score": 0,
-      "difficulty": "Easy",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "SADFSDF",
-      "score": 0,
-      "difficulty": "Hard",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
-    },
-    {
-      "name": "FSADF",
-      "score": 0,
-      "difficulty": "Hard",
-      "wave_reached": 1,
-      "date": "2026-05-30",
-      "is_highscore": false
     }
   ],
   "stats": {
-    "total_runs": 49,
+    "total_runs": 52,
     "highest_score": 128800,
     "highest_wave": 5
   }

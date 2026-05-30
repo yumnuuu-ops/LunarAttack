@@ -217,18 +217,12 @@ while running:
                 if bullets is not None:
                     projectile_group.add(*bullets)
 
-        if not transition_active:
-            player.update(events)
             projectile_group.update()
             particle_group.update()
 
             player_touching_edge = (player.pos.x <= 0 or player.pos.x >= 1280 - player.rect.width)
 
             enemy_manager.handle_updates_and_collisions(currState, player_touching_edge)
-
-            # Game Over Check
-            if player.hp <= 0:
-                game_over()
 
             # Check Stage Clear Conditions
             stage_configs = {
@@ -241,9 +235,8 @@ while running:
 
             if currState in stage_configs:
                 target_state, title, require_empty = stage_configs[currState]
-                
+
                 if currState in [STAGE_2, STAGE_3]:
-                    # Clear Stage 2 & 3 immediately once both sentries are killed
                     left_alive = enemy_manager.sentry_left and enemy_manager.sentry_left.alive()
                     right_alive = enemy_manager.sentry_right and enemy_manager.sentry_right.alive()
                     condition = not left_alive and not right_alive
@@ -251,14 +244,13 @@ while running:
                     condition = enemy_manager.enemies_spawned_so_far >= enemy_manager.total_enemies_to_spawn
                     if require_empty:
                         condition = condition and len(enemy_manager.alien_group) == 0
-                
+
                 if condition:
-                    # Execute instant, seamless stage transition
                     enemy_manager.alien_group.empty()
                     projectile_group.empty()
                     enemy_manager.enemy_projectile_group.empty()
                     enemy_manager.formation.reset()
-                    
+
                     hud.next_wave()
                     currState = target_state
                     enemy_manager.setup_stage_config(currState)
@@ -282,7 +274,7 @@ while running:
         elif game_over_screen.action == "MENU":
             currState = MENU
             menu.reset()
-            player.hp = 4
+            player.hp = 100 #think of this as resetting player health to full health
             soundMgr.play_music("menu")
 
     # Clear the intermediate drawing surface
