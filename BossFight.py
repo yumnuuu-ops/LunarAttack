@@ -66,7 +66,7 @@ class BossFight:
         self.updateFight(events)
 
     def updateIntro(self):
-        if not getattr(self, '_intro_started', False):
+        if not getattr(self, 'intro_started', False):
             self.intro_started = True
             self.player.pos.y = self.screen_h + 100
             self.player.rect.y = int(self.player.pos.y)
