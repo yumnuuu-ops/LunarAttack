@@ -4,7 +4,6 @@ from AssetManager import AssetManager
 
 pygame.init()
 
-pygame.mixer.set_num_channels(32)
 soundMgr = SoundManager()
 assetMgr = AssetManager(2)
 dt = 0.0

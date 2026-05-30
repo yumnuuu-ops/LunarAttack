@@ -739,6 +739,8 @@ class Mass:
         self.animation_spawn_loaded = False
         self.animation_despawn_loaded = False
         self.isDead = False
+        self.sound_channel = None
+
         if self.isCloneMass:
             self.animation = AnimationManager(assetMgr.getAnim("MassX"))
             self.animation_spawn = AnimationManager(assetMgr.getAnim("CloneMassSpawn"))
@@ -752,12 +754,16 @@ class Mass:
         if self.isDead:
             return
         elif self.life <= 0:
+            if self.sound_channel:
+                self.sound_channel.fadeout(300)
+                self.sound_channel = None
+
             self.animation_despawn.update(loop=False)
             lastFrameTrans = len(self.animation_despawn.frames) - 1
             if self.animation_despawn.index >= lastFrameTrans:
                 self.animation_despawn_loaded = True
                 self.isDead = True
-                soundMgr.stop_sfx("mass active")
+
         elif self.life > 0 and not self.isDead:
             if self.animation_spawn_loaded:
                 self.animation.update()
@@ -767,7 +773,7 @@ class Mass:
                 lastFrameTrans = len(self.animation_spawn.frames) - 1
                 if self.animation_spawn.index >= lastFrameTrans:
                     self.animation_spawn_loaded = True
-                    soundMgr.loop_sfx("mass active", 0.5)
+                    self.sound_channel = soundMgr.loop_sfx("mass active", 0.5)
 
     def draw(self, screen):
         frame = None
