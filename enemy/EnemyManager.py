@@ -130,7 +130,7 @@ class EnemyManager:
             if right_alive: valid_sides.append("right")
             
             if not valid_sides:
-                # Both front sentries are killed! Skip spawning
+                # Both front sentries are killed! Skip spawning and jump to the end of the stage.
                 self.enemies_spawned_so_far = self.total_enemies_to_spawn
                 return
                 

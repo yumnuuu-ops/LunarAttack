@@ -8,6 +8,7 @@ class Player:
     def __init__(self, x, y):
         self.image = assetMgr.getTexture("MainShip Full")
         self.rect = assetMgr.getRect("MainShip Full")
+        self.mask = pygame.mask.from_surface(self.image)
         self.hp = 100
         self.pos = pygame.math.Vector2(x, y)
         self.speed = 10
@@ -82,6 +83,12 @@ class Player:
             self.rect.y = int(self.pos.y)
 
             surface.blit(self.image, self.rect)
+        # PLAYER HIT BOX
+        if hasattr(self, 'mask') and self.mask:
+            for point in self.mask.outline():
+                pixel_x = self.rect.x + point[0]
+                pixel_y = self.rect.y + point[1]
+                surface.set_at((pixel_x, pixel_y), (0, 255, 0))
 
 
     def update(self):
