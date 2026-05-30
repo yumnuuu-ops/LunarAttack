@@ -5,7 +5,7 @@ import utils
 from AnimationManager import AnimationManager
 from Projectile import Projectile
 from faddingEffect import faddingEffect
-from globals import assetMgr, soundMgr
+from globals import assetMgr
 from enemy.EnemyProjectile import EnemyProjectile
 
 class Alien(pygame.sprite.Sprite):
@@ -265,14 +265,9 @@ class Alien(pygame.sprite.Sprite):
     def takeDamage(self, damage):
         if getattr(self, 'shield_hp', 0) > 0:
             self.shield_hp -= damage
-            if self.shield_hp <= 0:
-                soundMgr.play_sfx("shield break")  # Play the newly generated, glorious sci-fi shield shatter SFX!
-            else:
-                soundMgr.play_sfx("error")         # Shield absorbed damage SFX!
             return
             
         self.hp -= damage
         if self.hp <= 0:
-            soundMgr.play_sfx("teleport in")   # Play futuristic alien explosion SFX!
             faddingEffect.trigger(self)
             self.kill()
