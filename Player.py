@@ -9,7 +9,7 @@ class Player:
         self.image = assetMgr.getTexture("MainShip Full")
         self.rect = assetMgr.getRect("MainShip Full")
         self.mask = pygame.mask.from_surface(self.image)
-        self.hp = 100
+        self.hp = 4
         self.pos = pygame.math.Vector2(x, y)
         self.speed = 10
 
@@ -91,7 +91,7 @@ class Player:
                 surface.set_at((pixel_x, pixel_y), (0, 255, 0))
 
 
-    def update(self):
+    def update(self, events):
         self.handle_keyboard_input()
 
         self.rect.x = int(self.pos.x)
@@ -105,7 +105,7 @@ class Player:
         mouse_buttons = pygame.mouse.get_pressed()
         is_firing = mouse_buttons[0]
 
-        self.weapon.update(is_firing)
+        self.weapon.update(is_firing, events)
 
         if self.invincible:
             self.invincibility_timer -= g.dt

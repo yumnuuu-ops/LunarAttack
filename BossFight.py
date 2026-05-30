@@ -29,7 +29,7 @@ class BossFight:
         if self.mode == "intro":
             self.updateIntro()
             return
-        self.player.update()
+        self.player.update(events)
         self.updateFight(events)
 
     def updateIntro(self):
@@ -119,8 +119,17 @@ class BossFight:
 
         for projectile in projectile_group:
             if projectile.rect.colliderect(self.boss.rect):
-                self.boss.takeDamage(projectile.damage)
-                projectile.kill()
+                if getattr(projectile, "is_explosion", False):
+                    if self.boss not in projectile.damaged_enemies:
+                        self.boss.takeDamage(projectile.damage)
+                        projectile.damaged_enemies.add(self.boss)
+                    continue
+                if hasattr(projectile, "ExplosiveProjectile") and projectile.selectedProj in projectile.ExplosiveProjectile:
+                    self.boss.takeDamage(projectile.damage)
+                    projectile.detonate()
+                else:
+                    self.boss.takeDamage(projectile.damage)
+                    projectile.kill()
 
         for asteroid in self.boss.asteroids:
             asteroid.move()
