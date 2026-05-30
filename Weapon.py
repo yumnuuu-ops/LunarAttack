@@ -14,7 +14,7 @@ class Weapon:
 
         self.fireRate = 7
         self.projectileSpeed = 11
-        self.damage = 100
+        self.damage = 10
         self.anim_fps = 24
         self.cooldown = 0
 

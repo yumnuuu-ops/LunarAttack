@@ -17,6 +17,7 @@ class BossFight:
         self.boss.rect.center = (screen_w // 2, 160)
         self.beam = None
         self.testKeys = True
+        self.fight_start = False
         self.finished = False
 
         self.mode = "intro"
@@ -131,6 +132,7 @@ class BossFight:
     def startFight(self):
         soundMgr.stop_sfx("mass active")
         self.mode = "fight"
+        self.fight_start = True
         self.player.speed = self.player_speed_backup
         self.boss.rect.center = (self.screen_w // 2, 160)
         self.blackhole = None

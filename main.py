@@ -333,6 +333,13 @@ while running:
             projectile_group.update()
             hud.update(g.dt)
 
+        if bossFight.fight_start:
+            bossFight.fight_start = False
+            soundMgr.stop_music()
+            bg.set_layer("imgs/Background/PurpleNebula/pNebula4.png")
+            soundMgr.stop_music()
+            soundMgr.play_music("boss")
+
         if bossFight.finished:
             soundMgr.stop_music()
             soundMgr.play_music("win")
