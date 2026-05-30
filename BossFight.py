@@ -21,7 +21,7 @@ class BossFight:
         self.finished = False
 
         self.mode = "intro"
-        self.intro_step = "approach"
+        self.intro_step = "fly_in"
         self.intro_timer = 0
         self.approach_target_y = 450
         self.blackhole = None
@@ -32,6 +32,13 @@ class BossFight:
         self.animation_blackhole_despawn = AnimationManager(assetMgr.getAnim("BlackholeDespawn"))
         self.blackhole_pos = (self.screen_w // 2, self.screen_h // 2)
 
+        self.player.pos.x = self.screen_w // 2
+        self.player.pos.y = self.screen_h + 100
+        self.player.rect.x = int(self.player.pos.x)
+        self.player.rect.y = int(self.player.pos.y)
+        self.fly_in_target_y = self.screen_h - 100
+        self.blackhole_spawned = False
+
     def update(self, events):
         if self.mode == "intro":
             self.updateIntro()
@@ -40,16 +47,31 @@ class BossFight:
         self.updateFight(events)
 
     def updateIntro(self):
+        if not getattr(self, '_intro_started', False):
+            self._intro_started = True
+            self.player.pos.y = self.screen_h + 100
+            self.player.rect.y = int(self.player.pos.y)
+            self.player.pos.x = self.screen_w // 2
+            self.player.rect.x = int(self.player.pos.x)
         self.player.speed = 0
 
-        if self.intro_step == "approach":
-            if self.player.rect.centery > self.approach_target_y:
-                self.player.apply_push(0, -5)
+        if self.intro_step == "fly_in":
+            if self.player.rect.centery > self.fly_in_target_y:
+                self.player.apply_push(0, -4)
                 self.player.rect.x = int(self.player.pos.x)
                 self.player.rect.y = int(self.player.pos.y)
             else:
+                self.intro_step = "blackhole_spawn"
+                self.animation_blackhole_spawn.index = 0
+                soundMgr.play_sfx("mass spawn")
+
+        elif self.intro_step == "blackhole_spawn":
+            self.animation_blackhole_spawn.update(loop=False)
+            last = len(self.animation_blackhole_spawn.frames) - 1
+            if self.animation_blackhole_spawn.index >= last:
                 self.intro_step = "blackhole"
                 self.intro_timer = 120
+                soundMgr.loop_sfx("mass active", 0.5)
 
         elif self.intro_step == "blackhole":
             self.intro_timer -= 1
@@ -67,6 +89,7 @@ class BossFight:
 
         elif self.intro_step == "descend":
             self.intro_timer -= 1
+            self.animation_blackhole.update()
             self.boss.rect.centery += 4
             if self.intro_timer <= 0:
                 self.intro_step = "blackout"
@@ -75,6 +98,7 @@ class BossFight:
             self.fade_alpha += 8
             if self.fade_alpha >= 255:
                 self.fade_alpha = 255
+                soundMgr.stop_sfx("mass active")
                 self.startFight()
 
     def startFight(self):
@@ -200,7 +224,12 @@ class BossFight:
             for asteroid in self.beam.asteroids:
                 asteroid.draw(screen)
 
-        if self.mode == "intro" and self.animation_blackhole is not None:
-            frame = self.animation_blackhole.get_current_frame()
+        if self.mode == "intro":
+            if self.intro_step == "blackhole_spawn":
+                frame = self.animation_blackhole_spawn.get_current_frame()
+            elif self.intro_step in ("blackhole", "descend"):
+                frame = self.animation_blackhole.get_current_frame()
+            else:
+                frame = None
             if frame:
                 screen.blit(frame, frame.get_rect(center=self.blackhole_pos))
