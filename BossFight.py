@@ -145,23 +145,7 @@ class BossFight:
         if self.testKeys:
             for event in events:
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        if self.beam is None or not self.beam.active:
-                            self.beam = Beam(self.screen_w, self.screen_h)
-                            asteroid_type = "Neutral" if self.boss.phase == 1 else "Fiery"
-                            self.beam.BeamStorm(asteroid_type)
-                    elif event.key == pygame.K_g:
-                        self.boss.gravityPull(self.player.rect, self.screen_w, self.screen_h)
-                    elif event.key == pygame.K_u:
-                        soundMgr.play_sfx("asteroid")
-                        self.boss.asteroidBarrage(self.player.rect)
-                    elif event.key == pygame.K_7:
-                        self.boss.teleportAttack(self.player.rect, self.screen_w, self.screen_h)
-                    elif event.key == pygame.K_5:
-                        self.boss.swapWithClone(self.player.rect)
-                    elif event.key == pygame.K_6:
-                        self.boss.cloneMass(self.player.rect)
-                    elif event.key == pygame.K_h:
+                    if event.key == pygame.K_h:
                         self.boss.hp = 0
 
         self.boss.update(self.player.rect)
