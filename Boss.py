@@ -150,8 +150,8 @@ class Boss:
         self.animation_clone_teleport_vanish = AnimationManager(assetMgr.getAnim("CMoonTeleOut"), 24)
         self.animation_clone_teleport_appear = AnimationManager(assetMgr.getAnim("CMoonTeleIn"), 24)
         # Phase 3 Teleport
-        self.animation_teleport3_vanish = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowOut"), 12)
-        self.animation_teleport3_appear = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowIn"), 12)
+        self.animation_teleport3_vanish = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowOut"), 18)
+        self.animation_teleport3_appear = AnimationManager(assetMgr.getAnim("MoonScarTeleSlowIn"), 18)
         # Swapping Teleport
         self.swap_active = False
         self.swap_state = None
@@ -197,6 +197,7 @@ class Boss:
         self.asteroids.clear()
         self.clone_asteroids.clear()
         self.active_masses.clear()
+        soundMgr.stop_sfx("mass active")
         self.animation_death.index = 0
         # soundMgr.play_sfx("boss death")
 
