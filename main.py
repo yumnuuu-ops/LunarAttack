@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import os
 from MainMenu import MainMenu
 from Player import Player
 from background import Background
@@ -19,6 +20,9 @@ from FadeTransition import FadeTransition
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+font_path = os.path.join(BASE_DIR, "PressStart2P-Regular.ttf")
+
 pygame.mixer.pre_init(44100, -16, 2, 512)
 
 pygame.init()
@@ -26,9 +30,9 @@ pygame.font.init()
 
 pygame.mixer.set_num_channels(32)
 
-press_start = pygame.font.Font("PressStart2P-Regular.ttf", 20)
-press_start_large = pygame.font.Font("PressStart2P-Regular.ttf", 32)
-press_start_sub = pygame.font.Font("PressStart2P-Regular.ttf", 16)
+press_start = pygame.font.Font(font_path, 20)
+press_start_large = pygame.font.Font(font_path, 32)
+press_start_sub = pygame.font.Font(font_path, 16)
 
 pygame.display.set_caption('SpaceCode')
 screen = pygame.display.set_mode((1280, 720))
@@ -228,11 +232,11 @@ while running:
                 else:
                     pygame.mixer.music.unpause()
 
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_n:      # REMEMBER TO REMOVE <===================================================================================
-            currState = BOSS
-            bg.set_layer("imgs/Background/PurpleNebula/pNebula4.png")
-            soundMgr.stop_music()
-            soundMgr.play_music("boss")
+        # elif event.type == pygame.KEYDOWN and event.key == pygame.K_n:      # REMEMBER TO REMOVE <===================================================================================
+        #     currState = BOSS
+        #     bg.set_layer("imgs/Background/PurpleNebula/pNebula4.png")
+        #     soundMgr.stop_music()
+        #     soundMgr.play_music("boss")
 
     # update gameplay only if active and not transitioning
     if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
