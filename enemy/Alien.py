@@ -198,7 +198,6 @@ class Alien(pygame.sprite.Sprite):
         # calculation for drawing/rendering
         raw_image = self.animator.get_current_frame()
         if self.phase == "stage2_align":
-            # set targeting direction for crashing
             self.image = pygame.Surface((0, 0), pygame.SRCALPHA)
             self.rect = self.image.get_rect()
             self.rect.center = (int(self.pos.x), int(self.pos.y))
