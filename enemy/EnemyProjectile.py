@@ -8,16 +8,11 @@ class EnemyProjectile(pygame.sprite.Sprite):
         super().__init__()
         # Get loaded texture from asset manager
         self.original_image = assetMgr.getTexture("enemy_bullet")
-        if self.original_image is None:
-            # Fallback if texture not loaded
-            self.original_image = pygame.Surface((4, 8))
-            self.original_image.fill((255, 50, 50))
-        else:
-            w, h = self.original_image.get_size()
-            self.original_image = pygame.transform.scale(self.original_image, (int(w * 0.8), int(h * 0.8)))
-            
-        self.image = self.original_image
+
+        w, h = self.original_image.get_size()
+        self.image = pygame.transform.scale_by(self.original_image, 0.8)
         self.rect = self.image.get_rect()
+        
         self.pos = pygame.math.Vector2(x, y)
         self.rect.center = (int(self.pos.x), int(self.pos.y))
         

@@ -51,12 +51,7 @@ class EnemyManager:
         self.formation = Formation(screen_w, screen_h, self.grid_slots_stage4)
         self.alien_types = ["alien_drone", "tendril_alien", "eye_spawn"]
 
-    def _get_target_lock_sfx(self, stage, player_touching_edge):
-        if player_touching_edge:
-            return "target lock boosted"
-        if stage == STAGE_3:
-            return "target lock stage 3"
-        return "target lock stage 2"
+
 
     def setup_stage_config(self, stage):
         self.alien_group.empty()
@@ -166,12 +161,6 @@ class EnemyManager:
                     new_alien = Alien(alien_type, spawn_x, spawn_y, stage=4 if stage == STAGE_4 else 5,
                                       target_x=slot[0], target_y=slot[1])
                     
-                    # Override initial phase to be spawning portal
-                    new_alien.phase = "spawning_portal"
-                    new_alien.portal_age = 0
-                    new_alien.enemy_alpha = 0
-                    new_alien.enemy_scale = 0.65
-                    
                     self.alien_group.add(new_alien)
                     self.formation.register_alien(new_alien, slot)
                     self.enemies_spawned_so_far += 1
@@ -188,13 +177,7 @@ class EnemyManager:
             if result is not None:
                 enemy_bullets.append(result)
 
-            if stage in [STAGE_2, STAGE_3] and getattr(alien, "phase", None) == "stationary":
-                warn_threshold = 40
-                if alien.shoot_cooldown <= warn_threshold and not getattr(alien, "target_lock_sfx_played", False):
-                    soundMgr.play_sfx(self._get_target_lock_sfx(stage, player_touching_edge))
-                    alien.target_lock_sfx_played = True
-                elif alien.shoot_cooldown > warn_threshold:
-                    alien.target_lock_sfx_played = False
+
         self.enemy_projectile_group.add(*enemy_bullets)
         self.enemy_projectile_group.update()
 

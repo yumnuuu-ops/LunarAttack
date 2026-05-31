@@ -17,34 +17,42 @@ class Alien(pygame.sprite.Sprite):
         raw_image = self.animator.get_current_frame()
         tight_box = raw_image.get_bounding_rect()
         self.image = raw_image.subsurface(tight_box)
+        self.stage = stage
 
         self.rect = self.image.get_rect()
-        if stage == 1:
-            y = -100
+        y = -100 if self.stage == 1 else y
         self.pos = pygame.math.Vector2(x, y)
         self.rect.center = (int(self.pos.x), int(self.pos.y))
         
-        # Target position coordinates for Stage 2 Formation entry
         self.target_x = target_x
         self.target_y = target_y
-        self.time_alive = 0.0
-        self.stage = stage
         
+        #for shielding pulse effect
+        self.time_alive = 0.0 
+        
+        # for portal effect variables
+        self.portal_age = 0
+        self.enemy_alpha = 255
+        self.enemy_scale = 1.0
+        self.particles = []
+        self.spawned_particles = False
+        self.target_lock_sfx_played = False
+        
+        # default cooldown
+        self.shoot_cooldown = random.randint(60, 180)
+        if stage == 4:
+            self.shoot_cooldown = random.randint(240, 480)
+        elif stage == 5:
+            self.shoot_cooldown = random.randint(180, 360)
+
         if target_x is not None and target_y is not None:
-            self.phase = "entering"
-            if stage == 4:
-                self.shoot_cooldown = random.randint(240, 480)
-            elif stage == 5:
-                self.shoot_cooldown = random.randint(180, 360)
+            if stage in [4, 5]:
+                self.phase = "spawning_portal"
+                self.enemy_alpha = 0
+                self.enemy_scale = 0.65
             else:
-                self.shoot_cooldown = random.randint(60, 180) # Shoot every 1 to 3 seconds
+                self.phase = "entering"
         else:
-            if stage == 4:
-                self.shoot_cooldown = random.randint(240, 480)
-            elif stage == 5:
-                self.shoot_cooldown = random.randint(180, 360)
-            else:
-                self.shoot_cooldown = random.randint(60, 180)
             if stage in [2, 3]:
                 self.phase = "stage2_align"
                 self.target_y = y
@@ -52,126 +60,65 @@ class Alien(pygame.sprite.Sprite):
                 self.dive_vx = 0
                 self.dive_vy = 0
             else:
-                self.phase = "moving"
+                self.phase = "sine_wave_plane_moving"
         
-        # Configure base stats based on current Stage
+        # stats based on current Stage
         if stage == 1:
             self.hp = 50
             self.speed = 2
-            self.movement_pattern = "pattern1"
-        elif stage == 2:
+        elif stage in [2, 3]:
             self.hp = 60
-            self.speed = 3
-            self.movement_pattern = "sine"
-        elif stage == 3:
-            self.hp = 60
-            self.speed = 4
-            self.movement_pattern = "sine"
-        elif stage == 4:
+            self.speed = 3 if stage == 2 else 4
+        elif stage in [4, 5]:
             self.hp = 55
-            self.speed = 3
-            self.movement_pattern = "straight"
-        elif stage == 5:
-            self.hp = 55
-            self.speed = 4
-            self.movement_pattern = "straight"
+            self.speed = 3 if stage == 4 else 4
         
         self.max_hp = self.hp
 
-        # Dynamically scale shield HP based on original/max HP
+        # stats based on enemy type
         if self.alien_type == "tendril_alien":
-            self.shield_hp = max(1, int(self.hp * 1.00))  # Increased shield strength to 100% of max HP
+            self.shield_hp = max(1, int(self.hp * 1.00))
         else:
             self.shield_hp = 0
         
-        # variables for (zig-zag movement/sine wave pattern)
-        # Spawning & swaying offsets
-        self.spawn_x = x #original x position
+        # variables for zig-zag movement/sine wave pattern
+        self.spawn_x = x
         self.wave_time = 10
         self.wave_speed = 0.05
         self.wave_amplitude = 100
 
-        # Special stage 4/5 effect state variables
-        self.enemy_alpha = 255
-        self.enemy_scale = 1.0
-        self.particles = []
-        self.spawned_particles = False
-
     def update(self, player_pos=None, player_touching_edge=False):
-        # update animation
         self.animator.update()
         self.image = self.animator.get_current_frame()
-
         fired_bullet = None
 
-        if self.phase == "spawning_portal":
-            self.portal_age += 1
-            progress = min(1.0, self.portal_age / 45)
-            self.enemy_alpha = min(255, self.portal_age * 7)
-            self.enemy_scale = 0.65 + progress * 0.35
+        # calculation code (movement, damage, rotate and etc.)
+        if self.phase == "sine_wave_plane_moving": #stage 1
+            current_speed = self.speed
             
-            if self.portal_age >= 45:
-                self.phase = "entering"
-                self.enemy_alpha = 255
-                self.enemy_scale = 1.0
-                self.spawn_x = self.pos.x
+            self.pos.y += current_speed
+            self.wave_time += self.wave_speed
+            self.pos.x = self.spawn_x + (self.wave_amplitude * math.sin(self.wave_time))
 
-        # Stage 2 Entry & Formation Logic
-        if self.phase == "spawning_portal":
-            pass  # Keep completely stationary during portal emergence!
-        elif self.phase == "stationary":
-            # Hover slightly up/down for a lively visual effect
+        elif self.phase == "stationary":# stage 2 & 3 
+            # idle hover effect
             self.wave_time += 0.2
             self.pos.y = self.target_y + math.sin(self.wave_time) * 1
 
-            # Keep cooldown ticking to drive the laser sight blinking cycle, but do NOT fire any bullets!
+            # laser sound effect
             self.shoot_cooldown -= 1
+            warn_threshold = 40
+            if self.shoot_cooldown <= warn_threshold and not self.target_lock_sfx_played:
+                sfx_name = "target lock boosted" if player_touching_edge else ("target lock stage 3" if self.stage == 3 else "target lock stage 2")
+                soundMgr.play_sfx(sfx_name)
+                self.target_lock_sfx_played = True
+            elif self.shoot_cooldown > warn_threshold:
+                self.target_lock_sfx_played = False
+
             if self.shoot_cooldown <= 0:
                 self.shoot_cooldown = random.randint(60, 150)
 
-        elif self.phase == "entering":
-            # Move horizontally towards target_x
-            if abs(self.pos.x - self.target_x) > self.speed:
-                if self.pos.x < self.target_x:
-                    self.pos.x += self.speed
-                else:
-                    self.pos.x -= self.speed
-                
-                # Apply the sinusoidal wave entry path!
-                dist_x = abs(self.pos.x - self.target_x)
-                total_dist = abs(self.spawn_x - self.target_x)
-                if total_dist == 0:
-                    total_dist = 1
-                dampener = dist_x / total_dist
-                
-                # Wave up/down along a sine curve based on X position
-                self.pos.y = self.target_y + math.sin(self.pos.x * 0.015) * 100 * dampener
-            else:
-                self.pos.x = self.target_x
-                self.pos.y = self.target_y
-                self.phase = "in_formation"
-
-        elif self.phase == "in_formation":
-            # Hover slightly up/down for a lively visual effect
-            self.wave_time += 0.2
-            self.pos.y = self.target_y + math.sin(self.wave_time) * 1
-
-            # Shooting logic
-            self.shoot_cooldown -= 1
-            if self.shoot_cooldown <= 0:
-                if self.stage == 4:
-                    self.shoot_cooldown = random.randint(240, 480) # Stage 4: Shoot every 4 to 8 seconds
-                elif self.stage == 5:
-                    self.shoot_cooldown = random.randint(180, 360) # Stage 5: Shoot every 3 to 6 seconds
-                else:
-                    self.shoot_cooldown = random.randint(60, 180) # Default: Shoot every 1 to 3 seconds
-                # Sync rect before shooting
-                self.rect.x = int(self.pos.x)
-                self.rect.y = int(self.pos.y)
-                fired_bullet = self.shoot(player_pos)
-
-        elif self.phase == "stage2_align":
-            # Keep plane off-screen and stationary horizontally at its spawn position
+        elif self.phase == "stage2_align": # stage 2 & 3 (aligning to player position)
             self.pos.y = self.target_y
 
             self.align_timer -= 1
@@ -192,53 +139,75 @@ class Alien(pygame.sprite.Sprite):
                     self.dive_vy = 1
                 self.phase = "stage2_dive"
 
-        elif self.phase == "stage2_dive":
+        elif self.phase == "stage2_dive": # stage 2 & 3 (crashing to player)
             current_speed = self.speed
             if player_touching_edge:
                 current_speed = self.speed * 2.5
             
-            # Crash at you (dive-bomb)! Move along the locked vector at 2.8x speed
             self.pos.x += self.dive_vx * current_speed * 2.8
             self.pos.y += self.dive_vy * current_speed * 2.8
 
-        else:
-            current_speed = self.speed
-            if self.stage in [2, 3] and player_touching_edge:
-                current_speed = self.speed * 2.5
+        elif self.phase == "spawning_portal": #stage 4 and 5 (spawning portal effects)
+            self.portal_age += 1
+            progress = min(1.0, self.portal_age / 45)
+            self.enemy_alpha = min(255, self.portal_age * 7)
+            self.enemy_scale = 0.65 + progress * 0.35
+            
+            if self.portal_age >= 45:
+                self.phase = "entering"
+                self.enemy_alpha = 255
+                self.enemy_scale = 1.0
+                self.spawn_x = self.pos.x
 
-            # Standard Stage 1 / Moving Behavior
-            if self.movement_pattern == "pattern1":
-                self.pos.y += current_speed
-                self.wave_time += self.wave_speed
-                self.pos.x = self.spawn_x + (self.wave_amplitude * math.sin(self.wave_time))  
+        elif self.phase == "entering": # stage 4 and 5 (flying to formation slot)
+            if abs(self.pos.x - self.target_x) > self.speed:
+                if self.pos.x < self.target_x:
+                    self.pos.x += self.speed
+                else:
+                    self.pos.x -= self.speed
                 
-            elif self.movement_pattern == "pattern2":
-                self.pos.y += current_speed
-                self.wave_time += self.wave_speed
-                self.pos.x = self.spawn_x + (self.wave_amplitude * math.sin(self.wave_time)) 
+                # sinusoidal wave entry path
+                dist_x = abs(self.pos.x - self.target_x)
+                total_dist = abs(self.spawn_x - self.target_x)
+                if total_dist == 0:
+                    total_dist = 1
+                dampener = dist_x / total_dist
                 
-            elif self.movement_pattern == "sine":
-                self.pos.y += current_speed
-                self.wave_time += self.wave_speed
-                self.pos.x = self.spawn_x + (self.wave_amplitude * math.sin(self.wave_time * 1.5))
-                
-            else:  # "straight" movement
-                self.pos.y += current_speed
+                self.pos.y = self.target_y + math.sin(self.pos.x * 0.015) * 100 * dampener
+            else:
+                self.pos.x = self.target_x
+                self.pos.y = self.target_y
+                self.phase = "in_formation"
 
-        # Update the rect and dynamic thruster fire tail
+        elif self.phase == "in_formation": # stage 4 and 5 (enemies start shooting)
+            # idle hover effects
+            self.wave_time += 0.2
+            self.pos.y = self.target_y + math.sin(self.wave_time) * 2
+
+            # shooting logic
+            self.shoot_cooldown -= 1
+            if self.shoot_cooldown <= 0:
+                if self.stage == 4:
+                    self.shoot_cooldown = random.randint(240, 480)
+                else:
+                    self.shoot_cooldown = random.randint(180, 360)
+                self.rect.x = int(self.pos.x)
+                self.rect.y = int(self.pos.y)
+                fired_bullet = self.shoot(player_pos)
+
+        # calculation for drawing/rendering
         raw_image = self.animator.get_current_frame()
-        
         if self.phase == "stage2_align":
-            # Completely invisible off-screen targeting phase!
+            # set targeting direction for crashing
             self.image = pygame.Surface((0, 0), pygame.SRCALPHA)
             self.rect = self.image.get_rect()
             self.rect.center = (int(self.pos.x), int(self.pos.y))
         else:
-            # Crop to the actual boundaries of the plane first
             tight_box = raw_image.get_bounding_rect()
             base_image = raw_image.subsurface(tight_box)
-            
-            if getattr(self, 'shield_hp', 0) > 0:
+
+            # create shield effect for stationary
+            if self.shield_hp > 0: #stage 2 and 3 only
                 self.time_alive += 1/60.0
                 pulse = (math.sin(self.time_alive * 8) + 1) / 2
                 alpha = int(100 + 155 * pulse)
@@ -267,30 +236,27 @@ class Alien(pygame.sprite.Sprite):
             else:
                 self.image = base_image
             
+            # add rotation effects for plane
             if self.phase == "stage2_dive":
-                # Rotate the plane and the flame to face the movement/dive vector perfectly
                 deg = math.degrees(math.atan2(self.dive_vy, self.dive_vx))
                 rotation_angle = 90.0 - deg
                 rotated_img = pygame.transform.rotate(self.image, rotation_angle)
-                # Crop transparent padding to keep the hit-box as tight as possible
+                
                 tight_rotated_box = rotated_img.get_bounding_rect()
                 self.image = rotated_img.subsurface(tight_rotated_box)
                 
-            # Scale and set alpha for portal/dissolve effects
-            enemy_scale = getattr(self, "enemy_scale", 1.0)
-            enemy_alpha = getattr(self, "enemy_alpha", 255)
-            
-            if enemy_scale != 1.0 or enemy_alpha != 255:
+            # draw portal effects for stage 4 & 5
+            if self.phase == "spawning_portal":
                 w, h = self.image.get_size()
-                new_w = max(1, int(w * enemy_scale))
-                new_h = max(1, int(h * enemy_scale))
+                new_w = max(1, int(w * self.enemy_scale))
+                new_h = max(1, int(h * self.enemy_scale))
                 self.image = pygame.transform.smoothscale(self.image, (new_w, new_h))
-                self.image.set_alpha(max(0, min(255, int(enemy_alpha))))
+                self.image.set_alpha(max(0, min(255, int(self.enemy_alpha))))
                 
             self.rect = self.image.get_rect()
             self.rect.center = (int(self.pos.x), int(self.pos.y))
         
-        # Cleanup if it goes off bottom of screen
+        # cleanup if it goes off bottom of screen
         if self.pos.y > utils.SCREEN_H:
             self.kill()
         return fired_bullet
@@ -309,7 +275,8 @@ class Alien(pygame.sprite.Sprite):
         return bullet
 
     def takeDamage(self, damage):
-        if getattr(self, 'shield_hp', 0) > 0:
+        # check if alien has shield
+        if self.shield_hp > 0:
             self.shield_hp -= damage
             if self.shield_hp <= 0:
                 soundMgr.play_sfx("shield break")
@@ -319,9 +286,8 @@ class Alien(pygame.sprite.Sprite):
         if self.hp <= 0:
             soundMgr.play_sfx("spaceship died")
             if self.stage in [4, 5]:
-                # Shatter the eye alien into many glowing flying fragments!
                 ShatterEffect.trigger(self, rows=4, cols=4)
             else:
                 death_effect = SparksEffect(self)
-                death_effect.start()
+                death_effect.play_effects()
             self.kill()

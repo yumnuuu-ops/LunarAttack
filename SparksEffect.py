@@ -22,7 +22,7 @@ class SparksEffect(pygame.sprite.Sprite):
         self._create_sparks()
         self._draw_effect()
 
-    def start(self):
+    def play_effects(self):
         particle_group.add(self)
 
     def _create_sparks(self):
