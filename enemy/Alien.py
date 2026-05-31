@@ -211,7 +211,7 @@ class Alien(pygame.sprite.Sprite):
                 self.time_alive += 1/60.0
                 pulse = (math.sin(self.time_alive * 8) + 1) / 2
                 alpha = int(100 + 155 * pulse)
-                color = (255, 50, 150) # Neon Pink/Purple
+                color = (255, 50, 150) 
                 
                 mask = pygame.mask.from_surface(base_image)
                 sil = mask.to_surface(setcolor=(*color, alpha), unsetcolor=(0, 0, 0, 0))

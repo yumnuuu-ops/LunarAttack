@@ -269,12 +269,11 @@ class EnemyManager:
                 self.hud.take_damage()
 
     def draw(self, game_surface, stage):
-        # Draw bullets and alien group sprites
         self.enemy_projectile_group.draw(game_surface)
         self.alien_group.draw(game_surface)
         
-        # Render spawn portals and death dissolve effects
-        portal_positions = set()
+        # render portals and dissolve effects
+        portal_positions = set() # (x, y, age)
         for alien in self.alien_group:
             p = getattr(alien, "phase", "")
             if p == "spawning_portal":
@@ -292,19 +291,18 @@ class EnemyManager:
             pygame.draw.circle(portal, (80, 10, 130, int(alpha * 0.35)), center, max(1, radius - 22))
             game_surface.blit(portal, portal.get_rect(center=(px, py)))
             
-        # Render lock-on visual sights (no red rect debug outlines!)
+        # render lock-on visual laser
         for alien in self.alien_group:
-            # Draw blinking red Lock-On laser sights only for stationary sentries
             if hasattr(alien, "phase") and alien.phase == "stationary":
                 timer = alien.shoot_cooldown
                 crit_threshold = 15
                 warn_threshold = 40
                 
                 if timer <= crit_threshold:
-                    # Thick solid warning beam pointing directly at the player!
+                    # solid warning beam
                     pygame.draw.line(game_surface, (255, 0, 0), alien.rect.center, self.player.rect.center, 3)
                 else:
-                    # Blinks faster as cooldown counts down
+                    # blink faster as cooldown counts down
                     blink_interval = 8 if timer > warn_threshold else 4
                     if pygame.time.get_ticks() // (blink_interval * 15) % 2 == 0:
                         pygame.draw.line(game_surface, (255, 30, 30), alien.rect.center, self.player.rect.center, 2)
