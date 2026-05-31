@@ -112,7 +112,7 @@ class Weapon:
                 if self.selectedWeapon != old_weapon:
                     animation = assetMgr.getAnim(self.selectedWeapon)
                     self.animator = AnimationManager(animation, self.anim_fps)
-vb
+
         if is_firing:
             # If pressing down, run the animation loop normally
             self.animator.update()
