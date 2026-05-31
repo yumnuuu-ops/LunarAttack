@@ -8,7 +8,7 @@ class SoundManager:
         "game": "audio/music/igm.mp3",
         "gameover": "audio/music/gom.mp3",
         "boss": "audio/music/bfm.mp3",
-        "win": "audio/music/win.mp3",
+        "win": "audio/music/winning.mp3",
     }
 
     TRACK_VOLUMES = {
