@@ -309,7 +309,7 @@ while running:
 
         if game_over_screen.action == "PLAY_AGAIN":
             currState = PLAY_SCREEN
-
+            bossFight.reset()
             play_screen = PlayScreen(screen_w, screen_h, score_manager)
             play_screen.on_hover = lambda: soundMgr.play_sfx("select")
             play_screen.on_error = lambda: soundMgr.play_sfx("error")
@@ -320,6 +320,7 @@ while running:
             currState = MENU
             bossFight.reset()
             menu.reset()
+            player.image = assetMgr.getTexture("MainShip Full")
             soundMgr.play_music("menu")
 
     elif currState == HISTORY:
@@ -359,6 +360,7 @@ while running:
             credits_screen.open()
             currState = CREDITS
         bossFight.reset()
+        player.image = assetMgr.getTexture("MainShip Full")
     # Clear the intermediate drawing surface
 
     game_surface.fill((0, 0, 0))
@@ -523,7 +525,7 @@ while running:
         fade.update(g.dt)  # Smoothly increase alpha towards black
         if fade.fade_alpha >= 255:
             currState = transition_target_state
-            fade.fading_in = True 
+            fade.fading_in = True
             transition_active = False  # Turn off transition hold
 
             # Run your boss room entry setups safely here
