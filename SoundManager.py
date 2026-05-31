@@ -11,6 +11,10 @@ class SoundManager:
         "win": "audio/music/win.mp3",
     }
 
+    TRACK_VOLUMES = {
+        "boss": 0.07,  # lower than default 0.4
+    }
+
     SFX = {
         "back": "audio/sfx/Menu/UI_Back.wav",
         "confirm": "audio/sfx/Menu/UI_Confirm.wav",
@@ -64,7 +68,7 @@ class SoundManager:
     def __init__(self):
         self.current_track = None
         self.music_volume  = 0.14
-        self.sfx_volume = 0.1
+        self.sfx_volume = 0.13
 
         self.sounds = {}
         for name, path in self.SFX.items():
@@ -86,7 +90,8 @@ class SoundManager:
         if self.current_track == track_name:
             return
         pygame.mixer.music.load(path)
-        pygame.mixer.music.set_volume(self.music_volume)
+        volume = self.TRACK_VOLUMES.get(track_name, self.music_volume)
+        pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(loop)
         self.current_track = track_name
 
