@@ -19,35 +19,35 @@ class EnemyManager:
         self.screen_h = screen_h
         self.trigger_shake = trigger_shake_func
         
-        # Groups managed
         self.alien_group = pygame.sprite.Group()
         self.enemy_projectile_group = pygame.sprite.Group()
         
-        # Spawning configuration
         self.enemies_spawned_so_far = 0
         self.total_enemies_to_spawn = 0
         
-        # Formations setup
-        self.last_y = 80
-        self.y_spacing = 20
-        
-        # Sentry tracking for stage 2 and 3
+        #sentry tracking for stage 2 and 3
         self.sentry_left = None
         self.sentry_right = None
         
-        # Setup Grid Slots
+
+        #formations for stage 4 & 5
+        self.last_y = 80
+        self.y_spacing = 20
+
         cols_s4 = [((screen_w - 5 * 150) // 2) + i * 150 for i in range(6)]
         self.grid_slots_stage4 = [(col, self.last_y + ((5 - i if i > 2 else i) * self.y_spacing)) for i, col in enumerate(cols_s4)]
         
         cols_s5 = [((screen_w - 7 * 130) // 2) + i * 130 for i in range(7)]
         self.grid_slots_stage5 = []
-        # Build second row formation (closest to player - spawns first)
+
+        #second row formation (closest to player&spawns first)
         for i, col in enumerate(cols_s5):
             self.grid_slots_stage5.append((col, 2 * self.last_y + ((6 - i if i > 2 else i) * self.y_spacing)))
-        # Build first row formation (further away - spawns second)
+        #first row formation
         for i, col in enumerate(cols_s5):
             self.grid_slots_stage5.append((col, self.last_y + ((6 - i if i > 2 else i) * self.y_spacing)))
             
+        
         self.formation = Formation(screen_w, screen_h, self.grid_slots_stage4)
         self.alien_types = ["alien_drone", "tendril_alien", "eye_spawn"]
 
@@ -62,7 +62,7 @@ class EnemyManager:
         
         if stage == STAGE_2:
             self.enemies_spawned_so_far = 2
-            self.total_enemies_to_spawn = 40  # Set higher so it relies on killing sentries
+            self.total_enemies_to_spawn = 40 
             p1 = Alien("tendril_alien", 480, 150, stage=2)
             p1.phase = "stationary"
             self.alien_group.add(p1)
@@ -73,7 +73,7 @@ class EnemyManager:
             self.sentry_right = p2
         elif stage == STAGE_3:
             self.enemies_spawned_so_far = 2
-            self.total_enemies_to_spawn = 60  # Set higher so it relies on killing sentries
+            self.total_enemies_to_spawn = 60 
             p1 = Alien("tendril_alien", 480, 150, stage=3)
             p1.phase = "stationary"
             self.alien_group.add(p1)
@@ -132,13 +132,11 @@ class EnemyManager:
             if right_alive: valid_sides.append("right")
             
             if not valid_sides:
-                # Both front sentries are killed! Skip spawning and jump to the end of the stage.
                 self.enemies_spawned_so_far = self.total_enemies_to_spawn
                 return
                 
             num_to_spawn = random.choice([2, 3])
             for idx in range(num_to_spawn):
-                # Unlimited spawning while sentries are active
                 side = random.choice(valid_sides)
                 if side == "left":
                     spawn_x = -100 # Off-screen left
@@ -149,15 +147,15 @@ class EnemyManager:
                 self.alien_group.add(new_alien)
                 self.enemies_spawned_so_far += 1
         elif stage in [STAGE_4, STAGE_5]:
-            # Spawn exactly 2 slots (1 symmetric pair) per tick for a clean, synchronized "two at once" portal emergence!
+            # get 2 slots for left and right side
             slots_to_spawn = self.formation.get_spawn_slots()
             spawned_any = False
             for idx, slot in enumerate(slots_to_spawn):
                 if self.enemies_spawned_so_far < self.total_enemies_to_spawn:
-                    # Spawn both aliens at the shared center portal coordinates (640, 150)
+                    # center position
                     spawn_x = 640
                     spawn_y = 150
-                    alien_type = self.alien_types[2] # Use eye_spawn for both STAGE_4 and STAGE_5
+                    alien_type = self.alien_types[2] 
                     new_alien = Alien(alien_type, spawn_x, spawn_y, stage=4 if stage == STAGE_4 else 5,
                                       target_x=slot[0], target_y=slot[1])
                     
