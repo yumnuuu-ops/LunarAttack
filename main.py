@@ -15,6 +15,7 @@ from PauseMenu import PauseMenu
 from GameOver import GameOver
 from History import History
 from Credits import Credits
+from FadeTransition import FadeTransition
 import globals as g
 from globals import soundMgr, assetMgr, particle_group, projectile_group
 
@@ -197,6 +198,8 @@ is_paused = False
 #game over screen
 game_over_screen = None
 
+fade = FadeTransition(screen_w, screen_h)
+
 history_screen = History(screen_w, screen_h, score_manager)
 history_screen.on_hover = lambda: soundMgr.play_sfx("select")
 history_screen.on_click = lambda: soundMgr.play_sfx("confirm")
@@ -268,18 +271,28 @@ while running:
                 condition = condition and len(particle_group) == 0
 
                 if condition:
+                    if currState == STAGE_5:
+                        transition_active = True
+                        fade.fading_in = False
+                        fade.fade_alpha = 0
+                        transition_target_state = BOSS
+                        continue
+
                     enemy_manager.alien_group.empty()
                     projectile_group.empty()
                     enemy_manager.enemy_projectile_group.empty()
                     enemy_manager.formation.reset()
 
                     hud.next_wave()
-                    currState = target_state
+                    if not (currState == BOSS and fade.fade_alpha > 0):
+                        currState = target_state
                     enemy_manager.setup_stage_config(currState)
+
                     if currState == BOSS:
                         soundMgr.stop_music()
                         soundMgr.play_music("boss")
                         bg.set_layer("imgs/Background/PurpleNebula/pNebula4.png")
+
                     # Instantly spawn the first wave of enemies upon entering the new stage
                     enemy_manager.spawn_aliens(currState)
                     # Dynamically set faster spawn timer for Stage 2 & 3 (750ms) and default (1500ms) for other stages
@@ -351,6 +364,8 @@ while running:
     game_surface.fill((0, 0, 0))
 
     # draw
+    if transition_active:
+        fade.draw(game_surface)
 
     if currState == MENU:
         if not soundMgr.is_playing():
@@ -477,6 +492,11 @@ while running:
         bg.draw(game_surface)
         end_cutscene.draw(game_surface)
 
+    if transition_active or (currState == BOSS and fade.fade_alpha > 0):
+        if currState == BOSS:
+            fade.update(g.dt)  # Let it fade out from black smoothly in the boss room
+        fade.draw(game_surface)
+
     # Process and Blit Screen Shake
     shake_offset_x = 0
     shake_offset_y = 0
@@ -500,7 +520,26 @@ while running:
 
     # Transition to the next stage
     if transition_active:
-        print("preparing for: " + transition_target_state)
+        fade.update(g.dt)  # Smoothly increase alpha towards black
+        if fade.fade_alpha >= 255:
+            currState = transition_target_state
+            fade.fading_in = True 
+            transition_active = False  # Turn off transition hold
+
+            # Run your boss room entry setups safely here
+            enemy_manager.alien_group.empty()
+            projectile_group.empty()
+            enemy_manager.enemy_projectile_group.empty()
+            enemy_manager.formation.reset()
+
+            hud.next_wave()
+            enemy_manager.setup_stage_config(currState)
+
+            soundMgr.stop_music()
+            soundMgr.play_music("boss")
+            bg.set_layer("imgs/Background/PurpleNebula/pNebula4.png")
+            enemy_manager.spawn_aliens(currState)
+            pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
 
     if is_paused:
         pause_menu.update(events)
