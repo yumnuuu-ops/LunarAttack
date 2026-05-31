@@ -216,10 +216,6 @@ while running:
             if not transition_active and not is_paused:
                 enemy_manager.spawn_aliens(currState)
 
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_z:
-            soundMgr.play_sfx("phase 1 to 2") # phase 2 to eclipse     phase 1 to 2      eclipse to scarred
-
-
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             if currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5]:
                 is_paused = not is_paused
