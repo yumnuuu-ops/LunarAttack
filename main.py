@@ -215,8 +215,6 @@ while running:
         elif event.type == SPAWN_ALIEN_EVENT and currState in [STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, BOSS]:
             if not transition_active and not is_paused:
                 enemy_manager.spawn_aliens(currState)
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
-            currState = BOSS
 
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_z:
             soundMgr.play_sfx("phase 1 to 2") # phase 2 to eclipse     phase 1 to 2      eclipse to scarred
@@ -231,7 +229,7 @@ while running:
                 else:
                     pygame.mixer.music.unpause()
 
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_n:
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_n:      # REMEMBER TO REMOVE <===================================================================================
             currState = BOSS
             bg.set_layer("imgs/Background/PurpleNebula/pNebula4.png")
             soundMgr.stop_music()
@@ -302,7 +300,6 @@ while running:
 
         if game_over_screen.action == "PLAY_AGAIN":
             currState = PLAY_SCREEN
-            #player.hp = 100
 
             play_screen = PlayScreen(screen_w, screen_h, score_manager)
             play_screen.on_hover = lambda: soundMgr.play_sfx("select")
@@ -312,8 +309,8 @@ while running:
 
         elif game_over_screen.action == "MENU":
             currState = MENU
+            bossFight.reset()
             menu.reset()
-            #player.hp = 100 #think of this as resetting player health to full health
             soundMgr.play_music("menu")
 
     elif currState == HISTORY:
@@ -335,10 +332,6 @@ while running:
 
         if bossFight.fight_start:
             bossFight.fight_start = False
-            soundMgr.stop_music()
-            bg.set_layer("imgs/Background/PurpleNebula/pNebula4.png")
-            soundMgr.stop_music()
-            soundMgr.play_music("boss")
 
         if bossFight.finished:
             soundMgr.stop_music()
@@ -356,6 +349,7 @@ while running:
         if end_cutscene.action == "DONE":
             credits_screen.open()
             currState = CREDITS
+        bossFight.reset()
     # Clear the intermediate drawing surface
 
     game_surface.fill((0, 0, 0))
@@ -539,7 +533,6 @@ while running:
             # Instantly spawn Stage 1 enemies on restart and reset spawn rate
             enemy_manager.spawn_aliens(currState)
             pygame.time.set_timer(SPAWN_ALIEN_EVENT, 1500)
-            #player.hp = 100
             pygame.mixer.music.unpause()
 
         elif pause_menu.action == "MENU":
@@ -547,7 +540,6 @@ while running:
             soundMgr.stop_music()
             currState = MENU
             menu.reset()
-            #player.hp = 100
             soundMgr.play_music("menu")
 
         elif  pause_menu.action == "QUIT":

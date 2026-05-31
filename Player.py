@@ -9,7 +9,8 @@ class Player:
         self.image = assetMgr.getTexture("MainShip Full")
         self.rect = assetMgr.getRect("MainShip Full")
         self.mask = pygame.mask.from_surface(self.image)
-        self.hp = 13
+        self.hp = 15
+        self.maxHp = 15
         self.pos = pygame.math.Vector2(x, y)
         self.speed = 10
 
@@ -27,12 +28,31 @@ class Player:
         if self.invincible:
             return
         self.hp -= damage
+
+        health_ratio = self.hp / self.maxHp
+        old_center = self.rect.center
+
+        if health_ratio <= 0.25:
+            self.image = assetMgr.getTexture("MainShip VDam")
+            self.rect = self.image.get_rect(center=old_center)
+        elif health_ratio <= 0.50:
+            self.image = assetMgr.getTexture("MainShip Dam")
+            self.rect = self.image.get_rect(center=old_center)
+        elif health_ratio <= 0.75:
+            self.image = assetMgr.getTexture("MainShip SDam")
+            self.rect = self.image.get_rect(center=old_center)
+        else:
+            self.image = assetMgr.getTexture("MainShip Full")
+            self.rect = self.image.get_rect(center=old_center)
+            
+        self.mask = pygame.mask.from_surface(self.image)
+
         if hasattr(self, 'trigger_shake') and self.trigger_shake:
             self.trigger_shake(10, 15)
 
         if self.hp > 0 :
             soundMgr.play_sfx("player hit")
-        elif self.hp == 0:
+        elif self.hp <= 0:
             soundMgr.play_sfx("player dies")
 
         self.invincible = True

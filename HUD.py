@@ -55,6 +55,7 @@ class HUD:
             0: pygame.transform.scale(pygame.image.load("imgs/HUD/heart_dead.png").convert_alpha(), (28, 25)),
         }
         player.hp = self.DIFF_HEARTS.get(difficulty, 3)
+        player.maxHp = self.DIFF_HEARTS.get(difficulty, 3)
 
         # white flash overlay
         self.flash_overlay = pygame.Surface((28, 25), pygame.SRCALPHA)

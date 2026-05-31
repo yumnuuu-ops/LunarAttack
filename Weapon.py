@@ -14,7 +14,7 @@ class Weapon:
 
         self.fireRate = 7
         self.projectileSpeed = 11
-        self.damage = 10
+        self.damage = 8
         self.anim_fps = 24
         self.cooldown = 0
 
@@ -87,9 +87,9 @@ class Weapon:
                 old_weapon = self.selectedWeapon
                 if event.key == pygame.K_1:
                     self.selectedWeapon = "AutoCannon"
-                    self.fireRate = 8
+                    self.fireRate = 7
                     self.projectileSpeed = 11
-                    self.damage = 10
+                    self.damage = 8
                 elif event.key == pygame.K_2:
                     self.selectedWeapon = "Rockets"
                     self.fireRate = 6
@@ -97,9 +97,9 @@ class Weapon:
                     self.damage = 25
                 elif event.key == pygame.K_3:
                     self.selectedWeapon = "Zapper"
-                    self.fireRate = 12
+                    self.fireRate = 14
                     self.projectileSpeed = 15
-                    self.damage = 7
+                    self.damage = 5
                 elif event.key == pygame.K_4:
                     self.selectedWeapon = "BigGun"
                     self.fireRate = 0.5

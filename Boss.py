@@ -52,7 +52,7 @@ def loadAsteroidImages():
 
 class Boss:
     max_hp = 5000
-    phase2_hp = max_hp * 0.75 # Floor Division, phase 2 will start when HP is 50% or below
+    phase2_hp = max_hp * 0.65 # Floor Division, phase 2 will start when HP is 50% or below
     giant_hp = max_hp * 0.3
 
     def __init__(self, screen_w, screen_h):
