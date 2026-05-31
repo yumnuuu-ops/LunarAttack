@@ -309,6 +309,7 @@ while running:
 
         if game_over_screen.action == "PLAY_AGAIN":
             currState = PLAY_SCREEN
+            soundMgr.stop_sfx("mass active")
             bossFight.reset()
             play_screen = PlayScreen(screen_w, screen_h, score_manager)
             play_screen.on_hover = lambda: soundMgr.play_sfx("select")
@@ -318,6 +319,7 @@ while running:
 
         elif game_over_screen.action == "MENU":
             currState = MENU
+            soundMgr.stop_sfx("mass active")
             bossFight.reset()
             menu.reset()
             player.image = assetMgr.getTexture("MainShip Full")
@@ -359,6 +361,7 @@ while running:
         if end_cutscene.action == "DONE":
             credits_screen.open()
             currState = CREDITS
+        soundMgr.stop_sfx("mass active")
         bossFight.reset()
         player.image = assetMgr.getTexture("MainShip Full")
     # Clear the intermediate drawing surface
