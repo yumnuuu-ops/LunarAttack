@@ -44,7 +44,7 @@ class Player:
         else:
             self.image = assetMgr.getTexture("MainShip Full")
             self.rect = self.image.get_rect(center=old_center)
-            
+
         self.mask = pygame.mask.from_surface(self.image)
 
         if hasattr(self, 'trigger_shake') and self.trigger_shake:
@@ -54,6 +54,8 @@ class Player:
             soundMgr.play_sfx("player hit")
         elif self.hp <= 0:
             soundMgr.play_sfx("player dies")
+            self.image = assetMgr.getTexture("MainShip Full")
+            self.rect = self.image.get_rect(center=old_center)
 
         self.invincible = True
         self.invincibility_timer = 2.0  # invincibility of 2 seconds
