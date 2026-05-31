@@ -19,7 +19,6 @@ class AssetManager:
             texture = pygame.transform.scale_by(texture, self.global_scale)
 
         self.textures[name] = texture
-        return texture
 
     def loadTextureScale(self, name, path, scale):
         if not name or not path:
@@ -31,7 +30,6 @@ class AssetManager:
             texture = pygame.transform.scale_by(texture, scale)
 
         self.textures[name] = texture
-        return texture
 
     def getTexture(self, name):
         if not name:
