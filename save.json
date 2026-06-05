@@ -4,87 +4,87 @@
   "history": [
     {
       "name": "YUM",
-      "score": 4400,
+      "score": 5200,
       "difficulty": "Easy",
       "wave_reached": 4,
-      "date": "2026-05-31",
-      "is_highscore": false
-    },
-    {
-      "name": "W",
-      "score": 30600,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-31",
+      "date": "2026-06-05",
       "is_highscore": true
     },
     {
-      "name": "W",
-      "score": 0,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-31",
+      "name": "YUM",
+      "score": 1500,
+      "difficulty": "Easy",
+      "wave_reached": 4,
+      "date": "2026-06-05",
       "is_highscore": false
     },
     {
-      "name": "W",
-      "score": 10575,
+      "name": "YUM",
+      "score": 500,
+      "difficulty": "Easy",
+      "wave_reached": 2,
+      "date": "2026-06-05",
+      "is_highscore": false
+    },
+    {
+      "name": "YUM",
+      "score": 500,
+      "difficulty": "Easy",
+      "wave_reached": 2,
+      "date": "2026-06-05",
+      "is_highscore": false
+    },
+    {
+      "name": "YUM",
+      "score": 0,
+      "difficulty": "Eclipse",
+      "wave_reached": 1,
+      "date": "2026-06-05",
+      "is_highscore": false
+    },
+    {
+      "name": "YUM",
+      "score": 500,
+      "difficulty": "Easy",
+      "wave_reached": 2,
+      "date": "2026-06-05",
+      "is_highscore": false
+    },
+    {
+      "name": "YUM",
+      "score": 750,
       "difficulty": "Medium",
       "wave_reached": 2,
-      "date": "2026-05-31",
+      "date": "2026-06-05",
       "is_highscore": false
     },
     {
-      "name": "W",
-      "score": 9975,
+      "name": "YUM",
+      "score": 750,
       "difficulty": "Medium",
       "wave_reached": 2,
-      "date": "2026-05-31",
+      "date": "2026-06-05",
       "is_highscore": false
     },
     {
-      "name": "TESTING",
+      "name": "YUM",
       "score": 0,
-      "difficulty": "Medium",
+      "difficulty": "Hard",
       "wave_reached": 1,
-      "date": "2026-05-31",
+      "date": "2026-06-05",
       "is_highscore": false
     },
     {
-      "name": "TESTING",
-      "score": 10800,
-      "difficulty": "Medium",
-      "wave_reached": 3,
-      "date": "2026-05-31",
-      "is_highscore": false
-    },
-    {
-      "name": "WWFDWF",
-      "score": 450,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-31",
-      "is_highscore": false
-    },
-    {
-      "name": "WWFDWF",
+      "name": "YUM",
       "score": 0,
-      "difficulty": "Medium",
+      "difficulty": "Eclipse",
       "wave_reached": 1,
-      "date": "2026-05-31",
-      "is_highscore": false
-    },
-    {
-      "name": "WWFDWF",
-      "score": 0,
-      "difficulty": "Medium",
-      "wave_reached": 1,
-      "date": "2026-05-31",
+      "date": "2026-06-05",
       "is_highscore": false
     }
   ],
   "stats": {
-    "total_runs": 26,
+    "total_runs": 41,
     "highest_score": 54825,
     "highest_wave": 6
   }
