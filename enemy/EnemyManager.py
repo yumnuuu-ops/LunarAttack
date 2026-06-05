@@ -254,8 +254,9 @@ class EnemyManager:
             collided_aliens = [alien for alien in self.alien_group if self.player.rect.colliderect(alien.rect) and getattr(alien, "phase", "") not in ["spawning_portal", "dissolving"]]
             for alien in collided_aliens:
                 alien.kill()
-                self.player.takeDamage(1)
-                self.hud.take_damage()
+                if not self.player.invincible:
+                    self.player.takeDamage(1)
+                    self.hud.take_damage()
                 if stage in [STAGE_4, STAGE_5]:
                     self.formation.release_alien(alien)
 
