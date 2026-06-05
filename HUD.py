@@ -11,16 +11,16 @@ class HUD:
         "Hard": 2.0,
         "Eclipse": 4.0,
     }
-
+#changes easy mode hearts to 20 cause you guys will get skill diffed
     DIFF_HEARTS = {
-        "Easy": 15,
+        "Easy": 20,
         "Medium": 10,
         "Hard": 5,
         "Eclipse": 1,
     }
 
     MAX_SLOTS = 5
-    CHARGES_PER_SLOT = 3
+    CHARGES_PER_SLOT = 4
     FLASH_DURATION = 20  # frames
 
     def __init__(self, screen_w, screen_h, player_name, difficulty, player):
@@ -49,6 +49,7 @@ class HUD:
 
         # heart images
         self.heart_imgs = {
+            4: pygame.transform.scale(pygame.image.load("imgs/HUD/heart4.png").convert_alpha(), (28, 25)),
             3: pygame.transform.scale(pygame.image.load("imgs/HUD/heart3.png").convert_alpha(), (28, 25)),
             2: pygame.transform.scale(pygame.image.load("imgs/HUD/heart2.png").convert_alpha(), (28, 25)),
             1: pygame.transform.scale(pygame.image.load("imgs/HUD/heart1.png").convert_alpha(), (28, 25)),
@@ -63,7 +64,7 @@ class HUD:
 
         # total charges and slot system
         total_charges = self.DIFF_HEARTS.get(difficulty, 5)
-        self.slots = []  # list of 5 charge values (0-3)
+        self.slots = []  # list of 5 charge values (0-4)
         self.flash_slots = [0] * self.MAX_SLOTS  # flash timer per slot
 
         remaining = total_charges

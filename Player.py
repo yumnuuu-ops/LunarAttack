@@ -9,8 +9,8 @@ class Player:
         self.image = assetMgr.getTexture("MainShip Full")
         self.rect = assetMgr.getRect("MainShip Full")
         self.mask = pygame.mask.from_surface(self.image)
-        self.hp = 15
-        self.maxHp = 15
+        self.hp = 20
+        self.maxHp = 20
         self.pos = pygame.math.Vector2(x, y)
         self.speed = 10
 
