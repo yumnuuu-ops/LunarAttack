@@ -65,3 +65,6 @@ LunarAttack/
 ## Contributions
 
 - Richardo Osmond: Designed and implemented the entire **boss battle system** (`Boss.py` and `BossFight.py`), including the boss's phase-based HP states, scripted intro sequence, special attacks (beam/gamma beam), and the asteroid attack system along all the other attacks and a simple decision tree.
+- Yumnu:
+- Kenzie:
+- Lim Jin An: 
